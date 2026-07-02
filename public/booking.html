@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avana Headoffice Conference Room booking</title>
+  <meta name="description" content="Book the conference room and view real-time availability calendar.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <img src="logo.png" alt="Avana Logo" style="height: 70px; margin-bottom: 1.2rem; border-radius: 12px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));">
+    <h1>Avana Headoffice Conference Room booking</h1>
+    <p>Select a date to schedule your booking and check room availability</p>
+  </header>
+
+  <main class="container">
+    <!-- Calendar View Card -->
+    <div id="calendar-card" class="card">
+      <div class="calendar-controls">
+        <button id="prev-month-btn" class="btn-nav" aria-label="Previous Month">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+          Prev
+        </button>
+        <h2 id="month-year-display">June 2026</h2>
+        <button id="next-month-btn" class="btn-nav" aria-label="Next Month">
+          Next
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      </div>
+
+      <div class="calendar-grid" id="calendar-grid">
+        <!-- Day headers (Sun, Mon, Tue, etc.) will be inserted here -->
+        <!-- Calendar days will be inserted here by JavaScript -->
+      </div>
+
+      <!-- Color Legend at the Bottom -->
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-dot available"></span>
+          <span>Available (Green)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot partially"></span>
+          <span>Partially Booked (Orange)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot booked"></span>
+          <span>Fully Booked (Red)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booked Slots Display Card -->
+    <div id="booked-slots-card" class="card" style="margin-top: 2rem; border-top: 4px solid var(--primary);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text);">📅 Booked Timings for <span id="selected-date-display">Selected Date</span></h3>
+        <span id="slot-count-badge" style="background: #eef2ff; color: #4f46e5; padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700;">0 Bookings</span>
+      </div>
+      <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Click on any date in the calendar above to view its confirmed booking time slots.</p>
+      <div id="booked-slots-list" style="display: flex; flex-direction: column; gap: 0.8rem;">
+        <div style="padding: 1.5rem; text-align: center; background: #f9fafb; border-radius: 12px; color: var(--muted); font-weight: 500;">
+          Select a date from the calendar above to view booked timings.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Booking Modal -->
+  <div class="modal-overlay" id="booking-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Book Conference Room</h3>
+        <button type="button" class="btn-close" id="close-modal-btn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <form id="booking-form">
+        <!-- Date Range Selection -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="booking-start-date">Start Date *</label>
+            <input type="date" id="booking-start-date" name="startDate" required>
+          </div>
+          <div class="form-group">
+            <label for="booking-end-date">End Date *</label>
+            <input type="date" id="booking-end-date" name="endDate" required>
+          </div>
+        </div>
+
+        <!-- Name -->
+        <div class="form-group">
+          <label for="booking-name">Full Name *</label>
+          <input type="text" id="booking-name" name="name" placeholder="John Doe" required>
+        </div>
+
+        <!-- Reason -->
+        <div class="form-group">
+          <label for="booking-reason">Reason for Booking Room *</label>
+          <textarea id="booking-reason" name="reason" rows="2" placeholder="Project Sync, Client Presentation..." required></textarea>
+        </div>
+
+        <!-- Attendee List -->
+        <div class="form-group">
+          <label>Name list of the attendees <span style="color:#ef4444;">*</span></label>
+          <div id="attendees-list">
+            <!-- Attendee rows inserted here by JS -->
+          </div>
+          <button type="button" id="add-attendee-btn" class="btn-add-attendee">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+            Add Attendee
+          </button>
+        </div>
+
+        <!-- Remarks -->
+        <div class="form-group">
+          <label for="booking-remarks">Remarks (Optional)</label>
+          <textarea id="booking-remarks" name="remarks" rows="2" placeholder="Any specific requirements or notes..."></textarea>
+        </div>
+
+        <!-- Full Day Checkbox -->
+        <div class="form-group">
+          <label class="checkbox-label" for="booking-full-day">
+            <input type="checkbox" id="booking-full-day" name="bookingType" value="full">
+            Book for Full Day
+          </label>
+        </div>
+
+        <!-- Existing Bookings Warning Box -->
+        <div id="modal-existing-bookings-box" style="margin-bottom: 1.2rem; padding: 1rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; display: none;">
+          <h4 style="font-size: 0.85rem; font-weight: 700; color: #b45309; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Already Booked Timings for this Date:
+          </h4>
+          <div id="modal-existing-bookings-list" style="font-size: 0.85rem; color: #92400e; font-weight: 600; display: flex; flex-direction: column; gap: 0.3rem;">
+            <!-- Inserted by JS -->
+          </div>
+        </div>
+
+        <!-- Time Slots (Disabled if Full Day) -->
+        <div class="form-row" id="time-inputs-row">
+          <div class="form-group">
+            <label for="booking-start-time">Start Time *</label>
+            <input type="time" id="booking-start-time" name="startTime" value="09:00" required>
+          </div>
+          <div class="form-group">
+            <label for="booking-end-time">End Time *</label>
+            <input type="time" id="booking-end-time" name="endTime" value="10:00" required>
+          </div>
+        </div>
+
+        <!-- Food Selection -->
+        <div class="form-group">
+          <label for="booking-food">Food Arrangement (Optional)</label>
+          <select id="booking-food" name="food">
+            <option value="none">None</option>
+            <option value="mini meals">Mini Meals</option>
+            <option value="chapati">Chapati</option>
+            <option value="snacks">Snacks</option>
+            <option value="others">Others</option>
+          </select>
+        </div>
+
+        <!-- Conditional Custom Food Specify -->
+        <div class="form-group" id="food-specify-group" style="display: none;">
+          <label for="booking-food-specify">Please Specify Food *</label>
+          <input type="text" id="booking-food-specify" name="foodSpecify" placeholder="Describe the meals/snacks">
+        </div>
+
+        <!-- Conditional Food Count -->
+        <div class="form-group" id="food-count-group" style="display: none;">
+          <label for="booking-food-count">Food Count (Quantity)</label>
+          <input type="number" id="booking-food-count" name="foodCount" min="1" value="1">
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group">
+          <label for="booking-phone">Phone No. *</label>
+          <input type="tel" id="booking-phone" name="phone" placeholder="9876543210" required>
+        </div>
+
+        <!-- Email Address -->
+        <div class="form-group">
+          <label for="booking-email">Email Address *</label>
+          <input type="email" id="booking-email" name="email" placeholder="john.doe@example.com" required>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="cancel-booking-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Booking</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <footer>
+    <p>&copy; 2026 Conference Room Scheduler.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

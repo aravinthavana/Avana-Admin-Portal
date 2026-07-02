@@ -1,0 +1,3004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help Desk Requests — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f0f2f8; --card: #fff; --text: #1e1b4b;
+      --muted: #6b7280; --border: #e5e7eb; --primary: #4f46e5;
+      --radius: 14px; --shadow: 0 2px 16px rgba(0,0,0,0.07);
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    header {
+      background: linear-gradient(135deg, #1e1b4b, #4f46e5);
+      color: white; padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1.2rem;
+    }
+    header img { height: 50px; border-radius: 10px; }
+    header h1 { font-size: 1.4rem; font-weight: 700; }
+    header p { font-size: 0.85rem; opacity: 0.75; margin-top: 0.2rem; }
+    header .hd-logout { margin-left: auto; background: rgba(255,255,255,0.15); border: none;
+      color: white; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-family: inherit;
+      font-size: 0.85rem; font-weight: 600; }
+    header .hd-logout:hover { background: rgba(255,255,255,0.25); }
+
+    .container { max-width: 100%; width: 96%; margin: 0 auto; padding: 2rem 0; }
+
+    /* Login */
+    .login-card { background: var(--card); border-radius: var(--radius); padding: 2.5rem;
+      max-width: 380px; margin: 3rem auto; box-shadow: var(--shadow); }
+    .login-card h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .login-card p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1.1rem; }
+    .form-group label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .form-group input, .form-group select {
+      width: 100%; padding: 0.7rem 1rem; border: 1.5px solid var(--border); border-radius: 10px;
+      font-family: inherit; font-size: 0.9rem; background: #f9fafb; outline: none;
+    }
+    .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .btn-primary { width: 100%; padding: 0.8rem; background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white; border: none; border-radius: 10px; font-family: inherit; font-size: 1rem;
+      font-weight: 700; cursor: pointer; margin-top: 0.5rem; }
+
+    /* Controls & Tabs */
+    .controls { display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; justify-content: flex-end; }
+    .btn-download { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem;
+      background: linear-gradient(135deg, #10b981, #059669); color: white; border: none;
+      border-radius: 10px; font-family: inherit; font-size: 0.88rem; font-weight: 600;
+      cursor: pointer; }
+    .btn-download:hover { filter: brightness(1.08); }
+
+    .tab-bar { display: flex; gap: 0.6rem; margin-bottom: 1.5rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 1.2rem; }
+    .tab-btn {
+      display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.65rem 1.2rem;
+      background: var(--card); border: 1.5px solid var(--border); border-radius: 12px;
+      font-family: inherit; font-size: 0.88rem; font-weight: 600; color: var(--muted);
+      cursor: pointer; transition: all 0.2s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .tab-btn:hover { border-color: var(--primary); color: var(--text); transform: translateY(-1px); }
+    .tab-btn.active { background: var(--primary) !important; border-color: var(--primary) !important; color: white !important; box-shadow: 0 4px 12px rgba(79,70,229,0.3) !important; }
+    .tab-badge {
+      background: #e5e7eb; color: #374151; font-size: 0.75rem; font-weight: 700;
+      padding: 0.15rem 0.55rem; border-radius: 999px; transition: all 0.2s ease;
+    }
+    .tab-btn.active .tab-badge { background: white; color: var(--primary); }
+
+    /* Stats */
+    .stats { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .stat { background: var(--card); border-radius: var(--radius); padding: 1.2rem 1.4rem;
+      flex: 1; min-width: 140px; box-shadow: var(--shadow); text-align: center; }
+    .stat-num { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-bottom: 0.3rem; }
+    .stat-label { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Table */
+    .table-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    thead tr { background: #f9fafb; }
+    th { padding: 0.9rem 1rem; text-align: left; font-weight: 600; color: var(--muted);
+      font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+    td { padding: 0.85rem 1rem; border-top: 1px solid var(--border); vertical-align: top; }
+    tr:hover td { background: #f9fafb; }
+    .delayed-row td { background-color: #fff1f2 !important; }
+    .delayed-row:hover td { background-color: #ffe4e6 !important; }
+    .badge {
+      display: inline-block; padding: 0.25rem 0.7rem; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .badge-maintenance { background: #fee2e2; color: #dc2626; }
+    .badge-housekeeping { background: #fef3c7; color: #d97706; }
+    .badge-office_asset { background: #cffafe; color: #0891b2; }
+    .badge-print_scan   { background: #ede9fe; color: #7c3aed; }
+    .badge-stationery   { background: #d1fae5; color: #059669; }
+    .badge-admin_support{ background: #e0f2fe; color: #0284c7; }
+    .badge-conference   { background: #eef2ff; color: #4f46e5; }
+    .empty { text-align: center; padding: 3rem; color: var(--muted); }
+
+    /* Status Pills & Buttons */
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.75rem;
+      border-radius: 999px; font-size: 0.78rem; font-weight: 700; white-space: nowrap;
+    }
+    .status-pending { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .status-completed { background: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
+    .status-confirmed { background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; }
+
+    .btn-action-group { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn-approve { background: #10b981; color: white; border: none; padding: 0.35rem 0.7rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .btn-approve:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 6px rgba(16,185,129,0.2); }
+    .btn-complete {
+      background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;
+      padding: 0.35rem 0.7rem; border-radius: 8px; font-family: inherit;
+      font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+      white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem;
+    }
+    .btn-complete:hover { background: #059669; color: white; }
+    .btn-pending {
+      background: #fffbeb; color: #d97706; border: 1px solid #fde68a;
+      padding: 0.35rem 0.7rem; border-radius: 8px; font-family: inherit;
+      font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+      white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem;
+    }
+    .btn-pending:hover { background: #d97706; color: white; }
+    .btn-delete {
+      background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;
+      padding: 0.35rem 0.7rem; border-radius: 8px; font-family: inherit;
+      font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+      white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem;
+    }
+    .btn-delete:hover { background: #dc2626; color: white; }
+
+    .toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; }
+    .toast { padding: 0.8rem 1.3rem; border-radius: 10px; font-size: 0.9rem; font-weight: 500;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12); transform: translateX(120%); transition: transform 0.3s ease; }
+    .toast.active { transform: translateX(0); }
+    .toast.success { background: #10b981; color: white; }
+    .toast.error   { background: #ef4444; color: white; }
+
+    footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+    footer a { color: var(--primary); text-decoration: none; font-weight: 500; }
+
+    @media (max-width: 600px) { header { flex-wrap: wrap; } .stats { flex-direction: column; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="logo.png" alt="Avana Logo">
+  <div>
+    <h1>Help Desk — Admin View</h1>
+    <p>Track work completion status, manage requests, and export reports</p>
+  </div>
+  <button class="hd-logout" id="logout-btn" style="display:none;">Log Out</button>
+</header>
+
+<div class="container">
+
+  <!-- Login -->
+  <div class="login-card" id="login-section">
+    <h2>Admin Login</h2>
+    <p>Enter the admin password to view requests</p>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="admin-pass">Password</label>
+        <input type="password" id="admin-pass" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn-primary">Authenticate</button>
+      <div style="margin-top: 1rem; text-align: center;">
+        <a href="#" id="forgot-password-link" style="color: #4f46e5; text-decoration: none; font-size: 0.85rem; font-weight: 600;">Forgot Password?</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Login Forgot Password (hidden by default) -->
+  <div class="login-card" id="forgot-password-section" style="display: none;">
+    <h2>Reset Admin Password</h2>
+    
+    <!-- Phase 1: Request Code -->
+    <form id="forgot-request-form">
+      <p style="font-size: 0.88rem; color: #475569; margin-bottom: 1.2rem;">Enter your registered Admin email. A 6-digit verification code will be dispatched to your inbox.</p>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="forgot-email">Registered Email</label>
+        <input type="email" id="forgot-email" placeholder="admin@example.com" required style="width: 100%; padding: 0.6rem; border: 1.5px solid var(--border); border-radius: 6px; outline:none; background:#fff;">
+      </div>
+      <button type="submit" class="btn-primary">Send Verification Code</button>
+      <button type="button" onclick="showLoginFromForgot()" class="btn" style="margin-top: 0.5rem; width: 100%; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; border-radius: 6px; padding:0.6rem; cursor:pointer; font-family:inherit;">Back to Login</button>
+    </form>
+
+    <!-- Phase 2: Verify Code & Reset -->
+    <form id="forgot-verify-form" style="display: none;">
+      <p style="font-size: 0.88rem; color: #475569; margin-bottom: 1.2rem;">Please enter the 6-digit verification code sent to your email and select a new password.</p>
+      <div class="form-group" style="margin-bottom: 0.8rem;">
+        <label for="forgot-otp">Verification Code</label>
+        <input type="text" id="forgot-otp" placeholder="123456" required maxLength="6" style="width: 100%; padding: 0.6rem; border: 1.5px solid var(--border); border-radius: 6px; outline:none; background:#fff;">
+      </div>
+      <div class="form-group" style="margin-bottom: 1.2rem;">
+        <label for="forgot-new-password">New Password</label>
+        <input type="password" id="forgot-new-password" placeholder="Min 6 characters" required style="width: 100%; padding: 0.6rem; border: 1.5px solid var(--border); border-radius: 6px; outline:none; background:#fff;">
+      </div>
+      <button type="submit" class="btn-primary">Reset Password</button>
+      <button type="button" onclick="showLoginFromForgot()" class="btn" style="margin-top: 0.5rem; width: 100%; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; border-radius: 6px; padding:0.6rem; cursor:pointer; font-family:inherit;">Cancel</button>
+    </form>
+  </div>
+
+  <!-- Dashboard (Flex layout with sidebar) -->
+  <div id="dashboard-section" style="display:none; gap: 2rem; align-items: flex-start; flex-wrap: wrap;">
+    <!-- Left Sidebar Navigation -->
+    <div class="sidebar" style="width: 290px; flex-shrink: 0; background: var(--card); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1.2rem;">
+      <div style="font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; padding-left: 0.4rem;">
+        <label for="admin-date-filter">📅 Date Filter</label>
+      </div>
+      <div style="display: flex; gap: 0.5rem; align-items: center; padding: 0 0.4rem;">
+        <input type="date" id="admin-date-filter" style="flex: 1; padding: 0.55rem; border: 1.5px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 0.85rem; outline: none; background: #f9fafb;" onchange="onDateFilterChange()">
+        <button onclick="clearDateFilter()" style="padding: 0.55rem 0.8rem; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; color: var(--muted); font-family: inherit; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;">Clear</button>
+      </div>
+      
+      <div style="border-top: 1px solid var(--border); margin: 0.1rem 0;"></div>
+
+      <div style="font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; padding-left: 0.4rem;">📂 Request Categories</div>
+      
+      <div class="tab-bar" style="display: flex; flex-direction: column; gap: 0.6rem; border: none; padding: 0; margin: 0; width: 100%;">
+        <button class="tab-btn active" data-cat="" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem;">
+          <span>📋 All Requests</span>
+          <span class="tab-badge" id="badge-all">0</span>
+        </button>
+        <button class="tab-btn" data-cat="conference" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem;">
+          <span>📅 Conference Room</span>
+          <span class="tab-badge" id="badge-conference">0</span>
+        </button>
+        <button class="tab-btn" data-cat="stationery" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem;">
+          <span>✏️ Stationery</span>
+          <span class="tab-badge" id="badge-stationery">0</span>
+        </button>
+        <button class="tab-btn" data-cat="admin_support" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem;">
+          <span>💼 Admin Support</span>
+          <span class="tab-badge" id="badge-admin_support">0</span>
+        </button>
+        <button class="tab-btn" data-cat="maintenance" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem;">
+          <span>🔧 Maintenance</span>
+          <span class="tab-badge" id="badge-maintenance">0</span>
+        </button>
+        <button class="tab-btn" data-cat="housekeeping" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem;">
+          <span>🧹 Housekeeping</span>
+          <span class="tab-badge" id="badge-housekeeping">0</span>
+        </button>
+        <button class="tab-btn" data-cat="office_asset" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem;">
+          <span>🖥️ Office Asset</span>
+          <span class="tab-badge" id="badge-office_asset">0</span>
+        </button>
+        <button class="tab-btn" data-cat="print_scan" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem;">
+          <span>🖨️ Printing & Scanning</span>
+          <span class="tab-badge" id="badge-print_scan">0</span>
+        </button>
+      </div>
+      
+      <div style="border-top: 1px solid var(--border); margin: 0.2rem 0;"></div>
+      
+      <div style="font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; padding-left: 0.4rem;">🔐 Security Logs</div>
+      <button class="tab-btn" data-cat="logins" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem; border-color: #4f46e5; color: #4f46e5;">
+        <span>🔐 Employee Logins</span>
+        <span class="tab-badge" id="badge-logins" style="background: #4f46e5; color: white;">0</span>
+      </button>
+
+      <div style="border-top: 1px solid var(--border); margin: 0.2rem 0;"></div>
+
+      <div style="font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; padding-left: 0.4rem;">📦 Inventory Management</div>
+      <button class="tab-btn" data-cat="stock" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem; border-color: #059669; color: #059669;">
+        <span>✏️ Stationery Stock</span>
+        <span class="tab-badge" id="badge-stock" style="background: #059669; color: white;">0</span>
+      </button>
+      <button class="tab-btn" data-cat="audit" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem; border-color: #d97706; color: #d97706;">
+        <span>📊 Monthly Audit</span>
+      </button>
+      <button class="tab-btn" data-cat="housekeeping-stock" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem; border-color: #0d9488; color: #0d9488;">
+        <span>🧹 Housekeeping Stock</span>
+        <span class="tab-badge" id="badge-housekeeping-stock" style="background: #0d9488; color: white;">0</span>
+      </button>
+      <button class="tab-btn" data-cat="amc" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem; border-color: #3b82f6; color: #3b82f6;">
+        <span>📋 AMC Contracts</span>
+        <span class="tab-badge" id="badge-amc" style="background: #3b82f6; color: white;">0</span>
+      </button>
+      <button class="tab-btn" data-cat="utility" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem; border-color: #0891b2; color: #0891b2;">
+        <span>⚡ Utility Payments</span>
+      </button>
+      <button class="tab-btn" data-cat="tax" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem; border-color: #8b5cf6; color: #8b5cf6;">
+        <span>🏛️ Tax Payments</span>
+      </button>
+      <button class="tab-btn" data-cat="settings" style="width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.7rem 0.9rem; border-color: #64748b; color: #64748b;">
+        <span>⚙️ Portal Settings</span>
+      </button>
+
+      <div style="border-top: 1px solid var(--border); margin: 0.2rem 0;"></div>
+      
+      <button class="btn-download" id="download-btn" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1rem;">⬇️ Download Report (CSV)</button>
+    </div>
+
+    <!-- Right Main Panel -->
+    <div class="main-content" style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 1.5rem;">
+      <!-- Upgraded Stats Bar with Pending & Completed Counters -->
+      <div id="stats-cards-container" class="stats" style="margin-bottom: 0;">
+        <div class="stat"><div class="stat-num" id="s-total">0</div><div class="stat-label">Total Requests</div></div>
+        <div class="stat"><div class="stat-num" id="s-pending" style="color:#d97706;">0</div><div class="stat-label">🟡 Pending Work</div></div>
+        <div class="stat"><div class="stat-num" id="s-completed" style="color:#059669;">0</div><div class="stat-label">🟢 Completed Work</div></div>
+        <div class="stat"><div class="stat-num" id="s-today">0</div><div class="stat-label">Today's Requests</div></div>
+      </div>
+
+      <!-- 📊 Stationery Audit Monthly Controls -->
+      <div id="audit-controls" style="display:none; align-items:center; gap:1rem; background: var(--card); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow);">
+        <div style="font-weight:700; font-size:0.9rem; color:var(--text); white-space:nowrap;">📅 Select Audit Month:</div>
+        <input type="month" id="audit-month-input" style="padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem; background: #f9fafb;" onchange="loadAuditReport()">
+        <button onclick="downloadAuditCSV()" class="btn-download" style="padding:0.55rem 1rem; font-size:0.85rem; margin-left:auto; display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; width:auto;">⬇️ Download Audit Report (CSV)</button>
+      </div>
+
+      <!-- ➕ Add New Stationery Controls -->
+      <div id="add-stationery-controls" style="display:none; align-items:center; gap:0.8rem; background: var(--card); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); flex-wrap: wrap;">
+        <div style="font-weight:700; font-size:0.9rem; color:var(--text); white-space:nowrap;">➕ Add New Item:</div>
+        <input type="text" id="new-item-name" placeholder="Item Name (e.g. Gel Pen)" style="flex:1; min-width:180px; padding:0.5rem 0.8rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem;">
+        <select id="new-item-type" style="padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem; background:#f9fafb;">
+          <option value="stationery">📦 Stationery Item</option>
+          <option value="printing">🖨️ Printing / Form Item</option>
+        </select>
+        <input type="number" id="new-item-stock" placeholder="Initial Stock" value="0" min="0" style="width:110px; padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem;">
+        <button onclick="addNewStationeryItem()" class="btn-primary" style="padding:0.55rem 1.2rem; font-size:0.85rem; border-radius:8px; cursor:pointer; width:auto; border:none; background:#059669; color:white; font-weight:600;">Add Item</button>
+      </div>
+
+      <!-- 🔑 Employee Login Report Controls -->
+      <div id="login-report-controls" style="display:none; align-items:center; gap:0.8rem; background: var(--card); padding: 1.2rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); flex-wrap: wrap; margin-bottom: 1.2rem;">
+        <div style="font-weight:700; font-size:0.9rem; color:var(--text); white-space:nowrap;">🔑 Login Report Range:</div>
+        <select id="login-report-range-select" onchange="onLoginRangeChange()" style="padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem; background:#f9fafb;">
+          <option value="daily">📅 Daily Report</option>
+          <option value="weekly">📅 Weekly Report</option>
+          <option value="monthly">📅 Monthly Report</option>
+        </select>
+        <input type="date" id="login-date-input" onchange="renderLoginsTable()" style="padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem; background:#f9fafb;">
+        <input type="week" id="login-week-input" onchange="renderLoginsTable()" style="display:none; padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem; background:#f9fafb;">
+        <input type="month" id="login-month-input" onchange="renderLoginsTable()" style="display:none; padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem; background:#f9fafb;">
+      </div>
+
+      <!-- 🧹 Housekeeping Stock Controls -->
+      <div id="housekeeping-stock-controls" style="display:none; flex-direction: column; gap: 1rem; background: var(--card); padding: 1.2rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 1.2rem;">
+        <!-- Row 1: Manual Stock adjustment -->
+        <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+          <div style="font-weight:700; font-size:0.9rem; color:var(--text); white-space:nowrap;">🧹 Manual Adjust:</div>
+          <select id="hk-item-select" style="padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem; background:#f9fafb; min-width: 160px;"></select>
+          <input type="number" id="hk-qty-input" placeholder="Qty" value="1" min="1" style="width: 80px; padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem;">
+          <select id="hk-action-select" style="padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem; background:#f9fafb;">
+            <option value="use">Log Use (-)</option>
+            <option value="purchase">Add Stock (+)</option>
+            <option value="set">Set New Count</option>
+          </select>
+          <button onclick="adjustHousekeepingStock()" class="btn-primary" style="padding:0.55rem 1.2rem; font-size:0.85rem; border-radius:8px; cursor:pointer; width:auto; border:none; background:#0d9488; color:white; font-weight:600;">Update Stock</button>
+          
+          <div style="margin-left: auto; display: flex; gap: 0.5rem; align-items: center;">
+            <input type="text" id="hk-new-item-name" placeholder="New HK Item" style="padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem; width: 140px;">
+            <button onclick="addHousekeepingItemType()" style="padding:0.55rem 1rem; border: none; background: #374151; color: white; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Add Type</button>
+          </div>
+        </div>
+        
+        <div style="border-top: 1px solid var(--border); margin: 0.2rem 0;"></div>
+
+        <!-- Row 2: Range-based Audit Report Download -->
+        <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+          <div style="font-weight:700; font-size:0.9rem; color:var(--text); white-space:nowrap;">📅 Audit Range:</div>
+          <input type="month" id="hk-audit-start" style="padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem; background: #f9fafb;" onchange="loadHousekeepingStockReport()">
+          <span style="color: var(--muted); font-size:0.9rem;">to</span>
+          <input type="month" id="hk-audit-end" style="padding:0.5rem; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; outline:none; font-size:0.88rem; background: #f9fafb;" onchange="loadHousekeepingStockReport()">
+          <button onclick="downloadHousekeepingAuditCSV()" class="btn-download" style="padding:0.55rem 1rem; font-size:0.85rem; margin-left:auto; display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; width:auto; background: #0d9488; border-color: #0d9488;">⬇️ Download HK Audit (CSV)</button>
+        </div>
+      </div>
+
+      <!-- 📋 AMC Controls -->
+      <div id="amc-controls" style="display:none; flex-direction: column; gap: 1rem; background: var(--card); padding: 1.2rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 1.2rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="font-weight: 800; font-size: 1.1rem; color: #1e3a8a; display: flex; align-items: center; gap: 6px;">📋 AMC Contracts Listing</div>
+          <button onclick="toggleAMCForm()" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.82rem; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">➕ Add New AMC</button>
+        </div>
+        
+        <!-- AMC Category Sub-tabs -->
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.1rem; flex-wrap: wrap;">
+          <button type="button" onclick="filterAMCCategory('all')" class="amc-sub-tab active" id="amc-sub-all" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; font-weight: 600; cursor: pointer; font-size: 0.8rem;">📋 All AMCs</button>
+          <button type="button" onclick="filterAMCCategory('AC')" class="amc-sub-tab" id="amc-sub-ac" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; font-weight: 600; cursor: pointer; font-size: 0.8rem;">❄️ AC</button>
+          <button type="button" onclick="filterAMCCategory('Lift')" class="amc-sub-tab" id="amc-sub-lift" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; font-weight: 600; cursor: pointer; font-size: 0.8rem;">🛗 Lift</button>
+          <button type="button" onclick="filterAMCCategory('Pest control')" class="amc-sub-tab" id="amc-sub-pest" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; font-weight: 600; cursor: pointer; font-size: 0.8rem;">🐜 Pest Control</button>
+          <button type="button" onclick="filterAMCCategory('Other')" class="amc-sub-tab" id="amc-sub-other" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; font-weight: 600; cursor: pointer; font-size: 0.8rem;">⚙️ Other</button>
+        </div>
+        
+        <!-- AMC Creation / Editing Card Form (hidden by default) -->
+        <form id="amc-editor-form" style="display: none; flex-direction: column; gap: 0.8rem; background: #f8fafc; padding: 1.2rem; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 0.5rem;" onsubmit="saveAMCContract(event)">
+          <input type="hidden" id="amc-id-input">
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">AMC Name *</label>
+              <input type="text" id="amc-name-input" placeholder="e.g. AC Maintenance" required style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">AMC Category (Subtitle) *</label>
+              <select id="amc-category-input" style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem; background:white;">
+                <option value="AC">AC</option>
+                <option value="Lift">Lift</option>
+                <option value="Pest control">Pest control</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">No. of Visits (e.g. 6) *</label>
+              <input type="number" id="amc-visitsperyear-input" placeholder="e.g. 6" value="6" min="1" required style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Units / Location (e.g. 15 ACs - Ground Floor) *</label>
+              <input type="text" id="amc-units-input" placeholder="e.g. 15 ACs - Ground Floor" required style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem;">
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Pricing (INR paid) *</label>
+              <input type="number" id="amc-pricing-input" placeholder="e.g. 45000" min="0" required style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Maintenance Frequency</label>
+              <select id="amc-frequency-input" style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem; background:white;">
+                <option value="Monthly">Monthly</option>
+                <option value="Quarterly">Quarterly</option>
+                <option value="Half-Yearly">Half-Yearly</option>
+                <option value="Yearly">Yearly</option>
+                <option value="As Needed">As Needed</option>
+              </select>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Start Date *</label>
+              <input type="date" id="amc-start-input" required style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">End Date *</label>
+              <input type="date" id="amc-end-input" required style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Last Service Date</label>
+              <input type="date" id="amc-lastservice-input" style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Next Service Date</label>
+              <input type="date" id="amc-nextservice-input" style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem;">
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Service Vendor Contact Person</label>
+              <input type="text" id="amc-vendorname-input" placeholder="Rajesh Kumar" style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Vendor Contact Number</label>
+              <input type="text" id="amc-vendorphone-input" placeholder="9876543210" style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem;">
+            </div>
+          </div>
+          
+          <div>
+            <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Details of What is in the AMC (Coverage, Specifications)</label>
+            <textarea id="amc-coverage-input" rows="3" placeholder="Describe service coverage details..." style="width:100%; padding:0.5rem; border:1px solid #cbd5e1; border-radius:6px; outline:none; font-family:inherit; font-size:0.85rem; resize:vertical;"></textarea>
+          </div>
+          
+          <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.5rem;">
+            <button type="button" onclick="cancelAMCEdit()" class="btn-download" style="padding:0.5rem 1rem; font-size:0.82rem; cursor:pointer; width:auto; border-color:#94a3b8; background:#e2e8f0; color:#475569;">Cancel</button>
+            <button type="submit" class="btn-primary" style="padding:0.5rem 1.2rem; font-size:0.82rem; cursor:pointer; width:auto; border:none; background:#3b82f6; color:white; font-weight:700; border-radius:8px;">Save Contract</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 📋 AMC Detailed Screen Container (hidden by default) -->
+      <div id="amc-detail-view" style="display:none; flex-direction:column; gap:1.5rem; background:var(--card); padding:1.5rem; border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); margin-bottom: 1.2rem;">
+        <!-- Content populated dynamically -->
+      </div>
+
+      <!-- ⚡ Utility Payments Panel -->
+      <div id="utility-panel" style="display:none; flex-direction: column; gap: 1.5rem;">
+
+        <!-- Header + Month Picker + Download -->
+        <div style="background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <div style="font-weight: 800; font-size: 1.15rem; color: #0891b2;">⚡ Utility Payments Tracker</div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-left: auto; flex-wrap: wrap;">
+            <label style="font-weight: 600; font-size: 0.85rem; color: var(--muted);">Month:</label>
+            <input type="month" id="utility-month-picker" style="padding: 0.45rem 0.7rem; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.88rem; outline: none; background: #f9fafb;" onchange="loadUtilityPayments()">
+            <button onclick="downloadUtilityCSV()" style="padding: 0.45rem 1rem; background: #0891b2; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">⬇️ Download Report</button>
+          </div>
+        </div>
+
+        <!-- 4 Service Sections rendered here -->
+        <div id="utility-sections-container"></div>
+
+        <!-- Add Entry Modal -->
+        <div id="utility-add-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+          <div style="background:white; border-radius:12px; padding:2rem; width:480px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.3); max-height:90vh; overflow-y:auto;">
+            <div style="font-weight:700; font-size:1.1rem; margin-bottom:1.2rem; color:#0f172a;"><span id="utility-modal-action-text">➕ Add New Entry</span> — <span id="utility-modal-service-title"></span></div>
+            <input type="hidden" id="utility-modal-service-type">
+            <input type="hidden" id="utility-modal-edit-id">
+            <div style="display:flex; flex-direction:column; gap:0.8rem;">
+              <div>
+                <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Service Provider *</label>
+                <input type="text" id="um-provider" placeholder="e.g. Airtel, BSNL, TNEB" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+              </div>
+              <div id="um-username-row">
+                <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">User Name</label>
+                <input type="text" id="um-username" placeholder="Account holder name" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+              </div>
+              <div id="um-location-row" style="display:none;">
+                <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Location / Office</label>
+                <input type="text" id="um-location" placeholder="e.g. Head Office, Branch" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Number / Account No. *</label>
+                <input type="text" id="um-number" placeholder="Mobile number or account no." style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Due Date *</label>
+                <input type="date" id="um-duedate" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Amount (INR) *</label>
+                <input type="number" id="um-amount" placeholder="e.g. 1200" min="0" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+              </div>
+            </div>
+            <div style="display:flex; gap:0.8rem; margin-top:1.4rem; justify-content:flex-end;">
+              <button onclick="closeUtilityModal()" style="padding:0.55rem 1.2rem;border:1.5px solid var(--border);border-radius:8px;background:white;color:var(--text);font-weight:600;cursor:pointer;font-size:0.88rem;">Cancel</button>
+              <button onclick="saveUtilityEntry()" style="padding:0.55rem 1.4rem;background:#0891b2;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.88rem;">Save Entry</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🏛️ Tax Payments Panel -->
+      <div id="tax-panel" style="display:none; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- Header -->
+        <div style="background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <div style="font-weight: 800; font-size: 1.15rem; color: #8b5cf6;">🏛️ Tax Payments Tracker</div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-left: auto; flex-wrap: wrap;">
+            <label style="font-weight: 600; font-size: 0.85rem; color: var(--muted);">Year:</label>
+            <select id="tax-header-year" style="padding: 0.45rem 0.7rem; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.88rem; outline: none; background: #f9fafb;" onchange="loadTaxPayments()">
+              <!-- Populated by JS -->
+            </select>
+            <button onclick="downloadTaxCSV()" style="padding: 0.45rem 1rem; background: #8b5cf6; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">⬇️ Download Report</button>
+          </div>
+        </div>
+
+        <div id="tax-sections-container" style="display:flex; flex-direction:column; gap:1.5rem;">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Add/Edit Tax Modal -->
+        <div id="tax-add-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+          <div style="background:white; border-radius:12px; padding:2rem; width:480px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.3); max-height:90vh; overflow-y:auto;">
+            <div style="font-weight:700; font-size:1.1rem; margin-bottom:1.2rem; color:#0f172a;"><span id="tax-modal-action-text">➕ Add Tax Entry</span></div>
+            <input type="hidden" id="tax-modal-edit-id">
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+              <div>
+                <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Service Type *</label>
+                <select id="tm-service-type" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;">
+                  <option value="property">Property Tax</option>
+                  <option value="water">Water Tax</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Location *</label>
+                <input type="text" id="tm-location" placeholder="e.g. Onecrest - Boss Residence" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Bill Number *</label>
+                <input type="text" id="tm-bill-number" placeholder="Enter Bill Number" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+              </div>
+              <div style="display:flex; gap:1rem;">
+                <div style="flex:1;">
+                  <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Year *</label>
+                  <select id="tm-year" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+                    <!-- Populated by JS (2020-2030) -->
+                  </select>
+                </div>
+                <div style="flex:1;">
+                  <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Term *</label>
+                  <select id="tm-term" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+                    <option value="First Half">First Half</option>
+                    <option value="Second Half">Second Half</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:flex; gap:1rem;">
+                <div style="flex:1;">
+                  <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Due Date *</label>
+                  <input type="month" id="tm-duedate" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+                </div>
+                <div style="flex:1;">
+                  <label style="font-size:0.82rem; font-weight:600; color:var(--muted);">Amount (INR) *</label>
+                  <input type="number" id="tm-amount" placeholder="e.g. 15000" min="0" style="width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;margin-top:3px;box-sizing:border-box;">
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; gap:0.8rem; margin-top:1.4rem; justify-content:flex-end;">
+              <button onclick="closeTaxModal()" style="padding:0.55rem 1.2rem;border:1.5px solid var(--border);border-radius:8px;background:white;color:var(--text);font-weight:600;cursor:pointer;font-size:0.88rem;">Cancel</button>
+              <button onclick="saveTaxEntry()" style="padding:0.55rem 1.4rem;background:#8b5cf6;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.88rem;">Save Entry</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⚙️ Portal Settings Panel (hidden by default) -->
+      <div id="settings-controls" style="display:none; flex-direction: column; gap: 1.5rem; background: var(--card); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 1.2rem;">
+        <div style="font-weight: 800; font-size: 1.2rem; color: #1e3a8a; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">⚙️ Portal Settings Configuration</div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+          <!-- Admin Password Form -->
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 1.2rem; border-radius: 8px;">
+            <h3 style="margin-top: 0; margin-bottom: 0.8rem; font-size: 1rem; color: #1e293b;">🔒 Change Admin Password</h3>
+            <form id="hd-admin-change-password-form">
+              <div class="form-group" style="margin-bottom: 0.8rem;">
+                <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Current Password</label>
+                <input type="password" id="hd-admin-curr-pass" required style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; outline:none; background:#fff;">
+              </div>
+              <div class="form-group" style="margin-bottom: 1.2rem;">
+                <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">New Password</label>
+                <input type="password" id="hd-admin-new-pass" required style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; outline:none; background:#fff;">
+              </div>
+              <button type="submit" class="btn-primary" style="padding:0.5rem 1rem; font-size:0.82rem; cursor:pointer; width:auto; border:none; background:#4f46e5; color:white; font-weight:700; border-radius:8px; margin:0;">Save Password</button>
+            </form>
+          </div>
+
+          <!-- SMTP Password Form -->
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 1.2rem; border-radius: 8px;">
+            <h3 style="margin-top: 0; margin-bottom: 0.8rem; font-size: 1rem; color: #1e293b;">📧 Update Outlook/SMTP Password</h3>
+            <form id="hd-admin-change-smtp-form">
+              <div class="form-group" style="margin-bottom: 1.2rem;">
+                <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">New Outlook / App Password</label>
+                <input type="password" id="hd-admin-smtp-pass" required style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; outline:none; background:#fff;">
+              </div>
+              <button type="submit" class="btn-primary" style="padding:0.5rem 1rem; font-size:0.82rem; cursor:pointer; width:auto; border:none; background:#0d9488; color:white; font-weight:700; border-radius:8px; margin:0;">Save Outlook Password</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Table container -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr id="table-headers-row">
+              <th>#</th>
+              <th>Date & Time</th>
+              <th>Status</th>
+              <th>Category</th>
+              <th>Sub-Type</th>
+              <th>Floor</th>
+              <th>Details & Attendee List</th>
+              <th>Remarks</th>
+              <th>Requested By</th>
+              <th>Phone</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="requests-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<footer>
+  &copy; 2026 Avana Admin Help Desk &nbsp;|&nbsp;
+  <a href="/">Home</a> &nbsp;|&nbsp;
+  <a href="/admin">Conference Room Admin</a>
+</footer>
+
+<script>
+  // FRONT-S1: Simple HTML sanitization to prevent XSS
+  function sanitize(str) {
+    if (!str) return '';
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' };
+    return str.toString().replace(/[&<>"']/g, m => map[m]);
+  }
+
+  let adminToken = sessionStorage.getItem('hdAdminToken');
+  let allRequests = [];
+  let filteredRequests = [];
+  let loginLogs = [];
+  let stationeryStock = {};
+  let monthlyAuditData = {};
+  let currentFilter = '';
+  let filterDate = '';
+
+  let housekeepingStock = {};
+  let housekeepingCatalog = [];
+  let housekeepingAuditData = {};
+  let amcContracts = [];
+
+  function onDateFilterChange() {
+    filterDate = document.getElementById('admin-date-filter').value;
+    if (currentFilter === 'logins') {
+      renderLoginsTable();
+    } else {
+      applyFilter();
+    }
+  }
+
+  function clearDateFilter() {
+    document.getElementById('admin-date-filter').value = '';
+    filterDate = '';
+    if (currentFilter === 'logins') {
+      renderLoginsTable();
+    } else {
+      applyFilter();
+    }
+  }
+
+  function onLoginRangeChange() {
+    const range = document.getElementById('login-report-range-select').value;
+    document.getElementById('login-date-input').style.display = range === 'daily' ? 'inline-block' : 'none';
+    document.getElementById('login-week-input').style.display = range === 'weekly' ? 'inline-block' : 'none';
+    document.getElementById('login-month-input').style.display = range === 'monthly' ? 'inline-block' : 'none';
+    renderLoginsTable();
+  }
+
+  function init() {
+    // Set default audit month to current month
+    const monthInput = document.getElementById('audit-month-input');
+    if (monthInput) {
+      monthInput.value = new Date().toISOString().slice(0, 7);
+    }
+    
+    // Set defaults for login reports range inputs
+    const todayStr = new Date().toISOString().slice(0, 10);
+    document.getElementById('login-date-input').value = todayStr;
+    document.getElementById('login-month-input').value = todayStr.slice(0, 7);
+    
+    const currentWeek = () => {
+      const d = new Date();
+      d.setHours(0,0,0,0);
+      d.setDate(d.getDate() + 4 - (d.getDay()||7));
+      const yearStart = new Date(d.getFullYear(),0,1);
+      const weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+      return d.getFullYear() + "-W" + String(weekNo).padStart(2,'0');
+    };
+    document.getElementById('login-week-input').value = currentWeek();
+
+    // Set defaults for housekeeping audit range inputs
+    document.getElementById('hk-audit-start').value = todayStr.slice(0, 7);
+    document.getElementById('hk-audit-end').value = todayStr.slice(0, 7);
+
+    if (adminToken) showDashboard();
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pass = document.getElementById('admin-pass').value;
+      const res = await fetch('/api/admin/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pass })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        adminToken = data.token;
+        sessionStorage.setItem('hdAdminToken', adminToken);
+        showDashboard();
+      } else {
+        showToast('Incorrect password', 'error');
+      }
+    });
+
+    // Forgot Password Link Click
+    const forgotLink = document.getElementById('forgot-password-link');
+    const loginSection = document.getElementById('login-section');
+    const forgotSection = document.getElementById('forgot-password-section');
+    const forgotReqForm = document.getElementById('forgot-request-form');
+    const forgotVerifyForm = document.getElementById('forgot-verify-form');
+
+    if (forgotLink) {
+      forgotLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginSection.style.display = 'none';
+        forgotSection.style.display = 'block';
+        forgotReqForm.style.display = 'block';
+        forgotVerifyForm.style.display = 'none';
+        document.getElementById('forgot-email').value = '';
+      });
+    }
+
+    window.showLoginFromForgot = function() {
+      forgotSection.style.display = 'none';
+      loginSection.style.display = 'block';
+      document.getElementById('forgot-email').value = '';
+      document.getElementById('forgot-otp').value = '';
+      document.getElementById('forgot-new-password').value = '';
+    };
+
+    // Forgot Request Form Submit
+    if (forgotReqForm) {
+      forgotReqForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('forgot-email').value.trim();
+        const submitBtn = forgotReqForm.querySelector('button[type="submit"]');
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending...';
+
+        try {
+          const res = await fetch('/api/admin/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast('Verification code sent!', 'success');
+            forgotReqForm.style.display = 'none';
+            forgotVerifyForm.style.display = 'block';
+            document.getElementById('forgot-otp').value = '';
+            document.getElementById('forgot-new-password').value = '';
+          } else {
+            showToast(data.error || 'Failed to request reset.', 'error');
+          }
+        } catch (err) {
+          showToast('Connection failed.', 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Send Verification Code';
+        }
+      });
+    }
+
+    // Forgot Verify Form Submit
+    if (forgotVerifyForm) {
+      forgotVerifyForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const otp = document.getElementById('forgot-otp').value.trim();
+        const newPassword = document.getElementById('forgot-new-password').value;
+        const submitBtn = forgotVerifyForm.querySelector('button[type="submit"]');
+
+        if (newPassword.length < 6) {
+          showToast('Password must be at least 6 characters.', 'error');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Resetting...';
+
+        try {
+          const res = await fetch('/api/admin/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ otp, newPassword })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast('🔑 Password reset successfully!', 'success');
+            showLoginFromForgot();
+          } else {
+            showToast(data.error || 'Reset failed.', 'error');
+          }
+        } catch (err) {
+          showToast('Connection failed.', 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Reset Password';
+        }
+      });
+    }
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      adminToken = null;
+      sessionStorage.removeItem('hdAdminToken');
+      document.getElementById('login-section').style.display = 'block';
+      document.getElementById('dashboard-section').style.display = 'none';
+      document.getElementById('logout-btn').style.display = 'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.cat;
+        
+        // Reset control states
+        document.getElementById('audit-controls').style.display = 'none';
+        document.getElementById('add-stationery-controls').style.display = 'none';
+        document.getElementById('login-report-controls').style.display = 'none';
+        document.getElementById('housekeeping-stock-controls').style.display = 'none';
+        document.getElementById('amc-controls').style.display = 'none';
+        document.getElementById('settings-controls').style.display = 'none';
+        document.getElementById('utility-panel').style.display = 'none';
+        document.getElementById('tax-panel').style.display = 'none';
+        document.getElementById('download-btn').style.display = 'inline-flex';
+        document.querySelector('.table-wrap').style.display = 'block';
+        document.getElementById('stats-cards-container').style.display = 'flex';
+        document.getElementById('amc-detail-view').style.display = 'none';
+
+        if (currentFilter === 'logins') {
+          document.getElementById('login-report-controls').style.display = 'flex';
+          renderHeaders('logins');
+          renderLoginsTable();
+        } else if (currentFilter === 'stock') {
+          document.getElementById('add-stationery-controls').style.display = 'flex';
+          document.getElementById('download-btn').style.display = 'none';
+          renderHeaders('stock');
+          renderStockTable();
+        } else if (currentFilter === 'audit') {
+          document.getElementById('audit-controls').style.display = 'flex';
+          document.getElementById('download-btn').style.display = 'none';
+          renderHeaders('audit');
+          loadAuditReport();
+        } else if (currentFilter === 'housekeeping-stock') {
+          document.getElementById('housekeeping-stock-controls').style.display = 'flex';
+          document.getElementById('download-btn').style.display = 'none';
+          renderHeaders('housekeeping-stock');
+          loadHousekeepingStockData();
+        } else if (currentFilter === 'amc') {
+          document.getElementById('amc-controls').style.display = 'flex';
+          document.getElementById('download-btn').style.display = 'none';
+          renderHeaders('amc');
+          loadAMContractsData();
+        } else if (currentFilter === 'utility') {
+          document.getElementById('download-btn').style.display = 'none';
+          document.getElementById('stats-cards-container').style.display = 'none';
+          document.querySelector('.table-wrap').style.display = 'none';
+          document.getElementById('utility-panel').style.display = 'flex';
+          loadUtilityPayments();
+        } else if (currentFilter === 'tax') {
+          document.getElementById('download-btn').style.display = 'none';
+          document.getElementById('stats-cards-container').style.display = 'none';
+          document.querySelector('.table-wrap').style.display = 'none';
+          document.getElementById('tax-panel').style.display = 'flex';
+          loadTaxPayments();
+        } else if (currentFilter === 'settings') {
+          document.getElementById('settings-controls').style.display = 'flex';
+          document.getElementById('download-btn').style.display = 'none';
+          document.querySelector('.table-wrap').style.display = 'none';
+          document.getElementById('stats-cards-container').style.display = 'none';
+        } else {
+          renderHeaders('requests');
+          applyFilter();
+        }
+      });
+    });
+
+    // Admin change password submit
+    document.getElementById('hd-admin-change-password-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const currentPassword = document.getElementById('hd-admin-curr-pass').value;
+      const newPassword = document.getElementById('hd-admin-new-pass').value;
+      
+      try {
+        const res = await fetch('/api/admin/change-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Admin password changed successfully!', 'success');
+          document.getElementById('hd-admin-curr-pass').value = '';
+          document.getElementById('hd-admin-new-pass').value = '';
+        } else {
+          showToast(data.error || 'Failed to change admin password.', 'error');
+        }
+      } catch (err) {
+        showToast('Connection error.', 'error');
+      }
+    });
+
+    // SMTP password submit
+    document.getElementById('hd-admin-change-smtp-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newSmtpPass = document.getElementById('hd-admin-smtp-pass').value;
+
+      try {
+        const res = await fetch('/api/admin/change-smtp-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify({ newSmtpPass })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Outlook SMTP password updated successfully!', 'success');
+          document.getElementById('hd-admin-smtp-pass').value = '';
+        } else {
+          showToast(data.error || 'Failed to update SMTP password.', 'error');
+        }
+      } catch (err) {
+        showToast('Connection error.', 'error');
+      }
+    });
+    document.getElementById('download-btn').addEventListener('click', downloadCSV);
+    
+    // Auto refresh request counts every 30 seconds if dashboard is open
+    setInterval(() => { if (adminToken) loadRequests(true); }, 30000);
+  }
+
+  async function showDashboard() {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('dashboard-section').style.display = 'flex';
+    document.getElementById('logout-btn').style.display = 'inline-block';
+    await loadRequests(false);
+  }
+
+  async function loadRequests(silent = false) {
+    if (!silent) {
+      document.getElementById('requests-tbody').innerHTML = `<tr><td colspan="15" style="text-align:center;padding:2rem;color:var(--muted);">⏳ Loading data...</td></tr>`;
+    }
+    try {
+      const res = await fetch('/api/helpdesk', {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (!res.ok) { if(!silent) showToast('Session expired', 'error'); return; }
+      allRequests = await res.json();
+      
+      // Also load login logs
+      await loadLoginLogs(silent);
+
+      // Also load stationery stock
+      await loadStock(silent);
+
+      // Also load housekeeping stock
+      await loadHousekeepingStock(silent);
+
+      // Also load AMC contracts
+      await loadAMContracts(silent);
+      
+      updateStats();
+      
+      if (currentFilter === 'logins') {
+        document.getElementById('add-stationery-controls').style.display = 'none';
+        document.getElementById('audit-controls').style.display = 'none';
+        document.getElementById('login-report-controls').style.display = 'flex';
+        document.getElementById('housekeeping-stock-controls').style.display = 'none';
+        document.getElementById('amc-controls').style.display = 'none';
+        renderHeaders('logins');
+        renderLoginsTable();
+      } else if (currentFilter === 'stock') {
+        document.getElementById('add-stationery-controls').style.display = 'flex';
+        document.getElementById('audit-controls').style.display = 'none';
+        document.getElementById('login-report-controls').style.display = 'none';
+        document.getElementById('housekeeping-stock-controls').style.display = 'none';
+        document.getElementById('amc-controls').style.display = 'none';
+        renderHeaders('stock');
+        renderStockTable();
+      } else if (currentFilter === 'audit') {
+        document.getElementById('add-stationery-controls').style.display = 'none';
+        document.getElementById('audit-controls').style.display = 'flex';
+        document.getElementById('login-report-controls').style.display = 'none';
+        document.getElementById('housekeeping-stock-controls').style.display = 'none';
+        document.getElementById('amc-controls').style.display = 'none';
+        renderHeaders('audit');
+        loadAuditReport();
+      } else if (currentFilter === 'housekeeping-stock') {
+        document.getElementById('add-stationery-controls').style.display = 'none';
+        document.getElementById('audit-controls').style.display = 'none';
+        document.getElementById('login-report-controls').style.display = 'none';
+        document.getElementById('housekeeping-stock-controls').style.display = 'flex';
+        document.getElementById('amc-controls').style.display = 'none';
+        renderHeaders('housekeeping-stock');
+        loadHousekeepingStockData();
+      } else if (currentFilter === 'amc') {
+        document.getElementById('add-stationery-controls').style.display = 'none';
+        document.getElementById('audit-controls').style.display = 'none';
+        document.getElementById('login-report-controls').style.display = 'none';
+        document.getElementById('housekeeping-stock-controls').style.display = 'none';
+        document.getElementById('amc-controls').style.display = 'flex';
+        renderHeaders('amc');
+        loadAMContractsData();
+      } else if (currentFilter === 'utility') {
+        document.getElementById('add-stationery-controls').style.display = 'none';
+        document.getElementById('audit-controls').style.display = 'none';
+        document.getElementById('login-report-controls').style.display = 'none';
+        document.getElementById('housekeeping-stock-controls').style.display = 'none';
+        document.getElementById('amc-controls').style.display = 'none';
+        document.querySelector('.table-wrap').style.display = 'none';
+        document.getElementById('stats-cards-container').style.display = 'none';
+        document.getElementById('utility-panel').style.display = 'block';
+        loadUtilityPayments();
+      } else {
+        document.getElementById('add-stationery-controls').style.display = 'none';
+        document.getElementById('audit-controls').style.display = 'none';
+        document.getElementById('login-report-controls').style.display = 'none';
+        document.getElementById('housekeeping-stock-controls').style.display = 'none';
+        document.getElementById('amc-controls').style.display = 'none';
+        renderHeaders('requests');
+        applyFilter();
+      }
+    } catch (e) { if(!silent) showToast('Failed to load requests', 'error'); }
+  }
+
+  async function loadLoginLogs(silent = false) {
+    try {
+      const res = await fetch('/api/admin/logins', {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (res.ok) {
+        loginLogs = await res.json();
+        document.getElementById('badge-logins').textContent = loginLogs.length;
+      }
+    } catch (e) { console.error('Failed to load login logs:', e); }
+  }
+
+  async function loadStock(silent = false) {
+    try {
+      const res = await fetch('/api/admin/stationery-stock', {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (res.ok) {
+        stationeryStock = await res.json();
+        const badge = document.getElementById('badge-stock');
+        if (badge) badge.textContent = Object.keys(stationeryStock).length;
+      }
+    } catch (e) { console.error('Failed to load stock:', e); }
+  }
+
+  async function loadHousekeepingStock(silent = false) {
+    try {
+      const res = await fetch('/api/admin/housekeeping-stock', {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        housekeepingStock = data.stock;
+        housekeepingCatalog = data.catalog;
+        const badge = document.getElementById('badge-housekeeping-stock');
+        if (badge) badge.textContent = Object.keys(housekeepingStock).length;
+      }
+    } catch (e) { console.error('Failed to load housekeeping stock:', e); }
+  }
+
+  function renderHeaders(viewType = 'requests') {
+    const headersRow = document.getElementById('table-headers-row');
+    const statsCards = document.getElementById('stats-cards-container');
+    if (statsCards) {
+      statsCards.style.display = (viewType === 'requests') ? 'flex' : 'none';
+    }
+    
+    if (viewType === 'logins') {
+      headersRow.innerHTML = `
+        <th>#</th>
+        <th>Timestamp</th>
+        <th>Employee Email</th>
+        <th>IP Address</th>
+        <th>Status</th>
+      `;
+    } else if (viewType === 'stock') {
+      headersRow.innerHTML = `
+        <th>#</th>
+        <th>Stationery Item</th>
+        <th>Stock Level</th>
+        <th>Adjust Quantity</th>
+        <th>Set New Stock</th>
+      `;
+    } else if (viewType === 'audit') {
+      headersRow.innerHTML = `
+        <th>#</th>
+        <th>Stationery Item</th>
+        <th>Starting Stock</th>
+        <th>Purchased (+)</th>
+        <th>Used (-)</th>
+        <th>Ending Stock</th>
+      `;
+    } else if (viewType === 'housekeeping-stock') {
+      headersRow.innerHTML = `
+        <th>#</th>
+        <th>Housekeeping Item</th>
+        <th>Starting Stock</th>
+        <th>Qty Used (-)</th>
+        <th>Current Balance (Stock)</th>
+      `;
+    } else if (viewType === 'amc') {
+      headersRow.innerHTML = `
+        <th>#</th>
+        <th>AMC Contract Name</th>
+        <th>Category</th>
+        <th>Status</th>
+        <th>Units / Location</th>
+        <th>Pricing</th>
+        <th>End Date</th>
+        <th>Actions</th>
+      `;
+    } else {
+      headersRow.innerHTML = `
+        <th>#</th>
+        <th>Date & Time</th>
+        <th>Status</th>
+        <th>Category</th>
+        <th>Sub-Type</th>
+        <th>Floor</th>
+        <th>Details & Attendee List</th>
+        <th>Remarks</th>
+        <th>Requested By</th>
+        <th>Phone</th>
+        <th>Actions</th>
+      `;
+    }
+  }
+
+  function getFilteredLogins() {
+    let res = [...loginLogs];
+    const range = document.getElementById('login-report-range-select').value;
+    
+    if (range === 'daily') {
+      const dateVal = document.getElementById('login-date-input').value;
+      if (dateVal) {
+        res = res.filter(l => l.timestamp && l.timestamp.startsWith(dateVal));
+      }
+    } else if (range === 'weekly') {
+      const weekVal = document.getElementById('login-week-input').value;
+      if (weekVal) {
+        try {
+          const { startDate, endDate } = getWeekDateRange(weekVal);
+          res = res.filter(l => {
+            const t = new Date(l.timestamp);
+            return t >= startDate && t < endDate;
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    } else if (range === 'monthly') {
+      const monthVal = document.getElementById('login-month-input').value;
+      if (monthVal) {
+        res = res.filter(l => l.timestamp && l.timestamp.startsWith(monthVal));
+      }
+    }
+    return res.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+  }
+
+  function getWeekDateRange(weekStr) {
+    const parts = weekStr.split('-W');
+    const year = parseInt(parts[0], 10);
+    const week = parseInt(parts[1], 10);
+    
+    const firstDay = new Date(year, 0, 1);
+    const dayOffset = firstDay.getDay();
+    const startDay = (week - 1) * 7 + (1 - dayOffset) + 1;
+    const startDate = new Date(year, 0, startDay);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 7);
+    return { startDate, endDate };
+  }
+
+  function renderLoginsTable() {
+    const tbody = document.getElementById('requests-tbody');
+    const sorted = getFilteredLogins();
+    const downloadBtn = document.getElementById('download-btn');
+    if (!sorted.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty">No employee login logs matching this filter.</td></tr>`;
+      setDownloadBtnState(downloadBtn, false);
+      return;
+    }
+    setDownloadBtnState(downloadBtn, true);
+    tbody.innerHTML = sorted.map((l, i) => {
+      const dt = l.timestamp ? new Date(l.timestamp).toLocaleString('en-IN', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+      const statusPill = l.status === 'Success'
+        ? `<span class="status-pill status-completed">🟢 Success</span>`
+        : `<span class="status-pill status-pending">🔴 Failed</span>`;
+      return `<tr>
+        <td style="color:#9ca3af;font-size:0.8rem;">${i+1}</td>
+        <td style="white-space:nowrap;font-size:0.82rem;">${dt}</td>
+        <td style="font-weight:600;font-size:0.88rem;">${l.email}</td>
+        <td style="font-size:0.85rem;font-family:monospace;">${l.ip}</td>
+        <td>${statusPill}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderStockTable() {
+    const tbody = document.getElementById('requests-tbody');
+    const keys = Object.keys(stationeryStock).sort();
+    if (!keys.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty">No stationery items in database.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = keys.map((item, i) => {
+      const qty = stationeryStock[item];
+      let statusBadge = '';
+      if (qty === 0) {
+        statusBadge = `<span class="status-pill status-pending" style="background:#fecaca;color:#991b1b;border:1px solid #fca5a5;">🔴 Out of Stock</span>`;
+      } else if (qty <= 5) {
+        statusBadge = `<span class="status-pill status-pending" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;">🟡 Low Stock (${qty})</span>`;
+      } else {
+        statusBadge = `<span class="status-pill status-completed" style="background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;">🟢 In Stock (${qty})</span>`;
+      }
+
+      return `<tr>
+        <td style="color:#9ca3af;font-size:0.8rem;">${i+1}</td>
+        <td style="font-weight:600;font-size:0.88rem;color:var(--text);">${item}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <div style="display:flex;gap:0.4rem;align-items:center;">
+            <button onclick="adjustStock('${item.replace(/'/g, "\\'")}', -5)" class="btn-action" style="padding:0.25rem 0.5rem;background:#f3f4f6;color:var(--text);border:1.5px solid var(--border);border-radius:6px;font-size:0.75rem;cursor:pointer;">-5</button>
+            <button onclick="adjustStock('${item.replace(/'/g, "\\'")}', -1)" class="btn-action" style="padding:0.25rem 0.5rem;background:#f3f4f6;color:var(--text);border:1.5px solid var(--border);border-radius:6px;font-size:0.75rem;cursor:pointer;">-1</button>
+            <button onclick="adjustStock('${item.replace(/'/g, "\\'")}', 1)" class="btn-action" style="padding:0.25rem 0.5rem;background:#f3f4f6;color:var(--text);border:1.5px solid var(--border);border-radius:6px;font-size:0.75rem;cursor:pointer;">+1</button>
+            <button onclick="adjustStock('${item.replace(/'/g, "\\'")}', 5)" class="btn-action" style="padding:0.25rem 0.5rem;background:#f3f4f6;color:var(--text);border:1.5px solid var(--border);border-radius:6px;font-size:0.75rem;cursor:pointer;">+5</button>
+          </div>
+        </td>
+        <td>
+          <div style="display:flex;gap:0.4rem;align-items:center;">
+            <input type="number" id="stock-val-${i}" value="${qty}" min="0" style="width:70px;padding:0.3rem 0.5rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;outline:none;">
+            <button onclick="setStock('${item.replace(/'/g, "\\'")}', ${i})" class="btn-action btn-approve" style="padding:0.3rem 0.7rem;font-size:0.8rem;border-radius:8px;cursor:pointer;">Set</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function adjustStock(item, diff) {
+    const current = stationeryStock[item] || 0;
+    const target = Math.max(0, current + diff);
+    await saveStockChange(item, target);
+  }
+
+  async function setStock(item, idx) {
+    const input = document.getElementById(`stock-val-${idx}`);
+    const target = parseInt(input.value);
+    if (isNaN(target) || target < 0) {
+      showToast('Please enter a valid positive number', 'error');
+      return;
+    }
+    await saveStockChange(item, target);
+  }
+
+  async function saveStockChange(item, quantity) {
+    try {
+      const res = await fetch('/api/admin/stationery-stock', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({ item, quantity })
+      });
+      if (res.ok) {
+        showToast(`Stock updated for ${item}!`, 'success');
+        await loadStock();
+        if (currentFilter === 'stock') {
+          renderStockTable();
+        }
+      } else {
+        showToast('Failed to update stock', 'error');
+      }
+    } catch (e) {
+      showToast('Connection error', 'error');
+    }
+  }
+
+  function updateStats() {
+    const today = new Date().toISOString().slice(0,10);
+    document.getElementById('s-total').textContent = allRequests.length;
+    document.getElementById('s-pending').textContent = allRequests.filter(r => r.category !== 'conference' && (!r.status || r.status === 'pending')).length;
+    document.getElementById('s-completed').textContent = allRequests.filter(r => r.category !== 'conference' && r.status === 'completed').length;
+    document.getElementById('s-today').textContent = allRequests.filter(r => r.submittedAt && r.submittedAt.startsWith(today)).length;
+
+    // Update Tab Notification Badges
+    document.getElementById('badge-all').textContent = allRequests.length;
+    document.getElementById('badge-conference').textContent = allRequests.filter(r => r.category === 'conference').length;
+    document.getElementById('badge-stationery').textContent = allRequests.filter(r => r.category === 'stationery').length;
+    document.getElementById('badge-admin_support').textContent = allRequests.filter(r => r.category === 'admin_support').length;
+    document.getElementById('badge-maintenance').textContent = allRequests.filter(r => r.category === 'maintenance').length;
+    document.getElementById('badge-housekeeping').textContent = allRequests.filter(r => r.category === 'housekeeping').length;
+    document.getElementById('badge-office_asset').textContent = allRequests.filter(r => r.category === 'office_asset').length;
+    document.getElementById('badge-print_scan').textContent = allRequests.filter(r => r.category === 'print_scan').length;
+  }
+
+  function applyFilter() {
+    let res = currentFilter ? allRequests.filter(r => r.category === currentFilter) : [...allRequests];
+    if (filterDate) {
+      res = res.filter(r => {
+        const datePart = r.submittedAt ? r.submittedAt.slice(0, 10) : '';
+        const bookingDatePart = r.startDate || r.date || '';
+        return datePart === filterDate || bookingDatePart === filterDate;
+      });
+    }
+    filteredRequests = res;
+    renderTable(filteredRequests);
+  }
+
+  function setDownloadBtnState(btn, enabled) {
+    if (!btn) return;
+    btn.disabled = !enabled;
+    btn.style.opacity = enabled ? '1' : '0.5';
+    btn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+  }
+
+  function renderTable(requests) {
+    const tbody = document.getElementById('requests-tbody');
+    const downloadBtn = document.getElementById('download-btn');
+    if (!requests.length) {
+      tbody.innerHTML = `<tr><td colspan="11" class="empty">No requests found in this category.</td></tr>`;
+      setDownloadBtnState(downloadBtn, false);
+      return;
+    }
+    setDownloadBtnState(downloadBtn, true);
+    const sorted = [...requests].sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+    tbody.innerHTML = sorted.map((r, i) => {
+      const dt = r.submittedAt ? new Date(r.submittedAt).toLocaleString('en-IN', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+      const catBadge = `<span class="badge badge-${r.category}">${r.categoryTitle || r.category}</span>`;
+      
+      const status = r.status || 'pending';
+      
+      // Delay check (>30 mins and still pending)
+      const isPending = (r.category === 'conference' && status !== 'confirmed' && status !== 'rejected') || (r.category !== 'conference' && status !== 'completed');
+      const submitTime = r.submittedAt ? new Date(r.submittedAt) : null;
+      const isDelayed = isPending && submitTime && ((Date.now() - submitTime) / (1000 * 60) > 30);
+
+      let statusPill = '';
+      let toggleBtn = '';
+      if (r.category === 'conference') {
+        if (status === 'confirmed') {
+          statusPill = `<span class="status-pill status-confirmed" style="background:#d1fae5;color:#047857;border-color:#a7f3d0;">🟢 Confirmed</span>`;
+          toggleBtn = ``;
+        } else if (status === 'rejected') {
+          statusPill = `<span class="status-pill" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:999px;font-size:0.78rem;font-weight:700;white-space:nowrap;padding:0.3rem 0.75rem;">🔴 Rejected</span>`;
+          toggleBtn = ``;
+        } else {
+          statusPill = `<span class="status-pill status-pending">🟡 Pending Approval</span>`;
+          if (isDelayed) {
+            statusPill += ` <span class="badge" style="background:#f43f5e; color:white; font-size:0.7rem; padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.3rem; white-space:nowrap;">⚠️ Delayed >30m</span>`;
+          }
+          toggleBtn = `
+            <button class="btn-complete" onclick="approveBooking('${r.id}')">✅ Approve</button>
+            <button class="btn-delete" style="background:#fffbeb;color:#d97706;border-color:#fde68a;" onclick="rejectBooking('${r.id}')">❌ Reject</button>
+          `;
+        }
+      } else {
+        statusPill = status === 'completed' 
+          ? `<span class="status-pill status-completed">🟢 Completed</span>` 
+          : `<span class="status-pill status-pending">🟡 Pending</span>`;
+        if (status !== 'completed' && isDelayed) {
+          statusPill += ` <span class="badge" style="background:#f43f5e; color:white; font-size:0.7rem; padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.3rem; white-space:nowrap;">⚠️ Delayed >30m</span>`;
+        }
+        toggleBtn = status === 'completed'
+          ? `<button class="btn-pending" onclick="toggleStatus('${r.id}', '${r.category}', 'pending')">⏳ Mark Pending</button>`
+          : `<button class="btn-complete" onclick="toggleStatus('${r.id}', '${r.category}', 'completed')">✅ Mark Completed</button>`;
+      }
+
+      let detailHtml = '';
+      if (r.category === 'conference') {
+        const attendees = r.attendees ? String(r.attendees).split('\n').filter(Boolean).map(sanitize).join(', ') : 'None';
+        const food = r.food && r.food !== 'none' ? `${sanitize(r.food === 'others' ? r.foodSpecify || 'Other' : r.food)} (Qty: ${sanitize(r.foodCount || 1)})` : 'No Food';
+        const dateStr = r.startDate === r.endDate ? sanitize(r.startDate) : `${sanitize(r.startDate)} to ${sanitize(r.endDate)}`;
+        detailHtml = `
+          <div style="font-size:0.85rem; line-height:1.5;">
+            <div><strong style="color:#374151;">Reason:</strong> ${sanitize(r.reason || 'N/A')}</div>
+            <div><strong style="color:#374151;">Date:</strong> ${dateStr || 'N/A'}</div>
+            <div><strong style="color:#374151;">Attendee List:</strong> ${attendees}</div>
+            <div><strong style="color:#374151;">Food Request:</strong> ${food}</div>
+          </div>
+        `;
+      } else if (Array.isArray(r.items)) {
+        detailHtml = `<div style="font-size:0.85rem; line-height:1.4;">
+          <div style="font-weight:700; color:#374151; margin-bottom:4px;">${sanitize(r.stationery_type || 'Items List')}:</div>
+          <ul style="padding-left:15px; margin:0;">
+            ${r.items.map(it => `<li><strong>${sanitize(it.item)}</strong> (Qty: ${sanitize(it.quantity)})</li>`).join('')}
+          </ul>
+        </div>`;
+      } else if (r.item) {
+        detailHtml = `${sanitize(r.stationery_type || 'Item')}: <strong>${sanitize(r.item)}</strong> (Qty: ${sanitize(r.quantity || 1)})`;
+      } else {
+        detailHtml = sanitize(r.exact_issue) || '—';
+      }
+
+      return `<tr class="${isDelayed ? 'delayed-row' : ''}" style="${isDelayed ? 'border-left: 4px solid #f43f5e;' : ''}">
+        <td style="color:#9ca3af;font-size:0.8rem;">${i+1}</td>
+        <td style="white-space:nowrap;font-size:0.82rem;">${dt}</td>
+        <td>${statusPill}</td>
+        <td>${catBadge}</td>
+        <td style="font-size:0.85rem;">${sanitize(r.subcategory || '—')}</td>
+        <td style="font-size:0.85rem;">${sanitize(r.floor || '—')}</td>
+        <td style="max-width:280px;font-size:0.85rem;">${detailHtml}</td>
+        <td style="max-width:150px;font-size:0.85rem;color:#6b7280;">${sanitize(r.remarks || '—')}</td>
+        <td style="font-weight:600;font-size:0.88rem;">${sanitize(r.requester_name || '—')}</td>
+        <td style="font-size:0.85rem;">${sanitize(r.requester_phone || '—')}</td>
+        <td>
+          <div class="btn-action-group">
+            ${toggleBtn}
+            <button class="btn-delete" onclick="deleteRequest('${r.id}', '${r.category}')">🗑️ Delete</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function approveBooking(id) {
+    if (!confirm('Are you sure you want to APPROVE this conference room booking?')) return;
+    try {
+      const res = await fetch('/api/helpdesk/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify({ id, category: 'conference', status: 'confirmed' })
+      });
+      if (res.ok) {
+        showToast('Booking successfully approved & confirmed! Email notification sent.', 'success');
+        await loadRequests(true);
+      } else {
+        const data = await res.json();
+        showToast(data.error || 'Failed to approve booking', 'error');
+      }
+    } catch (e) {
+      showToast('Connection error', 'error');
+    }
+  }
+
+  async function rejectBooking(id) {
+    const reason = prompt('Please enter the reason for rejecting this booking request:');
+    if (reason === null) return;
+    const finalReason = reason.trim() || 'No specific reason provided.';
+    
+    try {
+      const res = await fetch('/api/helpdesk/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify({ id, category: 'conference', status: 'rejected', rejectionReason: finalReason })
+      });
+      if (res.ok) {
+        showToast('Booking request rejected. Rejection email sent.', 'success');
+        await loadRequests(true);
+      } else {
+        const data = await res.json();
+        showToast(data.error || 'Failed to reject booking', 'error');
+      }
+    } catch (e) {
+      showToast('Connection error', 'error');
+    }
+  }
+
+  async function toggleStatus(id, category, newStatus) {
+    let remark = undefined;
+    if (newStatus === 'completed') {
+      remark = prompt('Enter completion remarks (optional, e.g. quantity changes or notes):');
+      if (remark === null) return; // Cancelled completion action
+    }
+    try {
+      const res = await fetch('/api/helpdesk/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify({ id, category, status: newStatus, remarks: remark })
+      });
+      if (res.ok) {
+        showToast(`Task marked as ${newStatus}!`, 'success');
+        await loadRequests(true);
+      } else {
+        const data = await res.json();
+        showToast(data.error || 'Failed to update status', 'error');
+      }
+    } catch (e) {
+      showToast('Connection error', 'error');
+    }
+  }
+
+  async function deleteRequest(id, category) {
+    if (!confirm('Are you sure you want to delete this item?')) return;
+    try {
+      const res = await fetch(`/api/helpdesk?id=${id}&category=${category}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (res.ok) {
+        showToast('Deleted successfully!', 'success');
+        await loadRequests(true);
+      } else {
+        const data = await res.json();
+        showToast(data.error || 'Failed to delete', 'error');
+      }
+    } catch (e) {
+      showToast('Connection error', 'error');
+    }
+  }
+
+  function downloadCSV() {
+    if (currentFilter === 'logins') {
+      const sortedLogins = getFilteredLogins();
+      if (!sortedLogins.length) { showToast('No logs to download', 'error'); return; }
+      const headers = ['#', 'Date & Time', 'Employee Email', 'IP Address', 'Login Status'];
+      const rows = sortedLogins.map((l, i) => {
+        const dt = l.timestamp ? new Date(l.timestamp).toLocaleString('en-IN') : '';
+        return [i+1, dt, l.email, l.ip, l.status]
+          .map(v => `"${String(v).replace(/"/g,'""')}"`);
+      });
+      const BOM = '\uFEFF';
+      const csv = BOM + headers.map(h=>`"${h}"`).join(',') + '\n' + rows.map(r=>r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url;
+      a.download = `Employee_Logins_${filterDate || 'All'}_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`${sortedLogins.length} login logs exported!`, 'success');
+      return;
+    }
+
+    if (!filteredRequests.length) { showToast('No requests to download', 'error'); return; }
+    const headers = ['#','Date & Time','Status','Category','Sub-Type','Floor','Item','Quantity','Details/Attendees','Remarks','Requested By','Phone'];
+    const sorted = [...filteredRequests].sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+    const rows = sorted.map((r, i) => {
+      const dt = r.submittedAt ? new Date(r.submittedAt).toLocaleString('en-IN') : '';
+      const statusText = r.category === 'conference' ? 'CONFIRMED' : (r.status || 'pending').toUpperCase();
+      const detail = r.category === 'conference' ? `Reason: ${r.reason} | Attendees: ${r.attendees ? String(r.attendees).replace(/\n/g,', ') : 'None'} | Food: ${r.food}` : (r.exact_issue || '');
+      return [i+1, dt, statusText, r.categoryTitle||r.category, r.subcategory||'', r.floor||'', r.item||'', r.quantity||'', detail, r.remarks||'', r.requester_name||'', r.requester_phone||'']
+        .map(v => `"${String(v).replace(/"/g,'""')}"`);
+    });
+    const BOM = '\uFEFF';
+    const csv = BOM + headers.map(h=>`"${h}"`).join(',') + '\n' + rows.map(r=>r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `HelpDesk_${currentFilter || 'All'}_Requests_${filterDate || 'All'}_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`${filteredRequests.length} requests exported!`, 'success');
+  }
+
+  async function loadAuditReport() {
+    const month = document.getElementById('audit-month-input').value;
+    if (!month) return;
+    try {
+      const res = await fetch(`/api/admin/stationery-audit?month=${month}`, {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (res.ok) {
+        monthlyAuditData = await res.json();
+        renderAuditTable();
+      } else {
+        showToast('Failed to load audit report', 'error');
+      }
+    } catch (e) {
+      console.error('Audit report load error:', e);
+    }
+  }
+
+  function renderAuditTable() {
+    const tbody = document.getElementById('requests-tbody');
+    const keys = Object.keys(monthlyAuditData).sort();
+    const btn = document.querySelector('button[onclick="downloadAuditCSV()"]');
+    if (!keys.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="empty">No audit records for this month.</td></tr>`;
+      setDownloadBtnState(btn, false);
+      return;
+    }
+    setDownloadBtnState(btn, true);
+    tbody.innerHTML = keys.map((item, i) => {
+      const aud = monthlyAuditData[item];
+      return `<tr>
+        <td style="color:#9ca3af;font-size:0.8rem; vertical-align: middle;">${i+1}</td>
+        <td style="font-weight:600;font-size:0.88rem;color:var(--text); vertical-align: middle;">${item}</td>
+        <td style="vertical-align: middle;">
+          <input type="number" value="${aud.startingStock}" 
+            onchange="saveAuditOverride('${item.replace(/'/g, "\\'")}', 'startingStock', this.value)" 
+            style="width: 75px; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.85rem; font-weight: 600; text-align: center; outline: none; background: transparent;">
+        </td>
+        <td style="vertical-align: middle;">
+          <input type="number" value="${aud.purchased}" 
+            onchange="saveAuditOverride('${item.replace(/'/g, "\\'")}', 'purchased', this.value)" 
+            style="width: 75px; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.85rem; font-weight: 700; color: #059669; text-align: center; outline: none; background: transparent;">
+        </td>
+        <td style="vertical-align: middle;">
+          <input type="number" value="${aud.used}" 
+            onchange="saveAuditOverride('${item.replace(/'/g, "\\'")}', 'used', this.value)" 
+            style="width: 75px; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.85rem; font-weight: 700; color: #dc2626; text-align: center; outline: none; background: transparent;">
+        </td>
+        <td style="vertical-align: middle;">
+          <input type="number" value="${aud.endingStock}" 
+            onchange="saveAuditOverride('${item.replace(/'/g, "\\'")}', 'endingStock', this.value)" 
+            style="width: 80px; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.88rem; font-weight: 800; color: #1e3a8a; text-align: center; outline: none; background: transparent;">
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function saveAuditOverride(item, field, value) {
+    const month = document.getElementById('audit-month-input').value;
+    if (!month) return;
+    
+    // Set fallback if structure doesn't exist
+    if (!monthlyAuditData[item]) {
+      monthlyAuditData[item] = { startingStock: 0, purchased: 0, used: 0, endingStock: 0 };
+    }
+    
+    // Update value locally
+    monthlyAuditData[item][field] = parseInt(value) || 0;
+    
+    // Auto-calculate ending stock if startingStock, purchased, or used was modified
+    if (field === 'startingStock' || field === 'purchased' || field === 'used') {
+      const start = parseInt(monthlyAuditData[item].startingStock) || 0;
+      const purchased = parseInt(monthlyAuditData[item].purchased) || 0;
+      const used = parseInt(monthlyAuditData[item].used) || 0;
+      monthlyAuditData[item].endingStock = Math.max(0, start + purchased - used);
+      
+      // Refresh table display to reflect ending stock changes
+      renderAuditTable();
+    }
+    
+    const payload = {
+      month,
+      item,
+      startingStock: monthlyAuditData[item].startingStock,
+      purchased: monthlyAuditData[item].purchased,
+      used: monthlyAuditData[item].used,
+      endingStock: monthlyAuditData[item].endingStock
+    };
+    
+    try {
+      const res = await fetch('/api/admin/stationery-audit/override', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast(`Saved manual override for ${item}`, 'success');
+      } else {
+        showToast('Failed to save override', 'error');
+      }
+    } catch (err) {
+      console.error('Audit override save error:', err);
+      showToast('Network error saving override', 'error');
+    }
+  }
+
+  function downloadAuditCSV() {
+    const month = document.getElementById('audit-month-input').value;
+    const keys = Object.keys(monthlyAuditData).sort();
+    if (!keys.length) { showToast('No audit data to download', 'error'); return; }
+    
+    // Format Selected Month (e.g. 2026-06 to "Jun 26")
+    let formattedMonth = month;
+    try {
+      const parts = month.split('-');
+      const yearShort = parts[0].slice(2);
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const monthIndex = parseInt(parts[1], 10) - 1;
+      formattedMonth = `${monthNames[monthIndex]} ${yearShort}`;
+    } catch (e) {
+      console.error('Month format error:', e);
+    }
+
+    // Format Current Date (e.g. "29-06-2026")
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const auditDate = `${dd}-${mm}-${yyyy}`;
+
+    // Construct headers matching screenshot layout
+    const titleRow = `"Avana Group of Companies",,,,,`;
+    const subtitleRow = `"Stock Report for the Month of ${formattedMonth}",,,,,`;
+    const auditDateRow = `"Stock Audit Date",,"${auditDate}",,,`;
+    const blankRow = `,,,,,`;
+    
+    const dataHeaders = ['Sl.No', 'Stationery Item', 'Starting Stock', 'Total Purchased (+)', 'Total Used (-)', 'Ending Stock'];
+    const rows = keys.map((item, i) => {
+      const aud = monthlyAuditData[item];
+      return [i+1, item, aud.startingStock, aud.purchased, aud.used, aud.endingStock]
+        .map(v => `"${String(v).replace(/"/g,'""')}"`);
+    });
+    
+    const BOM = '\uFEFF';
+    const csv = BOM + 
+      titleRow + '\n' + 
+      subtitleRow + '\n' + 
+      auditDateRow + '\n' + 
+      blankRow + '\n' + 
+      dataHeaders.map(h=>`"${h}"`).join(',') + '\n' + 
+      rows.map(r=>r.join(',')).join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `Stationery_Audit_Report_${month}_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`Audit report for ${month} exported successfully!`, 'success');
+  }
+
+  async function addNewStationeryItem() {
+    const nameInput = document.getElementById('new-item-name');
+    const typeInput = document.getElementById('new-item-type');
+    const stockInput = document.getElementById('new-item-stock');
+    
+    const item = nameInput.value.trim();
+    const type = typeInput.value;
+    const initialStock = parseInt(stockInput.value) || 0;
+    
+    if (!item) {
+      showToast('Please enter an item name', 'error');
+      return;
+    }
+    
+    try {
+      const res = await fetch('/api/admin/stationery-items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({ item, type, initialStock })
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`"${item}" added successfully!`, 'success');
+        nameInput.value = '';
+        stockInput.value = '0';
+        await loadStock();
+        if (currentFilter === 'stock') {
+          renderStockTable();
+        }
+      } else {
+        showToast(data.error || 'Failed to add item', 'error');
+      }
+    } catch (e) {
+      showToast('Connection error', 'error');
+    }
+  }
+
+  function showToast(msg, type='success') {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div'); t.className = `toast ${type}`; t.textContent = msg;
+    c.appendChild(t); setTimeout(() => t.classList.add('active'), 10);
+    setTimeout(() => { t.classList.remove('active'); setTimeout(() => t.remove(), 400); }, 4000);
+  }
+
+  // 🧹 Housekeeping Stock Operations & Render Helpers
+  async function loadHousekeepingStockData(silent = false) {
+    try {
+      const res = await fetch('/api/admin/housekeeping-stock', {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        housekeepingStock = data.stock;
+        housekeepingCatalog = data.catalog;
+        
+        // Populate manual adjustment select dropdown
+        const sel = document.getElementById('hk-item-select');
+        if (sel) {
+          sel.innerHTML = housekeepingCatalog.map(item => `<option value="${item}">${item}</option>`).join('');
+        }
+        
+        await loadHousekeepingStockReport(silent);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function loadHousekeepingStockReport(silent = false) {
+    const start = document.getElementById('hk-audit-start').value;
+    const end = document.getElementById('hk-audit-end').value;
+    if (!start || !end) return;
+    
+    try {
+      const res = await fetch(`/api/admin/housekeeping-audit?startMonth=${start}&endMonth=${end}`, {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (res.ok) {
+        housekeepingAuditData = await res.json();
+        if (currentFilter === 'housekeeping-stock') {
+          renderHousekeepingStockTable();
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderHousekeepingStockTable() {
+    const tbody = document.getElementById('requests-tbody');
+    const months = Object.keys(housekeepingAuditData).sort();
+    const btn = document.querySelector('button[onclick="downloadHousekeepingAuditCSV()"]');
+    
+    if (!months.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty">No housekeeping stock data available.</td></tr>`;
+      setDownloadBtnState(btn, false);
+      return;
+    }
+    setDownloadBtnState(btn, true);
+    
+    let html = '';
+    let rowIndex = 1;
+    months.forEach(month => {
+      const items = Object.keys(housekeepingAuditData[month]).sort();
+      items.forEach(item => {
+        const metrics = housekeepingAuditData[month][item];
+        html += `<tr>
+          <td style="color:#9ca3af;font-size:0.8rem; vertical-align: middle;">${rowIndex++}</td>
+          <td style="font-weight:600;font-size:0.88rem;color:var(--text); vertical-align: middle;">
+            ${item} <span style="font-size:0.75rem; color:#0d9488; font-weight:normal; margin-left: 5px;">(${month})</span>
+          </td>
+          <td style="vertical-align: middle;">
+            <input type="number" value="${metrics.startingStock}" 
+              onchange="saveHKAuditOverride('${month}', '${item.replace(/'/g, "\\'")}', 'startingStock', this.value)" 
+              style="width: 75px; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.85rem; font-weight: 600; text-align: center; outline: none; background: transparent;">
+          </td>
+          <td style="vertical-align: middle;">
+            <input type="number" value="${metrics.used}" 
+              onchange="saveHKAuditOverride('${month}', '${item.replace(/'/g, "\\'")}', 'used', this.value)" 
+              style="width: 75px; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.85rem; font-weight: 700; color: #dc2626; text-align: center; outline: none; background: transparent;">
+          </td>
+          <td style="vertical-align: middle;">
+            <input type="number" value="${metrics.endingStock}" 
+              onchange="saveHKAuditOverride('${month}', '${item.replace(/'/g, "\\'")}', 'endingStock', this.value)" 
+              style="width: 80px; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.88rem; font-weight: 800; color: #1e3a8a; text-align: center; outline: none; background: transparent;">
+          </td>
+        </tr>`;
+      });
+    });
+    
+    if (!html) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty">No audit records for selected range.</td></tr>`;
+    } else {
+      tbody.innerHTML = html;
+    }
+  }
+
+  async function saveHKAuditOverride(month, item, field, value) {
+    if (!housekeepingAuditData[month]) housekeepingAuditData[month] = {};
+    if (!housekeepingAuditData[month][item]) {
+      housekeepingAuditData[month][item] = { startingStock: 0, purchased: 0, used: 0, endingStock: 0 };
+    }
+    
+    housekeepingAuditData[month][item][field] = parseInt(value) || 0;
+    
+    // Auto-calculate ending stock (balance) if startingStock or used changes
+    if (field === 'startingStock' || field === 'used') {
+      const start = parseInt(housekeepingAuditData[month][item].startingStock) || 0;
+      const used = parseInt(housekeepingAuditData[month][item].used) || 0;
+      housekeepingAuditData[month][item].endingStock = Math.max(0, start - used);
+      renderHousekeepingStockTable();
+    }
+    
+    const payload = {
+      month,
+      item,
+      startingStock: housekeepingAuditData[month][item].startingStock,
+      purchased: housekeepingAuditData[month][item].purchased,
+      used: housekeepingAuditData[month][item].used,
+      endingStock: housekeepingAuditData[month][item].endingStock
+    };
+    
+    try {
+      const res = await fetch('/api/admin/housekeeping-audit/override', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast(`Saved override for ${item} (${month})`, 'success');
+      } else {
+        showToast('Failed to save override', 'error');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function adjustHousekeepingStock() {
+    const item = document.getElementById('hk-item-select').value;
+    const quantity = parseInt(document.getElementById('hk-qty-input').value) || 0;
+    const actionType = document.getElementById('hk-action-select').value;
+    if (!item) { showToast('No item selected', 'error'); return; }
+    
+    try {
+      const res = await fetch('/api/admin/housekeeping-stock', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({ item, quantity, actionType })
+      });
+      if (res.ok) {
+        showToast('Stock adjusted successfully!', 'success');
+        await loadHousekeepingStockData(true);
+      } else {
+        showToast('Failed to adjust stock', 'error');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function addHousekeepingItemType() {
+    const nameInput = document.getElementById('hk-new-item-name');
+    const item = nameInput.value.trim();
+    if (!item) { showToast('Enter an item name', 'error'); return; }
+    
+    try {
+      const res = await fetch('/api/admin/housekeeping-items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({ item, initialStock: 0 })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`"${item}" added to Housekeeping Catalog!`, 'success');
+        nameInput.value = '';
+        await loadHousekeepingStockData(true);
+      } else {
+        showToast(data.error || 'Failed to add item type', 'error');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function downloadHousekeepingAuditCSV() {
+    const start = document.getElementById('hk-audit-start').value;
+    const end = document.getElementById('hk-audit-end').value;
+    if (!start || !end) { showToast('Select range to download', 'error'); return; }
+    
+    const months = Object.keys(housekeepingAuditData).sort();
+    if (!months.length) { showToast('No audit data to download', 'error'); return; }
+    
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const auditDate = `${dd}-${mm}-${yyyy}`;
+
+    const titleRow = `"Avana Group of Companies",,,,`;
+    const subtitleRow = `"Housekeeping Stock Report (${start} to ${end})",,,,`;
+    const auditDateRow = `"Stock Audit Date",,"${auditDate}",,`;
+    const blankRow = `,,,,`;
+    
+    const dataHeaders = ['Sl.No', 'Month', 'Housekeeping Item', 'Starting Stock', 'Qty Used (-)', 'Balance (Ending Stock)'];
+    const rows = [];
+    let idx = 1;
+    months.forEach(month => {
+      const items = Object.keys(housekeepingAuditData[month]).sort();
+      items.forEach(item => {
+        const aud = housekeepingAuditData[month][item];
+        rows.push([idx++, month, item, aud.startingStock, aud.used, aud.endingStock]
+          .map(v => `"${String(v).replace(/"/g,'""')}"`));
+      });
+    });
+    
+    const BOM = '\uFEFF';
+    const csv = BOM + 
+      titleRow + '\n' + 
+      subtitleRow + '\n' + 
+      auditDateRow + '\n' + 
+      blankRow + '\n' + 
+      dataHeaders.map(h=>`"${h}"`).join(',') + '\n' + 
+      rows.map(r=>r.join(',')).join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `Housekeeping_Audit_${start}_to_${end}_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`Housekeeping report exported successfully!`, 'success');
+  }
+
+  // 📋 AMC Contracts Management Javascript Routines
+  async function loadAMContracts(silent = false) {
+    try {
+      const res = await fetch('/api/admin/amc', {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (res.ok) {
+        amcContracts = await res.json();
+        const badge = document.getElementById('badge-amc');
+        if (badge) badge.textContent = amcContracts.length;
+      }
+    } catch (e) {
+      console.error('Failed to load AMC contracts:', e);
+    }
+  }
+
+  async function loadAMContractsData() {
+    await loadAMContracts(true);
+    renderAMCTable();
+  }
+
+  let currentAMCCategory = 'all';
+
+  function filterAMCCategory(cat) {
+    currentAMCCategory = cat;
+    document.querySelectorAll('.amc-sub-tab').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    const subTabs = {
+      'all': 'amc-sub-all',
+      'AC': 'amc-sub-ac',
+      'Lift': 'amc-sub-lift',
+      'Pest control': 'amc-sub-pest',
+      'Other': 'amc-sub-other'
+    };
+    const activeBtn = document.getElementById(subTabs[cat]);
+    if (activeBtn) activeBtn.classList.add('active');
+    renderAMCTable();
+  }
+
+  function renderAMCTable() {
+    const tbody = document.getElementById('requests-tbody');
+    
+    // Filter contracts by selected category
+    const filteredAMCs = amcContracts.filter(c => {
+      if (currentAMCCategory === 'all') return true;
+      return c.category === currentAMCCategory;
+    });
+
+    if (!filteredAMCs.length) {
+      tbody.innerHTML = `<tr><td colspan="8" class="empty">No AMC contracts found under "${currentAMCCategory}". Click "Add New AMC" to register one.</td></tr>`;
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    let html = '';
+    filteredAMCs.forEach((c, idx) => {
+      const endD = new Date(c.endDate);
+      endD.setHours(0,0,0,0);
+      const diffDays = Math.ceil((endD - today) / (1000 * 60 * 60 * 24));
+      
+      let statusBadge = '';
+      if (diffDays < 0) {
+        statusBadge = `<span style="background:#fee2e2; color:#ef4444; padding:0.25rem 0.5rem; border-radius:12px; font-size:0.75rem; font-weight:700;">Expired</span>`;
+      } else if (diffDays <= 21) {
+        statusBadge = `<span style="background:#fef3c7; color:#d97706; padding:0.25rem 0.5rem; border-radius:12px; font-size:0.75rem; font-weight:700;">Expiring Soon (${diffDays}d)</span>`;
+      } else {
+        statusBadge = `<span style="background:#d1fae5; color:#10b981; padding:0.25rem 0.5rem; border-radius:12px; font-size:0.75rem; font-weight:700;">Active</span>`;
+      }
+
+      html += `<tr>
+        <td style="color:#9ca3af;font-size:0.8rem; vertical-align: middle;">${idx + 1}</td>
+        <td style="vertical-align: middle;">
+          <button onclick="viewAMCDetail('${c.id}')" style="background:none; border:none; text-align:left; color:#2563eb; cursor:pointer; text-decoration:underline; font-weight:700; font-family:inherit; font-size:0.88rem; padding:0;">
+            ${c.name}
+          </button>
+          <div style="font-size:0.75rem; color:var(--muted); font-weight:normal; margin-top:2px;">${c.coverage || 'No coverage details.'}</div>
+        </td>
+        <td style="font-size:0.82rem; font-weight:600; color:#4b5563; vertical-align: middle;">${c.category || 'AC'}</td>
+        <td style="vertical-align: middle;">${statusBadge}</td>
+        <td style="font-size:0.82rem; font-weight:700; color:#475569; vertical-align: middle;">${c.units || 'N/A'}</td>
+        <td style="font-weight:700;color:#1e3a8a; vertical-align: middle;">INR ${c.pricing || 0}</td>
+        <td style="font-size:0.82rem; font-weight:600; color:#dc2626; vertical-align: middle;">${c.endDate}</td>
+        <td style="vertical-align: middle;">
+          <div style="display:flex; gap:0.4rem;">
+            <button onclick="viewAMCDetail('${c.id}')" style="padding:0.35rem 0.6rem; font-size:0.75rem; border:1px solid #3b82f6; background:#e0f2fe; color:#0369a1; border-radius:6px; font-weight:700; cursor:pointer;">🔍 View</button>
+            <button onclick="editAMCContract('${c.id}')" style="padding:0.35rem 0.6rem; font-size:0.75rem; border:1px solid #cbd5e1; background:white; color:#3b82f6; border-radius:6px; font-weight:700; cursor:pointer;">✏️ Edit</button>
+            <button onclick="deleteAMCContract('${c.id}')" style="padding:0.35rem 0.6rem; font-size:0.75rem; border:1px solid #fee2e2; background:#fee2e2; color:#ef4444; border-radius:6px; font-weight:700; cursor:pointer;">🗑️ Delete</button>
+          </div>
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+
+  function viewAMCDetail(id) {
+    const c = amcContracts.find(contract => contract.id === id);
+    if (!c) return;
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const endD = new Date(c.endDate);
+    endD.setHours(0,0,0,0);
+    const diffDays = Math.ceil((endD - today) / (1000 * 60 * 60 * 24));
+    
+    let statusBadge = '';
+    if (diffDays < 0) {
+      statusBadge = `<span style="background:#fee2e2; color:#ef4444; padding:0.3rem 0.7rem; border-radius:12px; font-size:0.8rem; font-weight:700;">Expired</span>`;
+    } else if (diffDays <= 21) {
+      statusBadge = `<span style="background:#fef3c7; color:#d97706; padding:0.3rem 0.7rem; border-radius:12px; font-size:0.8rem; font-weight:700;">Expiring Soon (${diffDays}d)</span>`;
+    } else {
+      statusBadge = `<span style="background:#d1fae5; color:#10b981; padding:0.3rem 0.7rem; border-radius:12px; font-size:0.8rem; font-weight:700;">Active</span>`;
+    }
+
+    const container = document.getElementById('amc-detail-view');
+    container.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem;">
+        <div>
+          <h2 style="margin:0; color:#1e3a8a; font-size:1.5rem;">${c.name}</h2>
+          <div style="font-size:0.85rem; color:#6b7280; margin-top:4px;">Category: <strong>${c.category || 'AC'}</strong></div>
+        </div>
+        <div>${statusBadge}</div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+        <!-- Left side: Contract parameters -->
+        <div style="background:#f8fafc; padding:1.2rem; border-radius:8px; border:1px solid #cbd5e1; display:flex; flex-direction:column; gap:10px;">
+          <h3 style="margin:0; font-size:1rem; color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:6px;">📋 Contract Specifications</h3>
+          <div style="font-size:0.85rem;"><span style="color:#64748b; font-weight:600;">Units / Location:</span> <strong>${c.units || 'N/A'}</strong></div>
+          <div style="font-size:0.85rem;"><span style="color:#64748b; font-weight:600;">Pricing / Cost Paid:</span> <strong>INR ${c.pricing || 0}</strong></div>
+          <div style="font-size:0.85rem;"><span style="color:#64748b; font-weight:600;">Frequency:</span> <strong>${c.frequency || 'N/A'}</strong></div>
+          <div style="font-size:0.85rem;"><span style="color:#64748b; font-weight:600;">Start Date:</span> <strong>${c.startDate}</strong></div>
+          <div style="font-size:0.85rem;"><span style="color:#64748b; font-weight:600;">End Date:</span> <strong style="color:#b91c1c;">${c.endDate}</strong></div>
+          <div style="font-size:0.85rem;"><span style="color:#64748b; font-weight:600;">Next Overall Service:</span> <strong style="color:#2563eb;">${c.nextServiceDate || 'N/A'}</strong></div>
+        </div>
+
+        <!-- Right side: Vendor contact & details -->
+        <div style="background:#f8fafc; padding:1.2rem; border-radius:8px; border:1px solid #cbd5e1; display:flex; flex-direction:column; gap:10px;">
+          <h3 style="margin:0; font-size:1rem; color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:6px;">📞 Vendor & Contact Info</h3>
+          <div style="font-size:0.85rem;"><span style="color:#64748b; font-weight:600;">Vendor Contact:</span> <strong>${c.vendorName || 'N/A'}</strong></div>
+          <div style="font-size:0.85rem;"><span style="color:#64748b; font-weight:600;">Contact Phone:</span> <strong>${c.vendorPhone || 'N/A'}</strong></div>
+          <div style="font-size:0.85rem;">
+            <span style="color:#64748b; font-weight:600;">Coverage Scope:</span> 
+            <div style="margin-top:4px; font-size:0.82rem; color:#475569; white-space:pre-wrap; background:white; padding:6px; border-radius:4px; border:1px solid #cbd5e1;">${c.coverage || 'No coverage details provided.'}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visits Log & Maintenance Section -->
+      <div style="background:#ffffff; border:1px solid #cbd5e1; padding:1.2rem; border-radius:8px;">
+        <h3 style="margin:0 0 1rem 0; font-size:1.1rem; color:#1e3a8a; display:flex; align-items:center; gap:6px;">🔧 Service Visits History Logs (${c.visits ? c.visits.length : 0})</h3>
+        
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+          ${(c.visits || []).map(v => `
+            <div style="background:#f1f5f9; padding:1rem; border-radius:8px; border:1px solid #cbd5e1; display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #cbd5e1; padding-bottom:4px;">
+                <span style="font-weight:700; color:#1e3a8a; font-size:0.85rem;">Visit #${v.visitNo}</span>
+                <span style="font-size:0.75rem; padding: 2px 6px; border-radius:10px; font-weight:700; background:${v.status === 'Serviced' ? '#d1fae5; color:#065f46;' : '#fef3c7; color:#92400e;'}">${v.status === 'Serviced' ? 'Completed' : 'Pending'}</span>
+              </div>
+              
+              <div style="font-size:0.78rem; color:#475569; font-weight:600;">Scheduled Date: ${v.scheduledDate}</div>
+              
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                <div>
+                  <label style="font-size:0.68rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">Last Service Date *</label>
+                  <input type="date" id="visit-date-${c.id}-${v.visitNo}" value="${v.actualDate || ''}" style="width:100%; font-size:0.75rem; padding:3px; border:1px solid #cbd5e1; border-radius:4px;">
+                </div>
+                <div>
+                  <label style="font-size:0.68rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">Next Service Date</label>
+                  <input type="text" readonly value="${v.nextServiceDate || 'Auto-calculated'}" style="width:100%; font-size:0.75rem; padding:3px; border:1px solid #cbd5e1; border-radius:4px; background:#e2e8f0; color:#475569;">
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                <div>
+                  <label style="font-size:0.68rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">Service Person</label>
+                  <input type="text" id="visit-person-${c.id}-${v.visitNo}" value="${v.servicePerson || ''}" placeholder="Who visited" style="width:100%; font-size:0.75rem; padding:3px; border:1px solid #cbd5e1; border-radius:4px;">
+                </div>
+                <div>
+                  <label style="font-size:0.68rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">Contact Number</label>
+                  <input type="text" id="visit-phone-${c.id}-${v.visitNo}" value="${v.servicePhone || ''}" placeholder="Phone" style="width:100%; font-size:0.75rem; padding:3px; border:1px solid #cbd5e1; border-radius:4px;">
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size:0.68rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">Remarks</label>
+                <input type="text" id="visit-remarks-${c.id}-${v.visitNo}" value="${v.remarks || ''}" placeholder="Notes..." style="width:100%; font-size:0.75rem; padding:3px; border:1px solid #cbd5e1; border-radius:4px;">
+              </div>
+
+              <button type="button" onclick="submitVisitLogDetail('${c.id}', ${v.visitNo})" style="margin-top:4px; padding:6px; font-size:0.75rem; background:#10b981; color:white; border:none; border-radius:6px; font-weight:700; cursor:pointer; width:100%;">💾 Save Visit Details</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Back action button -->
+      <div style="margin-top: 1.5rem; display:flex; justify-content:flex-start; gap:10px;">
+        <button onclick="closeAMCDetail()" class="btn-download" style="padding:0.6rem 1.2rem; font-size:0.85rem; border-color:#94a3b8; background:#f1f5f9; color:#475569; display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:700;">🔙 Back to AMC List</button>
+        <button onclick="downloadSingleAMCReport('${c.id}')" class="btn-download" style="padding:0.6rem 1.2rem; font-size:0.85rem; background:#10b981; border-color:#10b981; color:white; display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:700;">📥 Download AMC Report (CSV)</button>
+      </div>
+    `;
+
+    // Hide list & controls, show details screen
+    document.querySelector('.table-wrap').style.display = 'none';
+    document.getElementById('amc-controls').style.display = 'none';
+    container.style.display = 'flex';
+    container.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function submitVisitLogDetail(amcId, visitNo) {
+    const actualDate = document.getElementById(`visit-date-${amcId}-${visitNo}`).value;
+    const servicePerson = document.getElementById(`visit-person-${amcId}-${visitNo}`).value.trim();
+    const servicePhone = document.getElementById(`visit-phone-${amcId}-${visitNo}`).value.trim();
+    const remarks = document.getElementById(`visit-remarks-${amcId}-${visitNo}`).value.trim();
+    
+    if (!actualDate) {
+      showToast('Please select a service completion date', 'error');
+      return;
+    }
+    
+    try {
+      const res = await fetch('/api/admin/amc/visit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({ amcId, visitNo, actualDate, servicePerson, servicePhone, remarks })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`Visit ${visitNo} service logs saved successfully!`, 'success');
+        // Refresh details screen
+        await loadAMContracts(true);
+        viewAMCDetail(amcId);
+      } else {
+        showToast(data.error || 'Failed to save visit logs', 'error');
+      }
+    } catch (e) {
+      showToast('Connection error', 'error');
+    }
+  }
+
+  function closeAMCDetail() {
+    document.getElementById('amc-detail-view').style.display = 'none';
+    document.getElementById('amc-controls').style.display = 'flex';
+    document.querySelector('.table-wrap').style.display = 'block';
+    loadAMContractsData();
+  }
+
+  function toggleAMCForm() {
+    const form = document.getElementById('amc-editor-form');
+    if (form.style.display === 'none') {
+      form.style.display = 'flex';
+    } else {
+      cancelAMCEdit();
+    }
+  }
+
+  function cancelAMCEdit() {
+    document.getElementById('amc-editor-form').reset();
+    document.getElementById('amc-id-input').value = '';
+    document.getElementById('amc-editor-form').style.display = 'none';
+  }
+
+  function editAMCContract(id) {
+    const c = amcContracts.find(contract => contract.id === id);
+    if (!c) return;
+
+    document.getElementById('amc-id-input').value = c.id;
+    document.getElementById('amc-name-input').value = c.name;
+    document.getElementById('amc-category-input').value = c.category || 'AC';
+    document.getElementById('amc-visitsperyear-input').value = c.visitsPerYear || 6;
+    document.getElementById('amc-units-input').value = c.units || '';
+    document.getElementById('amc-pricing-input').value = c.pricing;
+    document.getElementById('amc-frequency-input').value = c.frequency || 'Quarterly';
+    document.getElementById('amc-start-input').value = c.startDate;
+    document.getElementById('amc-end-input').value = c.endDate;
+    document.getElementById('amc-lastservice-input').value = c.lastServiceDate || '';
+    document.getElementById('amc-nextservice-input').value = c.nextServiceDate || '';
+    document.getElementById('amc-vendorname-input').value = c.vendorName || '';
+    document.getElementById('amc-vendorphone-input').value = c.vendorPhone || '';
+    document.getElementById('amc-coverage-input').value = c.coverage || '';
+
+    document.getElementById('amc-editor-form').style.display = 'flex';
+    document.getElementById('amc-controls').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function saveAMCContract(e) {
+    e.preventDefault();
+    
+    const payload = {
+      id: document.getElementById('amc-id-input').value || undefined,
+      name: document.getElementById('amc-name-input').value.trim(),
+      category: document.getElementById('amc-category-input').value,
+      visitsPerYear: parseInt(document.getElementById('amc-visitsperyear-input').value) || 6,
+      units: document.getElementById('amc-units-input').value.trim(),
+      pricing: parseFloat(document.getElementById('amc-pricing-input').value) || 0,
+      frequency: document.getElementById('amc-frequency-input').value,
+      startDate: document.getElementById('amc-start-input').value,
+      endDate: document.getElementById('amc-end-input').value,
+      lastServiceDate: document.getElementById('amc-lastservice-input').value || undefined,
+      nextServiceDate: document.getElementById('amc-nextservice-input').value || undefined,
+      vendorName: document.getElementById('amc-vendorname-input').value.trim() || undefined,
+      vendorPhone: document.getElementById('amc-vendorphone-input').value.trim() || undefined,
+      coverage: document.getElementById('amc-coverage-input').value.trim() || undefined
+    };
+
+    try {
+      const res = await fetch('/api/admin/amc', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('AMC contract saved successfully!', 'success');
+        cancelAMCEdit();
+        await loadAMContractsData();
+      } else {
+        showToast(data.error || 'Failed to save AMC contract', 'error');
+      }
+    } catch (err) {
+      showToast('Connection error', 'error');
+    }
+  }
+
+  async function deleteAMCContract(id) {
+    if (!confirm('Are you sure you want to delete this AMC contract record?')) return;
+    
+    try {
+      const res = await fetch(`/api/admin/amc/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${adminToken}`
+        }
+      });
+      if (res.ok) {
+        showToast('AMC contract deleted successfully!', 'success');
+        await loadAMContractsData();
+      } else {
+        showToast('Failed to delete AMC contract', 'error');
+      }
+    } catch (e) {
+      showToast('Connection error', 'error');
+    }
+  }
+
+  async function downloadSingleAMCReport(id) {
+    const c = amcContracts.find(contract => contract.id === id);
+    if (!c) {
+      showToast('AMC Contract not found', 'error');
+      return;
+    }
+    
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const reportDate = `${dd}-${mm}-${yyyy}`;
+
+    const titleRow = `"Avana Group of Companies",,,`;
+    const subtitleRow = `"AMC Contract Report - ${c.name}",,,`;
+    const dateRow = `"Report Date",,"${reportDate}",`;
+    const blankRow = `,,,`;
+    
+    const metaRows = [
+      ['Category', c.category || 'AC'],
+      ['Units / Location', c.units || 'N/A'],
+      ['Pricing', `INR ${c.pricing || 0}`],
+      ['Period', `${c.startDate} to ${c.endDate}`],
+      ['Frequency', c.frequency || 'N/A'],
+      ['Vendor Name', c.vendorName || 'N/A'],
+      ['Vendor Phone', c.vendorPhone || 'N/A'],
+      ['Coverage Scope', c.coverage || 'N/A']
+    ].map(row => row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+
+    const visitsHeaders = ['Visit No', 'Scheduled Date', 'Actual Service Date', 'Service Person', 'Contact Number', 'Status', 'Remarks'];
+    const visitsRows = (c.visits || []).map(v => [
+      v.visitNo,
+      v.scheduledDate,
+      v.actualDate || 'Pending',
+      v.servicePerson || 'N/A',
+      v.servicePhone || 'N/A',
+      v.status || 'Pending',
+      v.remarks || ''
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`));
+
+    const BOM = '\uFEFF';
+    const csv = BOM + 
+      titleRow + '\n' + 
+      subtitleRow + '\n' + 
+      dateRow + '\n' + 
+      blankRow + '\n' + 
+      metaRows.join('\n') + '\n' + 
+      blankRow + '\n' + 
+      `"SERVICE VISITS RECORD",,,,,,` + '\n' + 
+      visitsHeaders.map(h => `"${h}"`).join(',') + '\n' + 
+      visitsRows.map(r => r.join(',')).join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `AMC_Report_${c.name.replace(/\s+/g,'_')}_${reportDate}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`AMC report downloaded successfully!`, 'success');
+  }
+
+  window.toggleAMCForm = toggleAMCForm;
+  window.cancelAMCEdit = cancelAMCEdit;
+  window.saveAMCContract = saveAMCContract;
+  window.editAMCContract = editAMCContract;
+  window.deleteAMCContract = deleteAMCContract;
+  window.viewAMCDetail = viewAMCDetail;
+  window.closeAMCDetail = closeAMCDetail;
+  window.submitVisitLogDetail = submitVisitLogDetail;
+  window.filterAMCCategory = filterAMCCategory;
+  window.downloadSingleAMCReport = downloadSingleAMCReport;
+
+  // ── ⚡ Utility Payments JS ───────────────────────────────────────────────
+  let utilityData = [];
+
+  const UTILITY_SERVICES = [
+    { type: 'mobile',      label: '📱 Mobile Bill',       color: '#7c3aed', payUrl: 'https://paytm.com/recharge',                   nameField: 'userName' },
+    { type: 'landline',    label: '📞 Landline Bill',      color: '#0891b2', payUrl: 'https://paytm.com/landline-bill-payment',       nameField: 'location' },
+    { type: 'broadband',   label: '🌐 Broadband Bill',     color: '#059669', payUrl: 'https://paytm.com/landline-bill-payment',       nameField: 'location' },
+    { type: 'electricity', label: '💡 Electricity Bill',   color: '#d97706', payUrl: 'https://paytm.com/electricity-bill-payment',    nameField: 'location' }
+  ];
+
+  async function loadUtilityPayments() {
+    const picker = document.getElementById('utility-month-picker');
+    if (!picker.value) {
+      const now = new Date();
+      picker.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    }
+    const month = picker.value;
+    try {
+      const res = await fetch(`/api/admin/utility-payments?month=${month}`, {
+        headers: { 'Authorization': `Bearer ${adminToken}` },
+        cache: 'no-store'
+      });
+      if (!res.ok) throw new Error('Failed');
+      utilityData = await res.json();
+      renderUtilityPanel();
+    } catch(e) {
+      showToast('Failed to load utility payments', 'error');
+    }
+  }
+
+  function renderUtilityPanel() {
+    const container = document.getElementById('utility-sections-container');
+    container.innerHTML = '';
+    UTILITY_SERVICES.forEach(svc => {
+      const entries = utilityData.filter(e => e.serviceType === svc.type);
+      const nameHeader = svc.nameField === 'userName' ? 'User Name' : 'Location';
+      const rows = entries.length === 0
+        ? `<tr><td colspan="7" style="text-align:center;padding:1.2rem;color:var(--muted);font-style:italic;">No entries for this month. Click + Add to add one.</td></tr>`
+        : entries.map(e => {
+            const isPaid = e.paid;
+            const today = new Date().toISOString().slice(0,10);
+            const isOverdue = !isPaid && e.dueDate < today;
+            const isDueSoon = !isPaid && e.dueDate === new Date(Date.now()+2*86400000).toISOString().slice(0,10);
+            return `<tr style="border-bottom:1px solid #f1f5f9;background:${isPaid ? '#f0fdf4' : isOverdue ? '#fef2f2' : 'white'};">
+              <td style="padding:0.6rem 0.7rem;">${e.serviceProvider || '-'}</td>
+              <td style="padding:0.6rem 0.7rem;">${e.userName || e.location || '-'}</td>
+              <td style="padding:0.6rem 0.7rem;font-weight:600;">${e.number || '-'}</td>
+              <td style="padding:0.6rem 0.7rem;">
+                <span style="font-weight:600;color:${isOverdue ? '#dc2626' : isDueSoon ? '#d97706' : '#374151'};">
+                  ${e.dueDate || '-'} ${isOverdue ? '⚠️ Overdue' : isDueSoon ? '🔔 Due Soon' : ''}
+                </span>
+              </td>
+              <td style="padding:0.6rem 0.7rem;font-weight:700;color:#0f172a;">₹${Number(e.amount||0).toLocaleString('en-IN')}</td>
+              <td style="padding:0.6rem 0.7rem;">
+                ${isPaid ? `<span style="color:#059669;font-weight:600;">✅ ${e.paidOn || ''}</span>` : '<span style="color:#d97706;font-weight:600;">⏳ Pending</span>'}
+              </td>
+              <td style="padding:0.6rem 0.7rem;">
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                  <a href="${svc.payUrl}" target="_blank" onclick="navigator.clipboard.writeText('${e.number}'); showToast('Number copied to clipboard! Paste it in Paytm.', 'success');" style="padding:0.3rem 0.6rem;background:#4f46e5;color:white;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;white-space:nowrap;">💳 Pay Now</a>
+                  ${!isPaid ? `<button onclick="markUtilityPaid('${e.id}')" style="padding:0.3rem 0.6rem;background:#059669;color:white;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;">✅ Mark Paid</button>` : ''}
+                  <button onclick="editUtilityEntry('${e.id}')" style="padding:0.3rem 0.6rem;background:#f59e0b;color:white;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;">✏️</button>
+                  <button onclick="deleteUtilityEntry('${e.id}')" style="padding:0.3rem 0.6rem;background:#ef4444;color:white;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;">🗑️</button>
+                </div>
+              </td>
+            </tr>`;
+          }).join('');
+
+      const totalAmount = entries.reduce((s,e) => s + Number(e.amount||0), 0);
+      const paidAmount = entries.filter(e=>e.paid).reduce((s,e) => s + Number(e.amount||0), 0);
+
+      const section = document.createElement('div');
+      section.style.cssText = 'background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;';
+      section.innerHTML = `
+        <div style="background:${svc.color};padding:0.9rem 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+          <div style="font-weight:700;font-size:1rem;color:white;">${svc.label}</div>
+          <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+            <span style="color:rgba(255,255,255,0.9);font-size:0.82rem;">Total: <strong>₹${totalAmount.toLocaleString('en-IN')}</strong> | Paid: <strong>₹${paidAmount.toLocaleString('en-IN')}</strong></span>
+            <button onclick="openUtilityModal('${svc.type}')" style="padding:0.35rem 0.9rem;background:white;color:${svc.color};border:none;border-radius:6px;font-weight:700;font-size:0.82rem;cursor:pointer;">➕ Add</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.83rem;">
+            <thead>
+              <tr style="background:#f9fafb;border-bottom:1.5px solid var(--border);color:var(--muted);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;">
+                <th style="padding:0.55rem 0.7rem;text-align:left;">Provider</th>
+                <th style="padding:0.55rem 0.7rem;text-align:left;">${nameHeader}</th>
+                <th style="padding:0.55rem 0.7rem;text-align:left;">Number</th>
+                <th style="padding:0.55rem 0.7rem;text-align:left;">Due Date</th>
+                <th style="padding:0.55rem 0.7rem;text-align:left;">Amount</th>
+                <th style="padding:0.55rem 0.7rem;text-align:left;">Paid On</th>
+                <th style="padding:0.55rem 0.7rem;text-align:left;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+      container.appendChild(section);
+    });
+  }
+
+  function openUtilityModal(serviceType, editData = null) {
+    const svc = UTILITY_SERVICES.find(s => s.type === serviceType);
+    document.getElementById('utility-modal-service-title').textContent = svc ? svc.label : serviceType;
+    document.getElementById('utility-modal-service-type').value = serviceType;
+    document.getElementById('utility-modal-action-text').textContent = editData ? '✏️ Edit Entry' : '➕ Add New Entry';
+    document.getElementById('utility-modal-edit-id').value = editData ? editData.id : '';
+    // Show/hide username vs location field
+    const isMobile = serviceType === 'mobile';
+    document.getElementById('um-username-row').style.display = isMobile ? 'block' : 'none';
+    document.getElementById('um-location-row').style.display = isMobile ? 'none' : 'block';
+    // Clear fields
+    if (editData) {
+      document.getElementById('um-provider').value = editData.serviceProvider || '';
+      document.getElementById('um-username').value = editData.userName || '';
+      document.getElementById('um-location').value = editData.location || '';
+      document.getElementById('um-number').value = editData.number || '';
+      document.getElementById('um-duedate').value = editData.dueDate || '';
+      document.getElementById('um-amount').value = editData.amount || '';
+    } else {
+      ['um-provider','um-username','um-location','um-number','um-duedate','um-amount'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+    }
+    const modal = document.getElementById('utility-add-modal');
+    modal.style.display = 'flex';
+  }
+
+  function editUtilityEntry(id) {
+    const entry = utilityData.find(e => e.id === id);
+    if (entry) {
+      openUtilityModal(entry.serviceType, entry);
+    }
+  }
+
+  function closeUtilityModal() {
+    document.getElementById('utility-add-modal').style.display = 'none';
+  }
+
+  async function saveUtilityEntry() {
+    const editId = document.getElementById('utility-modal-edit-id').value;
+    const serviceType = document.getElementById('utility-modal-service-type').value;
+    const serviceProvider = document.getElementById('um-provider').value.trim();
+    const userName = document.getElementById('um-username').value.trim();
+    const location = document.getElementById('um-location').value.trim();
+    const number = document.getElementById('um-number').value.trim();
+    const dueDate = document.getElementById('um-duedate').value;
+    const amount = document.getElementById('um-amount').value;
+    if (!serviceProvider || !number || !dueDate || amount === '') {
+      showToast('Please fill Provider, Number, Due Date and Amount', 'error'); return;
+    }
+    try {
+      const payload = { serviceType, serviceProvider, userName, location, number, dueDate, amount: parseFloat(amount) };
+      const url = editId ? `/api/admin/utility-payments/${editId}` : '/api/admin/utility-payments';
+      const method = editId ? 'PATCH' : 'POST';
+
+      const res = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        closeUtilityModal();
+        showToast(editId ? 'Entry updated!' : 'Entry added successfully!', 'success');
+        const addedMonth = dueDate.slice(0, 7);
+        document.getElementById('utility-month-picker').value = addedMonth;
+        await loadUtilityPayments();
+      } else {
+        const d = await res.json();
+        showToast(d.error || 'Failed to save entry', 'error');
+      }
+    } catch(e) { showToast('Connection error', 'error'); }
+  }
+
+  async function markUtilityPaid(id) {
+    if (!confirm('Mark this payment as paid?')) return;
+    const today = new Date().toISOString().slice(0,10);
+    try {
+      const res = await fetch(`/api/admin/utility-payments/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify({ paid: true, paidOn: today })
+      });
+      if (res.ok) {
+        showToast('Marked as paid!', 'success');
+        await loadUtilityPayments();
+      } else { showToast('Failed to update', 'error'); }
+    } catch(e) { showToast('Connection error', 'error'); }
+  }
+
+  async function deleteUtilityEntry(id) {
+    if (!confirm('Delete this entry? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`/api/admin/utility-payments/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (res.ok) {
+        showToast('Entry deleted.', 'success');
+        await loadUtilityPayments();
+      } else { showToast('Failed to delete', 'error'); }
+    } catch(e) { showToast('Connection error', 'error'); }
+  }
+
+  function downloadUtilityCSV() {
+    const picker = document.getElementById('utility-month-picker');
+    const month = picker.value || 'All';
+    if (utilityData.length === 0) { showToast('No data to download', 'error'); return; }
+    const headers = ['Service Type','Provider','User/Location','Number','Due Date','Amount (INR)','Status','Paid On'];
+    const rows = utilityData.map(e => [
+      e.serviceType, e.serviceProvider, e.userName || e.location || '',
+      e.number, e.dueDate, e.amount, e.paid ? 'Paid' : 'Pending', e.paidOn || ''
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`));
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `Utility_Payments_${month}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`Report for ${month} downloaded!`, 'success');
+  }
+
+  window.openUtilityModal = openUtilityModal;
+  window.editUtilityEntry = editUtilityEntry;
+  window.closeUtilityModal = closeUtilityModal;
+  window.saveUtilityEntry = saveUtilityEntry;
+  window.markUtilityPaid = markUtilityPaid;
+  window.deleteUtilityEntry = deleteUtilityEntry;
+  window.downloadUtilityCSV = downloadUtilityCSV;
+  window.loadUtilityPayments = loadUtilityPayments;
+  // ── End Utility Payments JS ──────────────────────────────────────────────
+
+  // ── 🏛️ Tax Payments JS ────────────────────────────────────────────────
+  let taxData = [];
+  
+  const TAX_SERVICES = [
+    { type: 'property', label: '🏡 Property Tax', color: '#10b981', payUrl: 'https://paytm.com/municipal-payments' },
+    { type: 'water',    label: '💧 Water Tax',    color: '#3b82f6', payUrl: 'https://paytm.com/water-bill-payment' }
+  ];
+
+  async function loadTaxPayments() {
+    const yearPicker = document.getElementById('tax-header-year');
+    if (yearPicker && yearPicker.options.length === 0) {
+      const currentYear = new Date().getFullYear();
+      for (let y = 2020; y <= 2030; y++) {
+        const opt = document.createElement('option');
+        opt.value = y; opt.text = y;
+        if (y === currentYear) opt.selected = true;
+        yearPicker.appendChild(opt);
+      }
+    }
+    const year = yearPicker ? yearPicker.value : new Date().getFullYear();
+
+    try {
+      const res = await fetch(`/api/admin/tax-payments?year=${year}`, {
+        headers: { 'Authorization': `Bearer ${adminToken}` },
+        cache: 'no-store'
+      });
+      if (!res.ok) throw new Error('Failed');
+      taxData = await res.json();
+      renderTaxPanel();
+    } catch(e) {
+      showToast('Failed to load tax payments', 'error');
+    }
+  }
+
+  function renderTaxPanel() {
+    const container = document.getElementById('tax-sections-container');
+    container.innerHTML = '';
+    
+    TAX_SERVICES.forEach(svc => {
+      const entries = taxData.filter(e => e.serviceType === svc.type);
+      
+      let rowsHtml = '';
+      if (entries.length === 0) {
+        rowsHtml = `<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:var(--muted); font-size:0.9rem;">No entries found.</td></tr>`;
+      } else {
+        entries.forEach(e => {
+          let actionHtml = '';
+          if (e.paid) {
+            actionHtml = `<span style="display:inline-flex; align-items:center; gap:4px; padding:4px 8px; background:#dcfce7; color:#166534; border-radius:12px; font-size:0.75rem; font-weight:700;">✅ Paid on ${e.paidOn}</span>
+                          <button onclick="markTaxPaid('${e.id}', false)" style="background:none; border:none; color:var(--muted); text-decoration:underline; cursor:pointer; font-size:0.75rem; margin-left:8px;">Undo</button>`;
+          } else {
+            actionHtml = `
+              <a href="${svc.payUrl}" target="_blank" style="padding:0.4rem 0.8rem; background:#8b5cf6; color:white; border-radius:6px; font-size:0.8rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">💸 Pay Now</a>
+              <button onclick="markTaxPaid('${e.id}', true)" style="padding:0.4rem 0.8rem; background:white; color:#059669; border:1px solid #059669; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer; margin-left:8px;">✅ Mark Paid</button>
+            `;
+          }
+
+          rowsHtml += `
+            <tr>
+              <td style="padding:0.8rem; border-bottom:1px solid var(--border); font-size:0.9rem;">${e.location || '-'}</td>
+              <td style="padding:0.8rem; border-bottom:1px solid var(--border); font-size:0.9rem;">${e.billNumber || '-'}</td>
+              <td style="padding:0.8rem; border-bottom:1px solid var(--border); font-size:0.9rem; font-weight:600;">${e.year} - ${e.term}</td>
+              <td style="padding:0.8rem; border-bottom:1px solid var(--border); font-size:0.9rem;">${e.dueDate || '-'}</td>
+              <td style="padding:0.8rem; border-bottom:1px solid var(--border); font-size:0.9rem; font-weight:bold; color:#dc2626;">INR ${e.amount}</td>
+              <td style="padding:0.8rem; border-bottom:1px solid var(--border);">${actionHtml}</td>
+              <td style="padding:0.8rem; border-bottom:1px solid var(--border); text-align:right;">
+                <button onclick="openTaxModal('${svc.type}', '${e.id}')" style="background:none; border:none; cursor:pointer; padding:4px; font-size:1.1rem;" title="Edit">✏️</button>
+                <button onclick="deleteTaxEntry('${e.id}')" style="background:none; border:none; cursor:pointer; padding:4px; font-size:1.1rem;" title="Delete">🗑️</button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+
+      const section = document.createElement('div');
+      section.style.cssText = `background: white; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.02);`;
+      section.innerHTML = `
+        <div style="background: #f8fafc; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: ${svc.color}; display:flex; align-items:center; gap:0.5rem;">
+            ${svc.label}
+          </h3>
+          <button onclick="openTaxModal('${svc.type}')" style="padding:0.4rem 0.9rem; background: ${svc.color}; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display:inline-flex; align-items:center; gap:0.4rem;">
+            ➕ Add Entry
+          </button>
+        </div>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="background: #f1f5f9;">
+                <th style="padding: 0.8rem; border-bottom: 2px solid var(--border); font-size: 0.8rem; text-transform: uppercase; color: var(--muted);">Location</th>
+                <th style="padding: 0.8rem; border-bottom: 2px solid var(--border); font-size: 0.8rem; text-transform: uppercase; color: var(--muted);">Bill Number</th>
+                <th style="padding: 0.8rem; border-bottom: 2px solid var(--border); font-size: 0.8rem; text-transform: uppercase; color: var(--muted);">Year & Term</th>
+                <th style="padding: 0.8rem; border-bottom: 2px solid var(--border); font-size: 0.8rem; text-transform: uppercase; color: var(--muted);">Due Date</th>
+                <th style="padding: 0.8rem; border-bottom: 2px solid var(--border); font-size: 0.8rem; text-transform: uppercase; color: var(--muted);">Amount</th>
+                <th style="padding: 0.8rem; border-bottom: 2px solid var(--border); font-size: 0.8rem; text-transform: uppercase; color: var(--muted);">Payment Status</th>
+                <th style="padding: 0.8rem; border-bottom: 2px solid var(--border); font-size: 0.8rem; text-transform: uppercase; color: var(--muted); text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </div>`;
+      container.appendChild(section);
+    });
+  }
+
+  function openTaxModal(type, editId = null) {
+    document.getElementById('tax-modal-edit-id').value = editId || '';
+    document.getElementById('tm-service-type').value = type;
+    
+    // Populate year dropdown (2020 - 2030) if empty
+    const yearSelect = document.getElementById('tm-year');
+    if (yearSelect.options.length === 0) {
+      const currentYear = new Date().getFullYear();
+      for (let y = 2020; y <= 2030; y++) {
+        const opt = document.createElement('option');
+        opt.value = y; opt.text = y;
+        if (y === currentYear) opt.selected = true;
+        yearSelect.appendChild(opt);
+      }
+    }
+
+    if (editId) {
+      const entry = taxData.find(e => e.id === editId);
+      if (entry) {
+        document.getElementById('tax-modal-action-text').textContent = '✏️ Edit Tax Entry';
+        document.getElementById('tm-location').value = entry.location;
+        document.getElementById('tm-bill-number').value = entry.billNumber;
+        document.getElementById('tm-year').value = entry.year;
+        document.getElementById('tm-term').value = entry.term;
+        document.getElementById('tm-duedate').value = entry.dueDate;
+        document.getElementById('tm-amount').value = entry.amount;
+      }
+    } else {
+      document.getElementById('tax-modal-action-text').textContent = '➕ Add Tax Entry';
+      document.getElementById('tm-location').value = '';
+      document.getElementById('tm-bill-number').value = '';
+      document.getElementById('tm-term').value = 'First Half';
+      document.getElementById('tm-duedate').value = '';
+      document.getElementById('tm-amount').value = '';
+    }
+    
+    document.getElementById('tax-add-modal').style.display = 'flex';
+  }
+
+  function closeTaxModal() {
+    document.getElementById('tax-add-modal').style.display = 'none';
+  }
+
+  async function saveTaxEntry() {
+    const editId = document.getElementById('tax-modal-edit-id').value;
+    const serviceType = document.getElementById('tm-service-type').value;
+    const location = document.getElementById('tm-location').value.trim();
+    const billNumber = document.getElementById('tm-bill-number').value.trim();
+    const year = document.getElementById('tm-year').value;
+    const term = document.getElementById('tm-term').value;
+    const dueDate = document.getElementById('tm-duedate').value;
+    const amount = document.getElementById('tm-amount').value;
+    
+    if (!location || !billNumber || !dueDate || amount === '') {
+      showToast('Please fill Location, Bill Number, Due Date and Amount', 'error'); return;
+    }
+
+    const payload = { serviceType, location, billNumber, year, term, dueDate, amount: parseFloat(amount) };
+    const url = editId ? `/api/admin/tax-payments/${editId}` : '/api/admin/tax-payments';
+    const method = editId ? 'PATCH' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        showToast(d.error || 'Failed to save entry', 'error');
+        return;
+      }
+      showToast('Entry saved successfully!', 'success');
+      closeTaxModal();
+      await loadTaxPayments();
+    } catch (err) {
+      showToast('Network error', 'error');
+    }
+  }
+
+  async function markTaxPaid(id, isPaid) {
+    let paidDate = null;
+    if (isPaid) {
+      paidDate = prompt('Enter the date the payment was made (YYYY-MM-DD):', new Date().toISOString().slice(0, 10));
+      if (!paidDate) return; // User cancelled
+    }
+    try {
+      const res = await fetch(`/api/admin/tax-payments/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify({ paid: isPaid, paidOn: paidDate })
+      });
+      if (res.ok) {
+        showToast(isPaid ? 'Marked as Paid!' : 'Marked as Unpaid', 'success');
+        await loadTaxPayments();
+      } else {
+        showToast('Failed to update status', 'error');
+      }
+    } catch (e) {
+      showToast('Network error', 'error');
+    }
+  }
+
+  async function deleteTaxEntry(id) {
+    if (!confirm('Are you sure you want to delete this entry?')) return;
+    try {
+      const res = await fetch(`/api/admin/tax-payments/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      if (res.ok) {
+        showToast('Deleted successfully', 'success');
+        await loadTaxPayments();
+      } else {
+        showToast('Failed to delete', 'error');
+      }
+    } catch (e) {
+      showToast('Network error', 'error');
+    }
+  }
+
+  function downloadTaxCSV() {
+    if (!taxData.length) {
+      showToast('No data to download.', 'error');
+      return;
+    }
+    const headers = ['Service Type', 'Location', 'Bill Number', 'Year', 'Term', 'Due Date', 'Amount (INR)', 'Paid Status', 'Paid Date'];
+    const rows = taxData.map(e => [
+      e.serviceType === 'property' ? 'Property Tax' : 'Water Tax',
+      `"${(e.location || '').replace(/"/g, '""')}"`,
+      `"${(e.billNumber || '').replace(/"/g, '""')}"`,
+      e.year,
+      e.term,
+      e.dueDate,
+      e.amount,
+      e.paid ? 'Paid' : 'Unpaid',
+      e.paid ? (e.paidOn || '') : ''
+    ]);
+    
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tax_payments_report.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  window.openTaxModal = openTaxModal;
+  window.closeTaxModal = closeTaxModal;
+  window.saveTaxEntry = saveTaxEntry;
+  window.markTaxPaid = markTaxPaid;
+  window.deleteTaxEntry = deleteTaxEntry;
+  window.loadTaxPayments = loadTaxPayments;
+  window.downloadTaxCSV = downloadTaxCSV;
+  // ── End Tax Payments JS ────────────────────────────────────────────────
+
+  init();
+</script>
+</body>
+</html>

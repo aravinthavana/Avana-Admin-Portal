@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Help Desk — Avana</title>
+  <meta name="description" content="Avana Admin Help Desk — Conference Room Booking, Stationery, Maintenance, Housekeeping, and more.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f2f8;
+      --card-bg: #ffffff;
+      --text: #1e1b4b;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --radius: 18px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+      --shadow-hover: 0 12px 40px rgba(0,0,0,0.14);
+      --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+      --input-bg: #f9fafb;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .hd-header {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4f46e5 100%);
+      color: white;
+      padding: 2.2rem 2rem 2.8rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hd-header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+    }
+    .hd-header::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; left: -40px;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+    }
+    .hd-header img {
+      height: 64px;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+    }
+    .hd-header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+    }
+    .hd-header p {
+      font-size: 1rem;
+      opacity: 0.75;
+      font-weight: 400;
+    }
+
+    /* ── Grid ── */
+    .hd-main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+    .hd-section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1.5rem;
+    }
+    .hd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.4rem;
+    }
+
+    /* ── Category Card ── */
+    .hd-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 1.8rem 1.6rem 1.6rem;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+    .hd-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--card-accent);
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .hd-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+      border-color: transparent;
+    }
+    .hd-card-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      background: var(--card-icon-bg);
+    }
+    .hd-card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .hd-card-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .hd-card-arrow {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--card-accent-text);
+    }
+
+    /* ── Modal ── */
+    .hd-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,15,35,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .hd-overlay.active { display: flex; }
+    .hd-modal {
+      background: white;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+      animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .hd-modal-header {
+      padding: 1.5rem 1.8rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky; top: 0;
+      background: white;
+      z-index: 1;
+    }
+    .hd-modal-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .hd-modal-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      flex: 1;
+    }
+    .hd-modal-close {
+      background: none; border: none;
+      font-size: 1.5rem; line-height: 1;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 0.3rem;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+    .hd-modal-close:hover { background: #f3f4f6; color: var(--text); }
+    .hd-modal-body { padding: 1.6rem 1.8rem 2rem; }
+
+    /* ── Form ── */
+    .hd-form-group {
+      margin-bottom: 1.2rem;
+    }
+    .hd-form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.45rem;
+    }
+    .hd-form-group .req { color: #ef4444; margin-left: 2px; }
+    .hd-form-group select,
+    .hd-form-group input,
+    .hd-form-group textarea {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      background: var(--input-bg);
+      color: var(--text);
+      transition: var(--transition);
+      outline: none;
+    }
+    .hd-form-group select:focus,
+    .hd-form-group input:focus,
+    .hd-form-group textarea:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+      background: white;
+    }
+    .hd-form-group textarea { resize: vertical; min-height: 80px; }
+    .hd-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .hd-form-divider {
+      border: none; border-top: 1px dashed var(--border);
+      margin: 1.2rem 0;
+    }
+    .hd-stationery-toggle {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+    .hd-toggle-btn {
+      flex: 1;
+      padding: 0.65rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--input-bg);
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .hd-toggle-btn.active {
+      border-color: #4f46e5;
+      background: #eef2ff;
+      color: #4f46e5;
+    }
+    .hd-submit-btn {
+      width: 100%;
+      padding: 0.9rem;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 14px rgba(79,70,229,0.3);
+      margin-top: 0.5rem;
+    }
+    .hd-submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(79,70,229,0.4);
+    }
+    .hd-submit-btn:active { transform: translateY(0); }
+    .hd-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* ── Success State ── */
+    .hd-success {
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+    }
+    .hd-success-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+    }
+    .hd-success h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .hd-success p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .hd-success-back {
+      padding: 0.7rem 2rem;
+      background: #eef2ff;
+      color: #4f46e5;
+      border: none; border-radius: 10px;
+      font-family: inherit; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .hd-success-back:hover { background: #e0e7ff; }
+
+    /* ── Toast ── */
+    .toast-container {
+      position: fixed; bottom: 2rem; right: 2rem;
+      z-index: 9999; display: flex; flex-direction: column; gap: 0.7rem;
+    }
+    .toast {
+      padding: 0.9rem 1.4rem;
+      border-radius: 12px;
+      font-size: 0.9rem; font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+      max-width: 320px;
+    }
+    .toast.active { transform: translateX(0); }
+    .toast.success { background: #10b981; color: white; }
+    .toast.error   { background: #ef4444; color: white; }
+
+    /* ── Footer ── */
+    .hd-footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+    .hd-footer a { color: #4f46e5; text-decoration: none; font-weight: 500; }
+    .hd-footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .hd-header h1 { font-size: 1.5rem; }
+      .hd-grid { grid-template-columns: 1fr; }
+      .hd-form-row { grid-template-columns: 1fr; }
+      .hd-modal-body { padding: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Employee Email & OTP Login Screen -->
+  <div id="employee-login-screen" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at top left, #2563eb 0%, #1e1b4b 100%); padding: 1.5rem; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000;">
+    <div style="position: absolute; top: 1.5rem; right: 2rem; z-index: 1010;">
+      <button onclick="document.getElementById('admin-login-overlay').style.display='flex'" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 0.6rem 1.2rem; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; backdrop-filter: blur(8px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        Admin Sign In
+      </button>
+    </div>
+
+    <div style="background: white; width: 100%; max-width: 440px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); padding: 3rem 2.2rem; text-align: center; position: relative; overflow: hidden;">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-bottom: 1.2rem;">
+        <!-- Email icon -->
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="#2563eb"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        <span style="font-size: 1.5rem; font-weight: 800; color: #1e1b4b; letter-spacing: -0.02em;">Avana Medical</span>
+      </div>
+
+      <h2 style="font-size: 1.6rem; font-weight: 800; color: #1e1b4b; margin-bottom: 0.4rem;">Employee Login</h2>
+      <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 2rem;">Sign in to access Help Desk & Bookings</p>
+
+      <!-- Phase 1: Enter Email / Credentials -->
+      <div id="login-phase-email">
+        <!-- Mode Toggle -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; justify-content: center; background: #f3f4f6; padding: 0.3rem; border-radius: 8px;">
+          <button type="button" id="toggle-login-otp" class="mode-toggle-btn active" onclick="switchLoginMode('otp')" style="flex: 1; padding: 0.4rem; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.85rem; font-family: inherit; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">OTP Login</button>
+          <button type="button" id="toggle-login-pass" class="mode-toggle-btn" onclick="switchLoginMode('password')" style="flex: 1; padding: 0.4rem; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.85rem; font-family: inherit; background: transparent; box-shadow: none;">Password Login</button>
+        </div>
+
+        <form id="email-form" style="text-align: left;">
+          <div style="margin-bottom: 1.2rem;">
+            <label for="login-email" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #374151;">Company Email</label>
+            <input type="email" id="login-email" placeholder="username@avanamedical.com or @avanasurgical.com" required style="width: 100%; padding: 0.8rem 1rem; border: 1.5px solid #e5e7eb; border-radius: 12px; font-family: inherit; font-size: 0.95rem; background: #f9fafb; outline: none; transition: all 0.2s ease;">
+          </div>
+
+          <!-- Captcha Section -->
+          <div class="form-group" style="margin-bottom: 2rem;">
+            <label for="login-captcha" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #374151;">Security Check</label>
+            <div style="display: flex; gap: 1rem; align-items: center; background: #f9fafb; padding: 0.8rem; border-radius: 12px; border: 1px solid #e5e7eb;">
+              <img id="captcha-canvas" width="150" height="50" style="background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer;" onclick="generateCaptcha()" alt="Security Captcha Image" />
+              <div style="flex: 1;">
+                <input type="text" id="login-captcha" placeholder="Enter code..." required style="width: 100%; border: 1px solid #d1d5db; padding: 0.75rem; border-radius: 8px;">
+                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.4rem; cursor: pointer;" onclick="generateCaptcha()">Click image to refresh</div>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" style="width: 100%; padding: 0.9rem; background: #2563eb; color: white; border: none; border-radius: 12px; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(37,99,235,0.25); transition: all 0.2s ease;">Send OTP</button>
+        </form>
+
+        <form id="password-login-form" style="text-align: left; display: none;">
+          <div style="margin-bottom: 1.2rem;">
+            <label for="login-pass-email" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #374151;">Company Email</label>
+            <input type="email" id="login-pass-email" placeholder="username@avanamedical.com" required style="width: 100%; padding: 0.8rem 1rem; border: 1.5px solid #e5e7eb; border-radius: 12px; font-family: inherit; font-size: 0.95rem; background: #f9fafb; outline: none;">
+          </div>
+          <div style="margin-bottom: 1.8rem;">
+            <label for="login-pass-password" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #374151;">Password</label>
+            <input type="password" id="login-pass-password" placeholder="••••••••" required style="width: 100%; padding: 0.8rem 1rem; border: 1.5px solid #e5e7eb; border-radius: 12px; font-family: inherit; font-size: 0.95rem; background: #f9fafb; outline: none;">
+          </div>
+          <button type="submit" style="width: 100%; padding: 0.9rem; background: #2563eb; color: white; border: none; border-radius: 12px; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(37,99,235,0.25); transition: all 0.2s ease;">Sign In</button>
+        </form>
+      </div>
+
+      <!-- Phase 2: Enter OTP -->
+      <div id="login-phase-otp" style="display: none;">
+        <p style="color: #4b5563; font-size: 0.92rem; margin-bottom: 1.5rem; text-align: left; line-height: 1.4;">
+          📩 We've sent a 6-digit OTP code to <strong id="otp-sent-target" style="color: #1e1b4b;"></strong>. Please check your inbox.
+        </p>
+        <form id="otp-form" style="text-align: left;">
+          <div style="margin-bottom: 1.5rem;">
+            <label for="login-otp" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #374151;">6-Digit OTP</label>
+            <input type="text" id="login-otp" placeholder="••••••" maxlength="6" pattern="[0-9]{6}" required style="width: 100%; padding: 0.8rem 1rem; border: 1.5px solid #e5e7eb; border-radius: 12px; font-family: inherit; font-size: 1.2rem; font-weight: 700; text-align: center; letter-spacing: 0.3rem; background: #f9fafb; outline: none;">
+          </div>
+
+          <button type="submit" style="width: 100%; padding: 0.9rem; background: #059669; color: white; border: none; border-radius: 12px; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(5,150,105,0.25); transition: all 0.2s ease;">Verify & Sign In</button>
+          
+          <div style="margin-top: 1.2rem; text-align: center;">
+            <button type="button" onclick="backToEmailPhase()" style="background: none; border: none; color: #2563eb; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: underline;">Back to login</button>
+          </div>
+        </form>
+      </div>
+
+      <div style="margin-top: 2.2rem; padding-top: 1.2rem; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 0.8rem;">
+        Protected by Avana Medical Enterprise Security
+      </div>
+    </div>
+  </div>
+
+  <header class="hd-header">
+    <div style="position: absolute; top: 1.5rem; right: 2rem; z-index: 10;">
+      <div id="user-welcome-badge" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 12px; font-family: inherit; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.8rem; backdrop-filter: blur(8px);">
+        <span id="welcome-email-text"></span>
+        <button onclick="logoutEmployee()" style="background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); padding: 0.2rem 0.6rem; border-radius: 6px; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Logout</button>
+      </div>
+    </div>
+    <img src="logo.png" alt="Avana Logo">
+    <h1>Admin Help Desk</h1>
+    <p>Select a category below to submit your request</p>
+  </header>
+
+  <main class="hd-main">
+    <p class="hd-section-title">Available Services</p>
+    <div class="hd-grid" id="hd-grid">
+      <!-- Cards injected by JS -->
+    </div>
+
+    <!-- Employee Personal Ticket Tracker Section -->
+    <div id="employee-tracker-section" style="margin-top: 3.5rem; display: none;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text); display: inline-flex; align-items: center; gap: 0.6rem;">
+          📋 Your Service Requests
+        </h2>
+        
+        <!-- Tab Filters -->
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button class="tracker-tab-btn active" onclick="filterTracker('all')" id="tracker-btn-all" style="padding: 0.5rem 1rem; border-radius: 10px; border: 1.5px solid var(--border); background: white; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--text); transition: all 0.2s ease;">
+            All <span id="tracker-badge-all" style="background: #e5e7eb; color: #374151; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 999px; margin-left: 0.4rem;">0</span>
+          </button>
+          <button class="tracker-tab-btn" onclick="filterTracker('pending')" id="tracker-btn-pending" style="padding: 0.5rem 1rem; border-radius: 10px; border: 1.5px solid var(--border); background: white; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--text-muted); transition: all 0.2s ease;">
+            Pending <span id="tracker-badge-pending" style="background: #fef3c7; color: #b45309; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 999px; margin-left: 0.4rem;">0</span>
+          </button>
+          <button class="tracker-tab-btn" onclick="filterTracker('completed')" id="tracker-btn-completed" style="padding: 0.5rem 1rem; border-radius: 10px; border: 1.5px solid var(--border); background: white; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--text-muted); transition: all 0.2s ease;">
+            Completed <span id="tracker-badge-completed" style="background: #d1fae5; color: #047857; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 999px; margin-left: 0.4rem;">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table container -->
+      <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border);">
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+            <thead>
+              <tr style="background: #f9fafb; border-bottom: 1px solid var(--border);">
+                <th style="padding: 1rem; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">#</th>
+                <th style="padding: 1rem; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Date & Time</th>
+                <th style="padding: 1rem; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Category</th>
+                <th style="padding: 1rem; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Details / Item</th>
+                <th style="padding: 1rem; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="tracker-tbody">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Employee Set/Change Password Panel -->
+      <div style="margin-top: 2rem; background: white; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); padding: 1.5rem; max-width: 450px;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px;">🔑 Set or Change Password</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem;">Set a password to sign in directly without waiting for OTP emails next time.</p>
+        <form id="employee-change-password-form" style="display: flex; gap: 0.8rem; align-items: flex-end;">
+          <div style="flex: 1;">
+            <label for="new-employee-password" style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-muted);">New Password</label>
+            <input type="password" id="new-employee-password" placeholder="Min 6 characters" required style="width: 100%; padding: 0.6rem 0.8rem; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.9rem; background: var(--input-bg); outline: none;">
+          </div>
+          <button type="submit" style="padding: 0.6rem 1.2rem; background: #059669; color: white; border: none; border-radius: 8px; font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; height: fit-content; box-shadow: 0 2px 6px rgba(5,150,105,0.2);">Save</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div class="hd-overlay" id="hd-overlay" role="dialog" aria-modal="true">
+    <div class="hd-modal" id="hd-modal">
+      <div class="hd-modal-header">
+        <div class="hd-modal-icon" id="hd-modal-icon"></div>
+        <h3 id="hd-modal-title">Request Form</h3>
+        <button class="hd-modal-close" id="hd-modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="hd-modal-body" id="hd-modal-body">
+        <!-- Dynamic form rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Login Modal -->
+  <div class="hd-overlay" id="admin-login-overlay" style="display: none; align-items: center; justify-content: center; z-index: 2000;" role="dialog" aria-modal="true">
+    <div class="hd-modal" style="max-width: 400px; padding: 2.5rem; text-align: center; background: white; border-radius: var(--radius); box-shadow: var(--shadow-hover); position: relative;">
+      <button onclick="document.getElementById('admin-login-overlay').style.display='none'" style="position: absolute; top: 1.2rem; right: 1.5rem; background: none; border: none; font-size: 1.6rem; color: var(--text-muted); cursor: pointer;" aria-label="Close dialog">&times;</button>
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
+      <h3 style="font-size: 1.4rem; font-weight: 800; color: var(--text); margin-bottom: 0.5rem;">Admin Sign In</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">Enter your administrative User ID and Password</p>
+      
+      <form id="direct-admin-login-form" style="text-align: left;">
+        <div style="margin-bottom: 1.2rem;">
+          <label for="direct-admin-id" style="display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text);">User ID</label>
+          <input type="text" id="direct-admin-id" placeholder="admin" required style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 12px; font-family: inherit; font-size: 0.95rem; background: var(--input-bg); outline: none;">
+        </div>
+        <div style="margin-bottom: 1.8rem;">
+          <label for="direct-admin-pass" style="display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text);">Password</label>
+          <input type="password" id="direct-admin-pass" placeholder="••••••••" required style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 12px; font-family: inherit; font-size: 0.95rem; background: var(--input-bg); outline: none;">
+        </div>
+        <button type="submit" style="width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #1e1b4b, #4f46e5); color: white; border: none; border-radius: 12px; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(79,70,229,0.3);">Authenticate & Enter</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <footer class="hd-footer">
+    &copy; 2026 Avana Admin Help Desk
+  </footer>
+
+  <script src="helpdesk.js"></script>
+  <script>
+    // =======================================================================
+    // 🛡️ Captcha Verification & OTP Login Script
+    // =======================================================================
+    // FRONT-S1: Simple HTML sanitization to prevent XSS
+    function sanitize(str) {
+      if (!str) return '';
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' };
+      return str.toString().replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function generateCaptcha() {
+      const captchaImg = document.getElementById('captcha-canvas');
+      if (captchaImg) {
+        captchaImg.src = '/api/employee/captcha?' + new Date().getTime();
+      }
+    }
+
+    // Check if user is logged in
+    const savedEmail = sessionStorage.getItem('employeeOutlookEmail');
+    if (savedEmail) {
+      document.getElementById('employee-login-screen').style.display = 'none';
+      document.getElementById('welcome-email-text').textContent = `👋 ${savedEmail}`;
+      document.getElementById('employee-tracker-section').style.display = 'block';
+      loadMyRequests();
+    } else {
+      generateCaptcha();
+    }
+
+    // Phase 1: Send OTP Submit Handler
+    document.getElementById('email-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const captchaInput = document.getElementById('login-captcha').value.trim();
+
+      if (!email.toLowerCase().endsWith('@avanamedical.com') && !email.toLowerCase().endsWith('@avanasurgical.com')) {
+        alert('🚨 Access Denied: Please use your official company email (@avanamedical.com or @avanasurgical.com) to sign in.');
+        return;
+      }
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.textContent = 'Generating OTP...';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/employee/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, captcha: captchaInput })
+        });
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+          document.getElementById('otp-sent-target').textContent = email;
+          document.getElementById('login-phase-email').style.display = 'none';
+          document.getElementById('login-phase-otp').style.display = 'block';
+        } else {
+          alert(`🚨 Failed: ${data.error || 'Server error generating OTP.'}`);
+          submitBtn.textContent = 'Send OTP';
+          submitBtn.disabled = false;
+        }
+      } catch (err) {
+        alert('🚨 Server connection failed. Check server status.');
+        submitBtn.textContent = 'Send OTP';
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Phase 2: Verify OTP Submit Handler
+    document.getElementById('otp-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const otp = document.getElementById('login-otp').value.trim();
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.textContent = 'Verifying...';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/employee/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          sessionStorage.setItem('employeeOutlookEmail', email);
+          sessionStorage.setItem('employeeToken', data.token); // BACK-H7: Store token
+          document.getElementById('welcome-email-text').textContent = `👋 ${email}`;
+          document.getElementById('employee-tracker-section').style.display = 'block';
+          loadMyRequests();
+
+          // Rebuild helpdesk cards now that the email is known
+          const hdGrid = document.getElementById('hd-grid');
+          if (hdGrid) { hdGrid.innerHTML = ''; buildCards(); }
+          
+          // Smooth fade out
+          const loginScreen = document.getElementById('employee-login-screen');
+          loginScreen.style.transition = 'opacity 0.4s ease';
+          loginScreen.style.opacity = '0';
+          setTimeout(() => { loginScreen.style.display = 'none'; }, 400);
+        } else {
+          alert(`🚨 Verification Failed: ${data.error || 'Invalid or expired OTP.'}`);
+          submitBtn.textContent = 'Verify & Sign In';
+          submitBtn.disabled = false;
+        }
+      } catch (err) {
+        alert('🚨 Server connection failed.');
+        submitBtn.textContent = 'Verify & Sign In';
+        submitBtn.disabled = false;
+      }
+    });
+
+    function backToEmailPhase() {
+      document.getElementById('login-phase-email').style.display = 'block';
+      document.getElementById('login-phase-otp').style.display = 'none';
+      generateCaptcha();
+      document.getElementById('login-captcha').value = '';
+      document.getElementById('login-otp').value = '';
+      const emailBtn = document.querySelector('#email-form button[type="submit"]');
+      emailBtn.textContent = 'Send OTP';
+      emailBtn.disabled = false;
+    }
+
+    // Toggle Login Modes (OTP vs Password)
+    window.switchLoginMode = function(mode) {
+      const emailForm = document.getElementById('email-form');
+      const passForm = document.getElementById('password-login-form');
+      const btnOtp = document.getElementById('toggle-login-otp');
+      const btnPass = document.getElementById('toggle-login-pass');
+      
+      if (mode === 'otp') {
+        emailForm.style.display = 'block';
+        passForm.style.display = 'none';
+        btnOtp.style.background = 'white';
+        btnOtp.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+        btnPass.style.background = 'transparent';
+        btnPass.style.boxShadow = 'none';
+      } else {
+        emailForm.style.display = 'none';
+        passForm.style.display = 'block';
+        btnOtp.style.background = 'transparent';
+        btnOtp.style.boxShadow = 'none';
+        btnPass.style.background = 'white';
+        btnPass.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+      }
+    };
+
+    // Employee Password Login Handler
+    document.getElementById('password-login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-pass-email').value.trim();
+      const password = document.getElementById('login-pass-password').value;
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+
+      submitBtn.textContent = 'Signing In...';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/employee/login-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          sessionStorage.setItem('employeeOutlookEmail', email);
+          sessionStorage.setItem('employeeToken', data.token);
+          document.getElementById('welcome-email-text').textContent = `👋 ${email}`;
+          document.getElementById('employee-tracker-section').style.display = 'block';
+          loadMyRequests();
+
+          // Rebuild helpdesk cards now that the email is known
+          const hdGrid2 = document.getElementById('hd-grid');
+          if (hdGrid2) { hdGrid2.innerHTML = ''; buildCards(); }
+
+          const loginScreen = document.getElementById('employee-login-screen');
+          loginScreen.style.transition = 'opacity 0.4s ease';
+          loginScreen.style.opacity = '0';
+          setTimeout(() => { loginScreen.style.display = 'none'; }, 400);
+        } else {
+          alert(`🚨 Error: ${data.error || 'Authentication failed.'}`);
+          submitBtn.textContent = 'Sign In';
+          submitBtn.disabled = false;
+        }
+      } catch (err) {
+        alert('🚨 Server connection failed.');
+        submitBtn.textContent = 'Sign In';
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Employee Change/Set Password Handler
+    document.getElementById('employee-change-password-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = sessionStorage.getItem('employeeToken');
+      const newPassword = document.getElementById('new-employee-password').value;
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+
+      if (!token) return;
+      if (newPassword.length < 6) {
+        alert('Password must be at least 6 characters long.');
+        return;
+      }
+
+      submitBtn.textContent = 'Saving...';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/employee/set-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ newPassword })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert('🔑 Password saved successfully! You can now sign in with this password.');
+          document.getElementById('new-employee-password').value = '';
+        } else {
+          alert(`🚨 Failed to save password: ${data.error || 'Unknown error'}`);
+        }
+      } catch (err) {
+        alert('🚨 Server connection failed.');
+      } finally {
+        submitBtn.textContent = 'Save';
+        submitBtn.disabled = false;
+      }
+    });
+
+    function logoutEmployee() {
+      sessionStorage.removeItem('employeeOutlookEmail');
+      sessionStorage.removeItem('employeeToken'); // BACK-H7: Clear token
+      window.location.reload();
+    }
+
+    // =======================================================================
+    // 📋 Employee Service Requests Tracker
+    // =======================================================================
+    let trackerRequests = [];
+    let trackerActiveFilter = 'all';
+
+    async function loadMyRequests() {
+      const email = sessionStorage.getItem('employeeOutlookEmail');
+      const token = sessionStorage.getItem('employeeToken');
+      if (!email || !token) {
+        logoutEmployee();
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/employee/requests`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          trackerRequests = await res.json();
+          updateTrackerStats();
+          renderTrackerTable();
+        }
+      } catch (err) {
+        console.error('Failed to load employee requests:', err);
+      }
+    }
+
+    function updateTrackerStats() {
+      const total = trackerRequests.length;
+      const pending = trackerRequests.filter(r => r.category !== 'conference' && (!r.status || r.status === 'pending')).length;
+      const completed = trackerRequests.filter(r => r.category !== 'conference' && r.status === 'completed').length;
+
+      document.getElementById('tracker-badge-all').textContent = total;
+      document.getElementById('tracker-badge-pending').textContent = pending;
+      document.getElementById('tracker-badge-completed').textContent = completed;
+    }
+
+    function filterTracker(status) {
+      trackerActiveFilter = status;
+      
+      // Toggle active styles on tabs
+      document.querySelectorAll('.tracker-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.color = 'var(--text-muted)';
+      });
+      
+      const activeBtn = document.getElementById(`tracker-btn-${status}`);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.style.color = 'var(--text)';
+      }
+
+      renderTrackerTable();
+    }
+
+    function renderTrackerTable() {
+      const tbody = document.getElementById('tracker-tbody');
+      if (!trackerRequests.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);">You have not submitted any service requests yet.</td></tr>`;
+        return;
+      }
+
+      let filtered = [...trackerRequests];
+      if (trackerActiveFilter === 'pending') {
+        filtered = trackerRequests.filter(r => r.category !== 'conference' && (!r.status || r.status === 'pending'));
+      } else if (trackerActiveFilter === 'completed') {
+        filtered = trackerRequests.filter(r => r.category !== 'conference' && r.status === 'completed');
+      }
+
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);">No requests found matching this status filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((r, idx) => {
+        const dateStr = r.submittedAt ? new Date(r.submittedAt).toLocaleString('en-IN', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+        const status = r.status || 'pending';
+        
+        let statusPill = '';
+        if (r.category === 'conference') {
+          statusPill = `<span style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.25rem 0.6rem;background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;border-radius:999px;font-size:0.75rem;font-weight:700;">📅 Confirmed</span>`;
+        } else if (status === 'completed') {
+          statusPill = `<span style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.25rem 0.6rem;background:#d1fae5;color:#047857;border:1px solid #a7f3d0;border-radius:999px;font-size:0.75rem;font-weight:700;">🟢 Completed</span>`;
+        } else {
+          statusPill = `<span style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.25rem 0.6rem;background:#fef3c7;color:#b45309;border:1px solid #fde68a;border-radius:999px;font-size:0.75rem;font-weight:700;">🟡 Pending</span>`;
+        }
+
+        let details = '';
+        if (r.category === 'conference') {
+          const time = r.bookingType === 'full' ? 'Full Day' : `${sanitize(r.startTime)} - ${sanitize(r.endTime)}`;
+          details = `Booking for <strong>${sanitize(r.startDate)}</strong> (${time}) | Reason: ${sanitize(r.reason)}`;
+        } else if (r.item) {
+          details = `Requested <strong>${sanitize(r.item)}</strong> (Qty: ${sanitize(r.quantity || 1)})`;
+        } else {
+          details = sanitize(r.exact_issue) || '—';
+        }
+
+        return `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:1rem;color:#9ca3af;">${idx + 1}</td>
+            <td style="padding:1rem;white-space:nowrap;">${sanitize(dateStr)}</td>
+            <td style="padding:1rem;font-weight:600;color:var(--text);">${sanitize(r.categoryTitle || r.category)}</td>
+            <td style="padding:1rem;max-width:320px;line-height:1.4;">${details}</td>
+            <td style="padding:1rem;">${statusPill}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Admin Login Handler — FRONT-S4: removed client-side username hint; let server validate
+    document.getElementById('direct-admin-login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = document.getElementById('direct-admin-pass').value;
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          sessionStorage.setItem('hdAdminToken', data.token);
+          sessionStorage.setItem('adminToken', data.token); // Also set for conference room admin
+          window.location.href = '/helpdesk-admin';
+        } else if (res.status === 429) {
+          alert(data.error || 'Too many login attempts. Please wait and try again.');
+        } else {
+          alert('Incorrect password. Please try again.');
+        }
+      } catch (err) {
+        alert('Server connection failed.');
+      }
+    });
+  </script>
+</body>
+</html>

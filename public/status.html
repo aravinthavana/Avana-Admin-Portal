@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Status - Avana Headoffice Conference Room booking</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .booking-link-box {
+      text-align: center;
+      margin: 1.5rem 0;
+      padding: 1.8rem;
+      background: rgba(79, 70, 229, 0.05);
+      border: 1px dashed var(--primary);
+      border-radius: 16px;
+    }
+    .booking-link-box p {
+      font-size: 1.15rem;
+      margin-bottom: 1.2rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .btn-booking {
+      display: inline-block;
+      padding: 0.8rem 2.2rem;
+      background: var(--primary);
+      color: white !important;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px var(--primary-glow);
+      transition: var(--transition);
+    }
+    .btn-booking:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .status-badge.time {
+      background: rgba(217, 119, 6, 0.1);
+      color: #d97706;
+    }
+    .status-badge.full {
+      background: rgba(220, 38, 38, 0.1);
+      color: #dc2626;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="logo.png" alt="Avana Logo" style="height: 70px; margin-bottom: 1.2rem; border-radius: 12px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));">
+    <h1>Avana Headoffice Conference Room booking</h1>
+    <p>Current Room Reservations Status</p>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <!-- Call to Action Link box -->
+      <div class="booking-link-box">
+        <p>Click the below link to book Conference Room</p>
+        <a id="booking-link-btn" href="#" class="btn-booking">Book Conference Room</a>
+        <div style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.8rem;">
+          Or copy link: <a id="booking-link-text" href="#" style="color: var(--primary); text-decoration: underline; font-weight: 500;">#</a>
+        </div>
+      </div>
+
+      <div class="calendar-controls" style="margin-bottom: 1rem; margin-top: 2.5rem;">
+        <h2>Active Reservations List</h2>
+      </div>
+
+      <!-- Reservations Table -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date of Booking</th>
+              <th>Timing (Start to End Timing)</th>
+              <th>Booked By</th>
+            </tr>
+          </thead>
+          <tbody id="status-table-body">
+            <tr>
+              <td colspan="3" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                Loading reservations status...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Conference Room Scheduler. <a href="/index.html">Back to Calendar View</a></p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const tableBody = document.getElementById('status-table-body');
+
+      // Dynamically set booking link based on current server URL (works regardless of IP)
+      const bookingOrigin = window.location.origin;
+      const bookingLinkBtn = document.getElementById('booking-link-btn');
+      const bookingLinkText = document.getElementById('booking-link-text');
+      if (bookingLinkBtn) {
+        bookingLinkBtn.href = bookingOrigin;
+      }
+      if (bookingLinkText) {
+        bookingLinkText.href = bookingOrigin;
+        bookingLinkText.textContent = bookingOrigin;
+      }
+
+
+      try {
+        const response = await fetch('/api/bookings');
+        if (!response.ok) throw new Error('API fetch error');
+
+        const bookings = await response.json();
+        
+        // Sort bookings by date ascending, then by time
+        const sorted = bookings.sort((a, b) => {
+          if (a.date !== b.date) {
+            return new Date(a.date) - new Date(b.date);
+          }
+          return a.startTime.localeCompare(b.startTime);
+        });
+
+        tableBody.innerHTML = '';
+
+        if (sorted.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="3" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                No active bookings found. The conference room is completely free!
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        sorted.forEach(b => {
+          const tr = document.createElement('tr');
+
+          // Date Cell
+          const dateCell = document.createElement('td');
+          dateCell.style.fontWeight = '600';
+          dateCell.textContent = formatDate(b.date);
+          tr.appendChild(dateCell);
+
+          // Time Cell
+          const timeCell = document.createElement('td');
+          const badge = document.createElement('span');
+          badge.className = `status-badge ${b.bookingType}`;
+          badge.textContent = b.bookingType === 'full' ? 'Full Day' : `${b.startTime} - ${b.endTime}`;
+          timeCell.appendChild(badge);
+          tr.appendChild(timeCell);
+
+          // Booked By Cell
+          const nameCell = document.createElement('td');
+          nameCell.textContent = b.name;
+          tr.appendChild(nameCell);
+
+          tableBody.appendChild(tr);
+        });
+
+      } catch (err) {
+        console.error(err);
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align: center; color: var(--color-booked); padding: 2rem; font-weight: 500;">
+              Failed to load reservation status from server.
+            </td>
+          </tr>
+        `;
+      }
+
+      function formatDate(dateStr) {
+        const [year, month, day] = dateStr.split('-');
+        const date = new Date(year, month - 1, day);
+        return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "2026-07": {
+    "Fevi Stick": {
+      "startingStock": 3,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 3
+    },
+    "Blue Pen": {
+      "startingStock": 24,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 24
+    }
+  }
+}

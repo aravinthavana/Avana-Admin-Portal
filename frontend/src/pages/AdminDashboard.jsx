@@ -95,7 +95,10 @@ const AdminDashboard = () => {
   const fetchTickets = async () => {
     try {
       const res = await fetch('/api/helpdesk', { headers: getHeaders() });
-      if (res.ok) setTickets(await res.json());
+      if (res.ok) {
+        const allTickets = await res.json();
+        setTickets(allTickets.filter(t => t.category !== 'conference'));
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -145,7 +148,7 @@ const AdminDashboard = () => {
   const handleConfirmBooking = async (id) => {
     try {
       const res = await fetch('/api/helpdesk/status', {
-        method: 'POST',
+        method: 'PATCH',
         headers: getHeaders(),
         body: JSON.stringify({ id, status: 'confirmed', category: 'conference' })
       });
@@ -160,7 +163,7 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       const res = await fetch('/api/helpdesk/status', {
-        method: 'POST',
+        method: 'PATCH',
         headers: getHeaders(),
         body: JSON.stringify({ id: rejectId, status: 'rejected', category: 'conference', rejectionReason })
       });
@@ -186,7 +189,7 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       const res = await fetch('/api/helpdesk/status', {
-        method: 'POST',
+        method: 'PATCH',
         headers: getHeaders(),
         body: JSON.stringify({ id: resolvingId, status: 'completed', resolution: resolutionText })
       });
@@ -619,7 +622,7 @@ const AdminDashboard = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: 0 }}>Billing & AMC Tracker</h2>
               <div style={{ display: 'flex', gap: '0.4rem' }}>
-                <button className="btn" style={{ fontSize: '0.85rem', padding: '0.45rem 1rem', background: billType === 'amc' ? 'var(--primary)' : 'white', color: billType === 'amc' ? 'white' : 'var(--text-secondary)' }} onClick={() => setInvType('amc') & setBillType('amc')}>AMC Contracts</button>
+                <button className="btn" style={{ fontSize: '0.85rem', padding: '0.45rem 1rem', background: billType === 'amc' ? 'var(--primary)' : 'white', color: billType === 'amc' ? 'white' : 'var(--text-secondary)' }} onClick={() => setBillType('amc')}>AMC Contracts</button>
                 <button className="btn" style={{ fontSize: '0.85rem', padding: '0.45rem 1rem', background: billType === 'utility' ? 'var(--primary)' : 'white', color: billType === 'utility' ? 'white' : 'var(--text-secondary)' }} onClick={() => setBillType('utility')}>Utility Bills</button>
                 <button className="btn" style={{ fontSize: '0.85rem', padding: '0.45rem 1rem', background: billType === 'tax' ? 'var(--primary)' : 'white', color: billType === 'tax' ? 'white' : 'var(--text-secondary)' }} onClick={() => setBillType('tax')}>Taxes</button>
               </div>

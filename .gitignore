@@ -5,3 +5,5 @@ temp_mail_*.html
 .DS_Store
 .system_generated/
 .gemini/
+
+/src/generated/prisma

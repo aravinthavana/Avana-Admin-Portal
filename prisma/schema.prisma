@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../database.sqlite"
+}
+
+model AdminLogin {
+  id        Int      @id @default(autoincrement())
+  username  String
+  timestamp String
+  ip        String?
+  userAgent String?
+  status    String?
+}
+
+model Booking {
+  id          String  @id @default(uuid())
+  name        String?
+  email       String?
+  phone       String?
+  date        String?
+  startDate   String?
+  endDate     String?
+  bookingType String?
+  startTime   String?
+  endTime     String?
+  reason      String?
+  attendees   String?
+  remarks     String?
+  food        String?
+  foodSpecify String?
+  foodCount   Int?
+  createdAt   String?
+  status      String?
+}
+
+model HelpdeskRequest {
+  id          String  @id @default(uuid())
+  category    String?
+  name        String?
+  email       String?
+  phone       String?
+  location    String?
+  description String?
+  items       String?
+  status      String?
+  createdAt   String?
+  resolution  String?
+}
+
+model AmcContract {
+  id             String     @id @default(uuid())
+  equipment_name String?
+  vendor_name    String?
+  contact_person String?
+  contact_number String?
+  contact_email  String?
+  start_date     String?
+  end_date       String?
+  cost           Float?
+  status         String?
+  remarks        String?
+  created_at     String?
+  visits         AmcVisit[]
+}
+
+model AmcVisit {
+  id              String       @id @default(uuid())
+  amc_id          String
+  visit_date      String?
+  technician_name String?
+  work_done       String?
+  status          String?
+  created_at      String?
+  contract        AmcContract  @relation(fields: [amc_id], references: [id], onDelete: Cascade)
+}
+
+model UtilityPayment {
+  id              String  @id @default(uuid())
+  utility_type    String?
+  provider_name   String?
+  account_number  String?
+  billing_cycle   String?
+  due_date        String?
+  amount          Float?
+  status          String?
+  payment_date    String?
+  transaction_ref String?
+  remarks         String?
+  created_at      String?
+}
+
+model TaxPayment {
+  id              String  @id @default(uuid())
+  tax_type        String?
+  authority_name  String?
+  assessment_year String?
+  due_date        String?
+  amount          Float?
+  status          String?
+  payment_date    String?
+  transaction_ref String?
+  remarks         String?
+  created_at      String?
+}
+
+model InventoryItem {
+  id           String                 @id @default(uuid())
+  category     String                 // 'stationery' or 'housekeeping'
+  name         String
+  currentStock Int                    @default(0)
+  updatedAt    String?
+  transactions InventoryTransaction[]
+  overrides    InventoryAuditOverride[]
+}
+
+model InventoryTransaction {
+  id            String        @id @default(uuid())
+  itemId        String
+  type          String        // 'purchase' or 'use'
+  quantity      Int
+  previousStock Int
+  newStock      Int
+  timestamp     String
+  remarks       String?
+  item          InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+model InventoryAuditOverride {
+  id            String        @id @default(uuid())
+  itemId        String
+  month         String        // e.g. "2026-06"
+  startingStock Int?
+  purchased     Int?
+  used          Int?
+  endingStock   Int?
+  item          InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}

@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('../utils/notifications');
+const prisma = require('../config/db');
 
 // In-memory store for OTPs
 const otpStore = new Map();
@@ -142,21 +143,16 @@ exports.setPassword = async (req, res, next) => {
       return res.status(400).json({ error: 'Missing email or password.' });
     }
 
-    const fs = require('fs');
-    const path = require('path');
-    const crypto = require('crypto');
-    
-    const filePath = path.join(__dirname, '../../employee_passwords.json');
-    let passData = {};
-    if (fs.existsSync(filePath)) {
-      passData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    }
-
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
-    passData[email.toLowerCase()] = `${salt}:${hash}`;
+    const newStored = `${salt}:${hash}`;
 
-    fs.writeFileSync(filePath, JSON.stringify(passData, null, 2));
+    const emailLower = email.toLowerCase();
+    await prisma.employeeCredential.upsert({
+      where: { email: emailLower },
+      update: { passwordHash: newStored },
+      create: { email: emailLower, passwordHash: newStored }
+    });
 
     res.status(200).json({ message: 'Password set successfully.' });
   } catch (error) {
@@ -171,24 +167,16 @@ exports.loginPassword = async (req, res, next) => {
       return res.status(400).json({ error: 'Missing email or password.' });
     }
 
-    const fs = require('fs');
-    const path = require('path');
-    const crypto = require('crypto');
-    const jwt = require('jsonwebtoken');
-    
-    const filePath = path.join(__dirname, '../../employee_passwords.json');
-    if (!fs.existsSync(filePath)) {
+    const emailLower = email.toLowerCase();
+    const cred = await prisma.employeeCredential.findUnique({
+      where: { email: emailLower }
+    });
+
+    if (!cred) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    const passData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    const stored = passData[email.toLowerCase()];
-
-    if (!stored) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
-    }
-
-    const parts = stored.split(':');
+    const parts = cred.passwordHash.split(':');
     if (parts.length !== 2) {
       return res.status(401).json({ error: 'Invalid stored password.' });
     }
@@ -199,8 +187,8 @@ exports.loginPassword = async (req, res, next) => {
 
     if (derivedKey === hash) {
       const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
-      const token = jwt.sign({ role: 'employee', email }, jwtSecret, { expiresIn: '8h' });
-      res.status(200).json({ message: 'Login successful', token, email });
+      const token = jwt.sign({ role: 'employee', email: emailLower }, jwtSecret, { expiresIn: '8h' });
+      res.status(200).json({ message: 'Login successful', token, email: emailLower });
     } else {
       res.status(401).json({ error: 'Invalid email or password.' });
     }

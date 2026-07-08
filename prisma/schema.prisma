@@ -142,3 +142,8 @@ model InventoryAuditOverride {
   endingStock   Int?
   item          InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
+
+model EmployeeCredential {
+  email        String @id
+  passwordHash String
+}

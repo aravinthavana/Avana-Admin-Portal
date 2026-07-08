@@ -66,6 +66,18 @@ exports.login = async (req, res, next) => {
     if (isMatch) {
       const token = crypto.randomBytes(32).toString('hex');
       adminSessions.set(token, Date.now());
+
+      // Record login in database for audit trail
+      const prisma = require('../config/db');
+      prisma.adminLogin.create({
+        data: {
+          username: 'admin',
+          timestamp: new Date().toISOString(),
+          ip: req.ip || req.connection?.remoteAddress || 'unknown',
+          userAgent: req.headers['user-agent'] || 'unknown',
+          status: 'success'
+        }
+      }).catch(err => console.error('[Admin Login Audit] Failed to log:', err));
       
       res.setHeader('Set-Cookie', `admin_token=${token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=3600`);
       return res.status(200).json({ success: true, message: 'Login successful', token: token });

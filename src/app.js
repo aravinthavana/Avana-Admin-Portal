@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
 const path = require('path');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
@@ -11,7 +10,6 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 const app = express();
 
 // Standard middlewares
-// Removed helmet entirely to prevent strict CSP rules from breaking legacy inline event handlers
 app.use(cors());
 app.use(express.json({ limit: '2mb' })); // Body parser with 2MB limit (like legacy getRequestBody)
 app.use(cookieParser());
@@ -28,9 +26,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/helpdesk', helpdeskRoutes);
 app.use('/api/employee', employeeAuthRoutes);
 app.use('/api/admin', adminRoutes);
-// We will mount inventory routes inside admin routes or directly here
-// For now, let's just mount legacy inventory route base if needed
-// app.use('/api', inventoryRoutes);
+app.use('/api', inventoryRoutes);
 
 // Serve static frontend files (legacy compatibility)
 app.use(express.static(path.join(__dirname, '../public')));
@@ -51,6 +47,10 @@ app.use((req, res, next) => {
     res.status(404).send('404 Not Found');
   }
 });
+
+// Prisma Error Handler
+const prismaErrorHandler = require('./middlewares/prisma-error.middleware');
+app.use(prismaErrorHandler);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

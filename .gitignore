@@ -7,3 +7,8 @@ temp_mail_*.html
 .gemini/
 
 /src/generated/prisma
+database.sqlite
+legacy_data/
+legacy_server_backup.js
+legacy_server_utf8.js.bak
+migrate.js

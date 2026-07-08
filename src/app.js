@@ -28,21 +28,24 @@ app.use('/api/employee', employeeAuthRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', inventoryRoutes);
 
-// Serve static frontend files (Vite production build assets)
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+// Serve static frontend files (legacy compatibility)
+app.use(express.static(path.join(__dirname, '../public')));
 
-// Fallback to sending index.html for React SPA routing
-app.get('*any', (req, res, next) => {
-  if (req.originalUrl.startsWith('/api')) {
-    return next();
-  }
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-});
+// HTML Aliases (Legacy support)
+app.get('/booking', (req, res) => res.sendFile(path.join(__dirname, '../public/booking.html')));
+app.get('/helpdesk', (req, res) => res.sendFile(path.join(__dirname, '../public/helpdesk-admin.html'))); // Or whatever it maps to
+app.get('/helpdesk-admin', (req, res) => res.sendFile(path.join(__dirname, '../public/helpdesk-admin.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, '../public/admin.html')));
 
 // 404 Handler
 app.use((req, res, next) => {
   console.log(`[404] Method: ${req.method} URL: ${req.originalUrl}`);
-  res.status(404).json({ error: `Endpoint not found: ${req.originalUrl}` });
+  if (req.originalUrl.startsWith('/api')) {
+    res.status(404).json({ error: `Endpoint not found: ${req.originalUrl}` });
+  } else {
+    // Fallback to sending index.html for SPA if you have one, or just a 404 text
+    res.status(404).send('404 Not Found');
+  }
 });
 
 // Prisma Error Handler

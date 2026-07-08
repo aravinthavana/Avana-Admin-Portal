@@ -138,9 +138,23 @@ exports.getRequests = async (req, res, next) => {
 
 exports.setPassword = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Missing or invalid token.' });
+    }
+    const token = authHeader.substring(7).trim();
+    let decoded;
+    try {
+      const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
+      decoded = jwt.verify(token, jwtSecret);
+    } catch (err) {
+      return res.status(403).json({ success: false, error: 'Forbidden: Invalid or expired session.' });
+    }
+
+    const email = decoded.email;
+    const password = req.body.newPassword || req.body.password;
     if (!email || !password) {
-      return res.status(400).json({ error: 'Missing email or password.' });
+      return res.status(400).json({ success: false, error: 'Missing email or password.' });
     }
 
     const salt = crypto.randomBytes(16).toString('hex');
@@ -154,7 +168,7 @@ exports.setPassword = async (req, res, next) => {
       create: { email: emailLower, passwordHash: newStored }
     });
 
-    res.status(200).json({ message: 'Password set successfully.' });
+    res.status(200).json({ success: true, message: 'Password set successfully.' });
   } catch (error) {
     next(error);
   }
@@ -164,7 +178,7 @@ exports.loginPassword = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ error: 'Missing email or password.' });
+      return res.status(400).json({ success: false, error: 'Missing email or password.' });
     }
 
     const emailLower = email.toLowerCase();
@@ -173,12 +187,12 @@ exports.loginPassword = async (req, res, next) => {
     });
 
     if (!cred) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({ success: false, error: 'Invalid email or password.' });
     }
 
     const parts = cred.passwordHash.split(':');
     if (parts.length !== 2) {
-      return res.status(401).json({ error: 'Invalid stored password.' });
+      return res.status(401).json({ success: false, error: 'Invalid stored password.' });
     }
 
     const salt = parts[0];
@@ -188,9 +202,9 @@ exports.loginPassword = async (req, res, next) => {
     if (derivedKey === hash) {
       const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
       const token = jwt.sign({ role: 'employee', email: emailLower }, jwtSecret, { expiresIn: '8h' });
-      res.status(200).json({ message: 'Login successful', token, email: emailLower });
+      res.status(200).json({ success: true, message: 'Login successful', token, email: emailLower });
     } else {
-      res.status(401).json({ error: 'Invalid email or password.' });
+      res.status(401).json({ success: false, error: 'Invalid email or password.' });
     }
   } catch (error) {
     next(error);

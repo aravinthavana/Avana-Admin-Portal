@@ -1,0 +1,78 @@
+[
+  {
+    "id": "mr_1785224296056_pv55",
+    "parentDispatchId": "cd_1785219871824_qxop",
+    "parentDcNo": "001",
+    "parentEmail": "aravinth@avanamedical.com",
+    "requesterEmail": "karthicksankar@avanamedical.com",
+    "requesterName": "karthicksankar",
+    "items": [
+      {
+        "description": "Test",
+        "serialNo": "",
+        "qty": 1,
+        "rate": 0,
+        "value": 0
+      }
+    ],
+    "status": "pending",
+    "submittedAt": "2026-07-28T07:38:16.056Z"
+  },
+  {
+    "id": "mr_1785232249882_pxp7",
+    "parentDispatchId": "cd_1785219871824_qxop",
+    "parentDcNo": "001",
+    "parentEmail": "aravinth@avanamedical.com",
+    "requesterEmail": "karthicksankar@avanamedical.com",
+    "requesterName": "karthicksankar",
+    "items": [
+      {
+        "description": "dc",
+        "serialNo": "",
+        "qty": 1,
+        "rate": 20,
+        "value": 20
+      }
+    ],
+    "status": "pending",
+    "submittedAt": "2026-07-28T09:50:49.882Z"
+  },
+  {
+    "id": "mr_1785232333335_s72q",
+    "parentDispatchId": "cd_1785219871824_qxop",
+    "parentDcNo": "001",
+    "parentEmail": "aravinth@avanamedical.com",
+    "requesterEmail": "karthicksankar@avanamedical.com",
+    "requesterName": "karthicksankar",
+    "items": [
+      {
+        "description": "dc",
+        "serialNo": "",
+        "qty": 1,
+        "rate": 0,
+        "value": 0
+      }
+    ],
+    "status": "pending",
+    "submittedAt": "2026-07-28T09:52:13.335Z"
+  },
+  {
+    "id": "mr_1785232464140_1zcz",
+    "parentDispatchId": "cd_1785219871824_qxop",
+    "parentDcNo": "001",
+    "parentEmail": "aravinth@avanamedical.com",
+    "requesterEmail": "karthicksankar@avanamedical.com",
+    "requesterName": "karthicksankar",
+    "items": [
+      {
+        "description": "test",
+        "serialNo": "",
+        "qty": 1,
+        "rate": 0,
+        "value": 0
+      }
+    ],
+    "status": "accepted",
+    "submittedAt": "2026-07-28T09:54:24.140Z"
+  }
+]

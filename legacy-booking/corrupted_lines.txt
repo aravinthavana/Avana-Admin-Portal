@@ -1,0 +1,155 @@
+6: <title>Help Desk Requests — Admin</title>
+152: <h1>Help Desk — Admin View</h1>
+167: <input type="password" id="admin-pass" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+212: <label for="admin-date-filter">📅 Date Filter</label>
+221: <div style="font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; padding-left: 0.4rem;">ðŸ“‚ Request Categories</div>
+225: <span>ðŸ“‹ All Requests</span>
+229: <span>📅 Conference Room</span>
+233: <span>âœï¸ Stationery</span>
+237: <span>ðŸ’¼ Admin Support</span>
+241: <span>ðŸ”§ Maintenance</span>
+245: <span>ðŸ§¹ Housekeeping</span>
+249: <span>ðŸ–¥ï¸ Office Asset</span>
+253: <span>ðŸ–¨ï¸ Printing & Scanning</span>
+260: <div style="font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; padding-left: 0.4rem;">ðŸ” Security Logs</div>
+262: <span>ðŸ” Employee Logins</span>
+268: <div style="font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; padding-left: 0.4rem;">📦 Inventory Management</div>
+270: <span>âœï¸ Stationery Stock</span>
+274: <span>ðŸ“Š Monthly Audit</span>
+277: <span>ðŸ§¹ Housekeeping Stock</span>
+281: <span>📋 AMC Contracts</span>
+285: <span>⚡ Utility Payments</span>
+288: <span>🏛️ Tax Payments</span>
+291: <span>📦 Stationery Tracker</span>
+294: <span>⚙️ Portal Settings</span>
+299: <button class="btn-download" id="download-btn" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1rem;">⬇️ Download Report (CSV)</button>
+307: <div class="stat"><div class="stat-num" id="s-pending" style="color:#d97706;">0</div><div class="stat-label">ðŸŸ¡ Pending Work</div></div>
+308: <div class="stat"><div class="stat-num" id="s-completed" style="color:#059669;">0</div><div class="stat-label">ðŸŸ¢ Completed Work</div></div>
+312: <!-- ðŸ“Š Stationery Audit Monthly Controls -->
+314: <div style="font-weight:700; font-size:0.9rem; color:var(--text); white-space:nowrap;">📅 Select Audit Month:</div>
+316: <button onclick="downloadAuditCSV()" class="btn-download" style="padding:0.55rem 1rem; font-size:0.85rem; margin-left:auto; display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; width:auto;">â¬‡ï¸ Download Audit Report (CSV)</button>
+319: <!-- ➕ Add New Stationery Controls -->
+321: <div style="font-weight:700; font-size:0.9rem; color:var(--text); white-space:nowrap;">➕ Add New Item:</div>
+324: <option value="stationery">📦 Stationery Item</option>
+325: <option value="printing">ðŸ–¨ï¸ Printing / Form Item</option>
+331: <!-- ðŸ”‘ Employee Login Report Controls -->
+333: <div style="font-weight:700; font-size:0.9rem; color:var(--text); white-space:nowrap;">ðŸ”‘ Login Report Range:</div>
+335: <option value="daily">📅 Daily Report</option>
+336: <option value="weekly">📅 Weekly Report</option>
+337: <option value="monthly">📅 Monthly Report</option>
+344: <!-- ðŸ§¹ Housekeeping Stock Controls -->
+348: <div style="font-weight:700; font-size:0.9rem; color:var(--text); white-space:nowrap;">ðŸ§¹ Manual Adjust:</div>
+368: <div style="font-weight:700; font-size:0.9rem; color:var(--text); white-space:nowrap;">📅 Audit Range:</div>
+372: <button onclick="downloadHousekeepingAuditCSV()" class="btn-download" style="padding:0.55rem 1rem; font-size:0.85rem; margin-left:auto; display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; width:auto; background: #0d9488; border-color: #0d9488;">â¬‡ï¸ Download HK Audit (CSV)</button>
+376: <!-- ðŸ“‹ AMC Controls -->
+379: <div style="font-weight: 800; font-size: 1.1rem; color: #1e3a8a; display: flex; align-items: center; gap: 6px;">ðŸ“‹ AMC Contracts Listing</div>
+380: <button onclick="toggleAMCForm()" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.82rem; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">➕ Add New AMC</button>
+385: <button type="button" onclick="filterAMCCategory('all')" class="amc-sub-tab active" id="amc-sub-all" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; font-weight: 600; cursor: pointer; font-size: 0.8rem;">ðŸ“‹ All AMCs</button>
+386: <button type="button" onclick="filterAMCCategory('AC')" class="amc-sub-tab" id="amc-sub-ac" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; font-weight: 600; cursor: pointer; font-size: 0.8rem;">â„ï¸ AC</button>
+387: <button type="button" onclick="filterAMCCategory('Lift')" class="amc-sub-tab" id="amc-sub-lift" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; font-weight: 600; cursor: pointer; font-size: 0.8rem;">ðŸ›— Lift</button>
+388: <button type="button" onclick="filterAMCCategory('Pest control')" class="amc-sub-tab" id="amc-sub-pest" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; font-weight: 600; cursor: pointer; font-size: 0.8rem;">ðŸœ Pest Control</button>
+389: <button type="button" onclick="filterAMCCategory('Other')" class="amc-sub-tab" id="amc-sub-other" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; font-weight: 600; cursor: pointer; font-size: 0.8rem;">⚙️ Other</button>
+479: <!-- ðŸ“‹ AMC Detailed Screen Container (hidden by default) -->
+484: <!-- âš¡ Utility Payments Panel -->
+489: <div style="font-weight: 800; font-size: 1.15rem; color: #0891b2;">⚡ Utility Payments Tracker</div>
+493: <button onclick="downloadUtilityCSV()" style="padding: 0.45rem 1rem; background: #0891b2; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">⬇️ Download Report</button>
+503: <div style="font-weight:700; font-size:1.1rem; margin-bottom:1.2rem; color:#0f172a;"><span id="utility-modal-action-text">➕ Add New Entry</span> — <span id="utility-modal-service-title"></span></div>
+540: <!-- 🏛️ Tax Payments Panel -->
+545: <div style="font-weight: 800; font-size: 1.15rem; color: #8b5cf6;">🏛️ Tax Payments Tracker</div>
+551: <button onclick="downloadTaxCSV()" style="padding: 0.45rem 1rem; background: #8b5cf6; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">⬇️ Download Report</button>
+562: <div style="font-weight:700; font-size:1.1rem; margin-bottom:1.2rem; color:#0f172a;"><span id="tax-modal-action-text">➕ Add Tax Entry</span></div>
+614: <!-- 📦 Stationery Tracker Panel -->
+619: <div style="font-weight: 800; font-size: 1.15rem; color: #059669;">📦 Stationery Tracker</div>
+621: <button onclick="downloadAssetCSV()" style="padding: 0.45rem 1rem; background: #475569; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">⬇️ Download Report</button>
+622: <button onclick="openAddAssetModal()" style="padding: 0.45rem 1rem; background: #059669; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">➕ Add Handover</button>
+636: <input type="text" id="asset-search-input" oninput="renderAssetPanel()" placeholder="🔍 Search employee by name..." style="width: 100%; max-width: 400px; padding: 0.6rem 1rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+660: <div style="font-weight:700; font-size:1.1rem; margin-bottom:1.2rem; color:#0f172a;">➕ Add Stationery Handover</div>
+701: <button type="button" onclick="addAssetRow()" style="padding:0.3rem 0.6rem; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; cursor:pointer;">➕ Add Row</button>
+718: <div style="font-weight:700; font-size:1.1rem; margin-bottom:1.2rem; color:#0f172a;">📄 Handover Details</div>
+731: <div style="font-weight:700; font-size:1.1rem; margin-bottom:1.2rem; color:#0f172a;">🔄 Resignation / Return Assets</div>
+748: <button onclick="closeAssetAppendModal()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--muted);">Ã—</button>
+749: <h3 style="margin-top:0; color:#1e3a8a; font-weight:800; font-size:1.3rem;">➕ Add Items to Existing Handover</h3>
+756: <button type="button" onclick="addAppendAssetRow()" style="padding:0.5rem 1rem; background:#eff6ff; color:#2563eb; border:1px dashed #93c5fd; border-radius:8px; cursor:pointer; font-weight:600; width:100%; margin-bottom:1rem;">➕ Add Another Item</button>
+765: <!-- ⚙️ Portal Settings Panel (hidden by default) -->
+767: <div style="font-weight: 800; font-size: 1.2rem; color: #1e3a8a; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">⚙️ Portal Settings Configuration</div>
+772: <h3 style="margin-top: 0; margin-bottom: 0.8rem; font-size: 1rem; color: #1e293b;">🔒 Change Admin Password</h3>
+788: <h3 style="margin-top: 0; margin-bottom: 0.8rem; font-size: 1rem; color: #1e293b;">📧 Update Outlook/SMTP Password</h3>
+1011: showToast('ðŸ”‘ Password reset successfully!', 'success');
+1174: document.getElementById('requests-tbody').innerHTML = `<tr><td colspan="15" style="text-align:center;padding:2rem;color:var(--muted);">â³ Loading data...</td></tr>`;
+1425: const dt = l.timestamp ? new Date(l.timestamp).toLocaleString('en-IN', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+1427: ? `<span class="status-pill status-completed">ðŸŸ¢ Success</span>`
+1428: : `<span class="status-pill status-pending">ðŸ”´ Failed</span>`;
+1450: statusBadge = `<span class="status-pill status-pending" style="background:#fecaca;color:#991b1b;border:1px solid #fca5a5;">ðŸ”´ Out of Stock</span>`;
+1452: statusBadge = `<span class="status-pill status-pending" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;">ðŸŸ¡ Low Stock (${qty})</span>`;
+1454: statusBadge = `<span class="status-pill status-completed" style="background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;">ðŸŸ¢ In Stock (${qty})</span>`;
+1568: const dt = r.submittedAt ? new Date(r.submittedAt).toLocaleString('en-IN', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+1582: statusPill = `<span class="status-pill status-confirmed" style="background:#d1fae5;color:#047857;border-color:#a7f3d0;">ðŸŸ¢ Confirmed</span>`;
+1585: statusPill = `<span class="status-pill" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:999px;font-size:0.78rem;font-weight:700;white-space:nowrap;padding:0.3rem 0.75rem;">ðŸ”´ Rejected</span>`;
+1588: statusPill = `<span class="status-pill status-pending">ðŸŸ¡ Pending Approval</span>`;
+1590: statusPill += ` <span class="badge" style="background:#f43f5e; color:white; font-size:0.7rem; padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.3rem; white-space:nowrap;">âš ï¸ Delayed >30m</span>`;
+1593: <button class="btn-complete" onclick="approveBooking('${r.id}')">✅ Approve</button>
+1594: <button class="btn-delete" style="background:#fffbeb;color:#d97706;border-color:#fde68a;" onclick="rejectBooking('${r.id}')">❌ Reject</button>
+1599: ? `<span class="status-pill status-completed">ðŸŸ¢ Completed</span>`
+1600: : `<span class="status-pill status-pending">ðŸŸ¡ Pending</span>`;
+1602: statusPill += ` <span class="badge" style="background:#f43f5e; color:white; font-size:0.7rem; padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.3rem; white-space:nowrap;">âš ï¸ Delayed >30m</span>`;
+1605: ? `<button class="btn-pending" onclick="toggleStatus('${r.id}', '${r.category}', 'pending')">â³ Mark Pending</button>`
+1606: : `<button class="btn-complete" onclick="toggleStatus('${r.id}', '${r.category}', 'completed')">✅ Mark Completed</button>`;
+1634: detailHtml = sanitize(r.exact_issue) || '—';
+1642: <td style="font-size:0.85rem;">${sanitize(r.subcategory || '—')}</td>
+1643: <td style="font-size:0.85rem;">${sanitize(r.floor || '—')}</td>
+1645: <td style="max-width:150px;font-size:0.85rem;color:#6b7280;">${sanitize(r.remarks || '—')}</td>
+1646: <td style="font-weight:600;font-size:0.88rem;">${sanitize(r.requester_name || '—')}</td>
+1647: <td style="font-size:0.85rem;">${sanitize(r.requester_phone || '—')}</td>
+1651: <button class="btn-delete" onclick="deleteRequest('${r.id}', '${r.category}')">🗑️ Delete</button>
+1999: // ðŸ§¹ Housekeeping Stock Operations & Render Helpers
+2238: // ðŸ“‹ AMC Contracts Management Javascript Routines
+2325: <button onclick="viewAMCDetail('${c.id}')" style="padding:0.35rem 0.6rem; font-size:0.75rem; border:1px solid #3b82f6; background:#e0f2fe; color:#0369a1; border-radius:6px; font-weight:700; cursor:pointer;">🔍 View</button>
+2326: <button onclick="editAMCContract('${c.id}')" style="padding:0.35rem 0.6rem; font-size:0.75rem; border:1px solid #cbd5e1; background:white; color:#3b82f6; border-radius:6px; font-weight:700; cursor:pointer;">âœï¸ Edit</button>
+2327: <button onclick="deleteAMCContract('${c.id}')" style="padding:0.35rem 0.6rem; font-size:0.75rem; border:1px solid #fee2e2; background:#fee2e2; color:#ef4444; border-radius:6px; font-weight:700; cursor:pointer;">🗑️ Delete</button>
+2367: <h3 style="margin:0; font-size:1rem; color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:6px;">ðŸ“‹ Contract Specifications</h3>
+2378: <h3 style="margin:0; font-size:1rem; color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:6px;">ðŸ“ž Vendor & Contact Info</h3>
+2390: <h3 style="margin:0 0 1rem 0; font-size:1.1rem; color:#1e3a8a; display:flex; align-items:center; gap:6px;">ðŸ”§ Service Visits History Logs (${c.visits ? c.visits.length : 0})</h3>
+2429: <button type="button" onclick="submitVisitLogDetail('${c.id}', ${v.visitNo})" style="margin-top:4px; padding:6px; font-size:0.75rem; background:#10b981; color:white; border:none; border-radius:6px; font-weight:700; cursor:pointer; width:100%;">ðŸ’¾ Save Visit Details</button>
+2437: <button onclick="closeAMCDetail()" class="btn-download" style="padding:0.6rem 1.2rem; font-size:0.85rem; border-color:#94a3b8; background:#f1f5f9; color:#475569; display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:700;">ðŸ”™ Back to AMC List</button>
+2438: <button onclick="downloadSingleAMCReport('${c.id}')" class="btn-download" style="padding:0.6rem 1.2rem; font-size:0.85rem; background:#10b981; border-color:#10b981; color:white; display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:700;">⬇️ Download AMC Report (CSV)</button>
+2666: // â”€â”€ âš¡ Utility Payments JS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+2670: { type: 'mobile',      label: 'ðŸ“± Mobile Bill',       color: '#7c3aed', payUrl: 'https://paytm.com/recharge',                   nameField: 'userName' },
+2671: { type: 'landline',    label: 'ðŸ“ž Landline Bill',      color: '#0891b2', payUrl: 'https://paytm.com/landline-bill-payment',       nameField: 'location' },
+2672: { type: 'broadband',   label: 'ðŸŒ Broadband Bill',     color: '#059669', payUrl: 'https://paytm.com/landline-bill-payment',       nameField: 'location' },
+2673: { type: 'electricity', label: 'ðŸ’¡ Electricity Bill',   color: '#d97706', payUrl: 'https://paytm.com/electricity-bill-payment',    nameField: 'location' }
+2715: ${e.dueDate || '-'} ${isOverdue ? 'âš ï¸ Overdue' : isDueSoon ? 'ðŸ”” Due Soon' : ''}
+2718: <td style="padding:0.6rem 0.7rem;font-weight:700;color:#0f172a;">â‚¹${Number(e.amount||0).toLocaleString('en-IN')}</td>
+2720: ${isPaid ? `<span style="color:#059669;font-weight:600;">✅ ${e.paidOn || ''}</span>` : '<span style="color:#d97706;font-weight:600;">â³ Pending</span>'}
+2724: <a href="${svc.payUrl}" target="_blank" onclick="navigator.clipboard.writeText('${e.number}'); showToast('Number copied to clipboard! Paste it in Paytm.', 'success');" style="padding:0.3rem 0.6rem;background:#4f46e5;color:white;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;white-space:nowrap;">ðŸ’³ Pay Now</a>
+2725: ${!isPaid ? `<button onclick="markUtilityPaid('${e.id}')" style="padding:0.3rem 0.6rem;background:#059669;color:white;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;">✅ Mark Paid</button>` : ''}
+2726: <button onclick="editUtilityEntry('${e.id}')" style="padding:0.3rem 0.6rem;background:#f59e0b;color:white;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;">âœï¸</button>
+2727: <button onclick="deleteUtilityEntry('${e.id}')" style="padding:0.3rem 0.6rem;background:#ef4444;color:white;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;">🗑️</button>
+2742: <span style="color:rgba(255,255,255,0.9);font-size:0.82rem;">Total: <strong>â‚¹${totalAmount.toLocaleString('en-IN')}</strong> | Paid: <strong>â‚¹${paidAmount.toLocaleString('en-IN')}</strong></span>
+2743: <button onclick="openUtilityModal('${svc.type}')" style="padding:0.35rem 0.9rem;background:white;color:${svc.color};border:none;border-radius:6px;font-weight:700;font-size:0.82rem;cursor:pointer;">➕ Add</button>
+2770: document.getElementById('utility-modal-action-text').textContent = editData ? 'âœï¸ Edit Entry' : '➕ Add New Entry';
+2896: // â”€â”€ End Utility Payments JS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+2898: // â”€â”€ ðŸ›ï¸ Tax Payments JS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+2902: { type: 'property', label: 'ðŸ¡ Property Tax', color: '#10b981', payUrl: 'https://paytm.com/municipal-payments' },
+2903: { type: 'water',    label: 'ðŸ’§ Water Tax',    color: '#3b82f6', payUrl: 'https://paytm.com/water-bill-payment' }
+2946: actionHtml = `<span style="display:inline-flex; align-items:center; gap:4px; padding:4px 8px; background:#dcfce7; color:#166534; border-radius:12px; font-size:0.75rem; font-weight:700;">✅ Paid on ${e.paidOn}</span>
+2950: <a href="${svc.payUrl}" target="_blank" style="padding:0.4rem 0.8rem; background:#8b5cf6; color:white; border-radius:6px; font-size:0.8rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">ðŸ’¸ Pay Now</a>
+2951: <button onclick="markTaxPaid('${e.id}', true)" style="padding:0.4rem 0.8rem; background:white; color:#059669; border:1px solid #059669; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer; margin-left:8px;">✅ Mark Paid</button>
+2964: <button onclick="openTaxModal('${svc.type}', '${e.id}')" style="background:none; border:none; cursor:pointer; padding:4px; font-size:1.1rem;" title="Edit">âœï¸</button>
+2965: <button onclick="deleteTaxEntry('${e.id}')" style="background:none; border:none; cursor:pointer; padding:4px; font-size:1.1rem;" title="Delete">🗑️</button>
+2980: ➕ Add Entry
+3024: document.getElementById('tax-modal-action-text').textContent = 'âœï¸ Edit Tax Entry';
+3033: document.getElementById('tax-modal-action-text').textContent = '➕ Add Tax Entry';
+3162: // â”€â”€ End Tax Payments JS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+3164: // 📦 Stationery Tracker JS 📦
+3217: let statusBadge = `<span style="background:#fef3c7; color:#b45309; padding:0.3rem 0.6rem; border-radius:999px; font-size:0.75rem; font-weight:700;">â³ Pending</span>`;
+3219: statusBadge = `<span style="background:#d1fae5; color:#047857; padding:0.3rem 0.6rem; border-radius:999px; font-size:0.75rem; font-weight:700;">✅ Acknowledged</span>`;
+3221: statusBadge = `<span style="background:#fee2e2; color:#991b1b; padding:0.3rem 0.6rem; border-radius:999px; font-size:0.75rem; font-weight:700;">🔄 Returned</span>`;
+3252: <button onclick="downloadSingleAsset('${a.id}')" style="padding:0.4rem 0.8rem; background:#eff6ff; color:#2563eb; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600; margin-bottom:5px; width:100%;">â¬‡ï¸ Download</button><br>
+3253: <button onclick="viewAssetDetails('${a.id}')" style="padding:0.4rem 0.8rem; background:#f1f5f9; color:#475569; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600; width:100%; margin-bottom:5px;">👁️ View Stationery</button>
+3254: ${a.status !== 'Resigned/Returned' ? `<br><button onclick="openAssetAppendModal('${a.id}')" style="padding:0.4rem 0.8rem; background:#dcfce7; color:#16a34a; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600; width:100%; margin-bottom:5px;">➕ Add Items</button>` : ''}
+3255: ${a.status !== 'Resigned/Returned' ? `<br><button onclick="openAssetReturnModal('${a.id}')" style="padding:0.4rem 0.8rem; background:#fee2e2; color:#dc2626; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600; width:100%; margin-bottom:5px;">🔄 Resign / Return</button>` : ''}
+3256: <br><button onclick="deleteAssetRecord('${a.id}')" style="padding:0.4rem 0.8rem; background:#f87171; color:white; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600; width:100%; margin-top:5px;">🗑️ Delete</button>
+3272: <p style="color:#dc2626; font-weight:700;">🔄 Return Details (Resigned)</p>
+3342: <button type="button" onclick="this.parentElement.remove()" style="padding:0.4rem; background:#fee2e2; color:#dc2626; border:none; border-radius:6px; cursor:pointer;">❌</button>
+3668: <button type="button" onclick="this.parentElement.remove()" style="padding:0.4rem; background:#fee2e2; color:#dc2626; border:none; border-radius:6px; cursor:pointer;">❌</button>
+3730: // 📦 End Stationery Tracker JS 📦

@@ -19,6 +19,13 @@ model AdminLogin {
   status    String?
 }
 
+model AdminSession {
+  token     String @id
+  createdAt String
+  lastUsed  String
+}
+
+
 model Booking {
   id          String  @id @default(uuid())
   name        String?
@@ -147,3 +154,155 @@ model EmployeeCredential {
   email        String @id
   passwordHash String
 }
+
+model AssetHandover {
+  id             String              @id @default(uuid())
+  name           String
+  email          String
+  department     String?
+  handoverDate   String
+  handoverBy     String?
+  status         String              @default("Pending Acknowledgement")
+  acknowledgedAt String?
+  signature      String?
+  remarks        String?
+  createdAt      String
+  updatedAt      String
+  items          AssetHandoverItem[]
+}
+
+model AssetHandoverItem {
+  id         String        @id @default(uuid())
+  handoverId String
+  itemName   String
+  serialNo   String?
+  condition  String?       @default("Good")
+  status     String?       @default("Assigned")
+  returnedAt String?
+  remarks    String?
+  handover   AssetHandover @relation(fields: [handoverId], references: [id], onDelete: Cascade)
+}
+
+model CourierDispatch {
+  id                String                @id @default(uuid())
+  dcNo              String
+  dcDate            String
+  remarksType       String                @default("Service")
+  remarksOther      String?
+  transporterName   String?
+  transporterAmount Float?
+  docketNo          String?
+  noOfBoxes         Int                   @default(1)
+  courierBilling    String?
+  fromAddressText   String?
+  senderName        String
+  senderPhone       String?
+  toAddress         String
+  receiverName      String
+  receiverPhone     String?
+  totalAmount       Float                 @default(0)
+  dimensions        String?
+  weight            String?
+  status            String                @default("approved")
+  approvalToken     String?
+  requesterEmail    String
+  submittedAt       String
+  updatedAt         String
+  parentDispatchId  String?
+  items             CourierDispatchItem[]
+}
+
+model CourierDispatchItem {
+  id          String          @id @default(uuid())
+  dispatchId  String
+  itemCode    String?
+  description String
+  serialNo    String?
+  qty         Int             @default(1)
+  rate        Float           @default(0)
+  value       Float           @default(0)
+  dispatch    CourierDispatch @relation(fields: [dispatchId], references: [id], onDelete: Cascade)
+}
+
+model PettyCash {
+  id            String   @id @default(uuid())
+  date          String
+  reason        String
+  company       String?
+  expenseName   String?
+  collectedFrom String?
+  amount        Float    @default(0)
+  remarks       String?
+  cleared       Boolean  @default(false)
+  clearedDate   String?
+  createdAt     String
+  updatedAt     String
+}
+
+model TravelExpense {
+  id           String   @id @default(uuid())
+  date         String
+  employeeName String?
+  vehicleNo    String?
+  fromLoc      String
+  toLoc        String
+  mode         String   @default("Bike")
+  totalKm      Float    @default(0)
+  fuelLiters   Float?
+  fuelCost     Float?
+  tollParking  Float?
+  totalExpense Float    @default(0)
+  remarks      String?
+  createdAt    String
+  updatedAt    String
+}
+
+model BillWarranty {
+  id               String   @id @default(uuid())
+  date             String
+  billNo           String
+  vendorName       String?
+  itemsJson        String?
+  totalAmount      Float    @default(0)
+  warrantyDate     String?
+  billFileUrl      String?
+  billFileName     String?
+  warrantyFileUrl  String?
+  warrantyFileName String?
+  approvedBy       String?
+  remarks          String?
+  createdAt        String
+  updatedAt        String
+}
+
+model OtherStock {
+  id               String   @id @default(uuid())
+  stockName        String
+  availableQty     Int      @default(0)
+  usedQty          Int      @default(0)
+  subtitlesJson    String?
+  location         String?
+  remarks          String?
+  usageHistoryJson String?
+  createdAt        String
+  updatedAt        String
+}
+
+model Reminder {
+  id         String   @id @default(uuid())
+  text       String
+  dateTime   String
+  priority   String   @default("Medium")
+  adminEmail String
+  sent       Boolean  @default(false)
+  sentAt     String?
+  createdAt  String
+  updatedAt  String
+}
+
+
+
+
+
+
+

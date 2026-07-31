@@ -21,6 +21,15 @@ const employeeAuthRoutes = require('./routes/employee-auth.routes');
 const adminRoutes = require('./routes/admin.routes');
 const inventoryRoutes = require('./routes/inventory.routes');
 
+// Public Asset Acknowledgement Routes
+const assetTrackerController = require('./controllers/asset-tracker.controller');
+app.get('/api/assets/acknowledgement/:id', assetTrackerController.getAckDetails);
+app.post('/api/assets/acknowledgement/:id', assetTrackerController.submitAck);
+
+// Delivery Challan Document Print Route
+const courierController = require('./controllers/courier-dispatch.controller');
+app.get('/api/courier-dispatches/dc-print/:id', courierController.printDeliveryChallan);
+
 // Mount routes
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/helpdesk', helpdeskRoutes);
@@ -28,14 +37,8 @@ app.use('/api/employee', employeeAuthRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', inventoryRoutes);
 
-// Serve static frontend files (legacy compatibility)
-app.use(express.static(path.join(__dirname, '../public')));
-
-// HTML Aliases (Legacy support)
-app.get('/booking', (req, res) => res.sendFile(path.join(__dirname, '../public/booking.html')));
-app.get('/helpdesk', (req, res) => res.sendFile(path.join(__dirname, '../public/helpdesk-admin.html'))); // Or whatever it maps to
-app.get('/helpdesk-admin', (req, res) => res.sendFile(path.join(__dirname, '../public/helpdesk-admin.html')));
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, '../public/admin.html')));
+// Serve static frontend files (React SPA)
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // 404 Handler
 app.use((req, res, next) => {
@@ -43,8 +46,8 @@ app.use((req, res, next) => {
   if (req.originalUrl.startsWith('/api')) {
     res.status(404).json({ error: `Endpoint not found: ${req.originalUrl}` });
   } else {
-    // Fallback to sending index.html for SPA if you have one, or just a 404 text
-    res.status(404).send('404 Not Found');
+    // Fallback to sending index.html for React SPA routing
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
   }
 });
 

@@ -1,0 +1,18 @@
+[
+  {
+    "timestamp": "2026-07-08T10:46:32.352Z",
+    "item": "Handwash Bottle",
+    "type": "purchase",
+    "quantity": 4,
+    "previousStock": 0,
+    "newStock": 4
+  },
+  {
+    "timestamp": "2026-07-08T10:46:58.315Z",
+    "item": "Mop",
+    "type": "purchase",
+    "quantity": 4,
+    "previousStock": 0,
+    "newStock": 4
+  }
+]

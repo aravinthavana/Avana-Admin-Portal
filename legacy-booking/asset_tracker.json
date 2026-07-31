@@ -1,0 +1,908 @@
+[
+  {
+    "id": "1784613075409",
+    "location": "Chennai",
+    "name": "Bhuvanesh Ravi",
+    "phone": "7092427933",
+    "email": "bhuvaneshravi@avanamedical.com",
+    "empId": "AMD171",
+    "handoverDate": "2026-02-02",
+    "handoverBy": "Karthick S",
+    "department": "Travel desk",
+    "assets": [
+      {
+        "particular": "Steel Ruler ",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Sharpener ",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T05:51:15.409Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-21T09:59:55.159Z"
+    }
+  },
+  {
+    "id": "1784613226848",
+    "location": "Chennai",
+    "name": "Rajan E",
+    "phone": "na",
+    "email": "Traveldesk@avanamedical.com",
+    "empId": "AMD063",
+    "handoverDate": "2023-05-02",
+    "handoverBy": "Karthick S",
+    "department": "Travel desk",
+    "assets": [
+      {
+        "particular": "Calculater ",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Steel Ruler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Office tray Blue",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Pen stand",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Punching Machine ",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "sharpener",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T05:53:46.848Z",
+    "acknowledgementDetails": {
+      "missingItems": "no",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-21T06:20:32.159Z"
+    }
+  },
+  {
+    "id": "1784613886433",
+    "location": "Chennai",
+    "name": "Kaleeshvaran",
+    "phone": "na",
+    "email": "accounts@avanamedical.com",
+    "empId": "AMD-137",
+    "handoverDate": "2025-04-07",
+    "handoverBy": "Karthick S",
+    "department": "Accounts",
+    "assets": [
+      {
+        "particular": "Calculator",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Steel ruler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Sharpener",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "pin remover",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T06:04:46.433Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-21T06:13:06.104Z"
+    }
+  },
+  {
+    "id": "1784614649353",
+    "location": "Chennai",
+    "name": "Jayasree",
+    "phone": "8807844267",
+    "email": "jayasree@avanamedical.com",
+    "empId": "Temp-002",
+    "handoverDate": "2026-07-06",
+    "handoverBy": "Karthick S",
+    "department": "Accounts",
+    "assets": [
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Calculator",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Pen stand",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Steel ruler",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T06:17:29.353Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-23T05:39:42.970Z"
+    }
+  },
+  {
+    "id": "1784614893225",
+    "location": "Chennai",
+    "name": "Bubesh Kumar",
+    "phone": "na",
+    "email": "bubeshkumar@avanasurgical.com",
+    "empId": "ASSP-012",
+    "handoverDate": "2026-07-21",
+    "handoverBy": "Karthick S",
+    "department": "Commercial",
+    "assets": [
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T06:21:33.225Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-21T09:59:00.653Z"
+    }
+  },
+  {
+    "id": "1784614984744",
+    "location": "Chennai",
+    "name": "Pavithran",
+    "phone": "na",
+    "email": "pavithran@avanamedical.com",
+    "empId": "AMD165",
+    "handoverDate": "2025-11-14",
+    "handoverBy": "Karthick S",
+    "department": "Jr. Executive - Regulatory & Compliance • Commercial",
+    "assets": [
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Scissors",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T06:23:04.744Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "Acknowledged, I do have both the items with me.",
+      "acknowledgedAt": "2026-07-21T09:58:35.244Z"
+    }
+  },
+  {
+    "id": "1784615136826",
+    "location": "Chennai",
+    "name": "Anand",
+    "phone": "na",
+    "email": "anandashok@avanamedical.com",
+    "empId": "AMD-010",
+    "handoverDate": "2026-07-21",
+    "handoverBy": "Karthick S",
+    "department": "Executive • Commercial",
+    "assets": [
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Calculator",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "Used"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T06:25:36.826Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-21T06:26:59.858Z"
+    }
+  },
+  {
+    "id": "1784615268294",
+    "location": "Chennai",
+    "name": "Silambarasan",
+    "phone": "na",
+    "email": "silambarasan@avanamedical.com",
+    "empId": "AMD-014",
+    "handoverDate": "2026-07-21",
+    "handoverBy": "Karthick S",
+    "department": "Executive • Commercial",
+    "assets": [
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Steel ruler",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T06:27:48.294Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-21T09:58:15.966Z"
+    }
+  },
+  {
+    "id": "1784616824861",
+    "location": "Chennai",
+    "name": "anitha",
+    "phone": "NA",
+    "email": "anitha@avanamedical.com",
+    "empId": "AMD170",
+    "handoverDate": "2025-04-09",
+    "handoverBy": "Karthick S",
+    "department": "Accounts",
+    "assets": [
+      {
+        "particular": "Calculator",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Steel ruler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "pin remover",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Pen stand",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Sharpener",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T06:53:44.861Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "The pen stand is used, not new.",
+      "acknowledgedAt": "2026-07-21T07:17:01.192Z"
+    }
+  },
+  {
+    "id": "1784616969067",
+    "location": "Chennai",
+    "name": "Roshini",
+    "phone": "NA",
+    "email": "roshini@avanamedical.com",
+    "empId": "AMD-152",
+    "handoverDate": "2026-03-13",
+    "handoverBy": "Karthick S",
+    "department": "Accounts",
+    "assets": [
+      {
+        "particular": "Calculator",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Steel ruler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Sharpener",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T06:56:09.068Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "I don't have an office sharpener. The one I'm using is my personal sharpener.",
+      "acknowledgedAt": "2026-07-21T07:17:10.979Z"
+    }
+  },
+  {
+    "id": "1784617102990",
+    "location": "Chennai",
+    "name": "ManiKandan",
+    "phone": "NA",
+    "email": "manikandan@avanamedical.com",
+    "empId": "AMD-055",
+    "handoverDate": "2022-02-16",
+    "handoverBy": "Karthick S",
+    "department": "Executive • Accounts & Finance",
+    "assets": [
+      {
+        "particular": "Calculator",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Steel ruler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "pin remover",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Sharpener",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T06:58:22.990Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "Steel ruler, Sharpener - Used item ",
+      "acknowledgedAt": "2026-07-21T10:05:05.715Z"
+    }
+  },
+  {
+    "id": "1784617373232",
+    "location": "Chennai",
+    "name": "M Shanmugam",
+    "phone": "94454 84551",
+    "email": "shanmugam@avanamedical.com",
+    "empId": "AMD-169",
+    "handoverDate": "2026-07-21",
+    "handoverBy": "Karthick S",
+    "department": "Assistant Manager HR • HR",
+    "assets": [
+      {
+        "particular": "Pen stand",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Punching machine",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Calculator",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Sharpener",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T07:02:53.232Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-21T08:30:18.827Z"
+    }
+  },
+  {
+    "id": "1784617496412",
+    "location": "Chennai",
+    "name": "Lokshni",
+    "phone": "NA",
+    "email": "Lokshni@avanamedical.com",
+    "empId": "AMD-167",
+    "handoverDate": "2025-11-24",
+    "handoverBy": "Karthick S",
+    "department": "HR (L&T)",
+    "assets": [
+      {
+        "particular": "Pen stand",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Sharpener",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T07:04:56.412Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-28T12:04:35.486Z"
+    }
+  },
+  {
+    "id": "1784624915284",
+    "location": "Chennai",
+    "name": "M Srinivasan ",
+    "phone": "+91 9840600179",
+    "email": "srinivasan@avanamedical.com",
+    "empId": "AMD-002",
+    "handoverDate": "2026-07-21",
+    "handoverBy": "Issued by Boss ",
+    "department": "Sr. Manager – Admin & Finance",
+    "assets": [
+      {
+        "particular": "Pen stand",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Scissors",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Knife",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Calculator",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Steel ruler",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "pin remover",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Single tray",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Pending Acknowledgement",
+    "createdAt": "2026-07-21T09:08:35.284Z",
+    "acknowledgementDetails": null
+  },
+  {
+    "id": "1784625213657",
+    "location": "Chennai",
+    "name": "Senthil Kumar",
+    "phone": "+91 9600128825",
+    "email": "senthilkumar@avanamedical.com",
+    "empId": "AMD-057",
+    "handoverDate": "2026-07-22",
+    "handoverBy": "Karthick S",
+    "department": "Commercial",
+    "assets": [
+      {
+        "particular": "Samsun Phone: IMEI: 354068191905818(with sim - 9551252020)",
+        "qty": "1",
+        "condition": "Used"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T09:13:33.657Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-21T09:14:29.573Z"
+    }
+  },
+  {
+    "id": "1784626948149",
+    "location": "Chennai",
+    "name": "Vignesh",
+    "phone": "+91  9677668293",
+    "email": "vignesh@avanamedical.com",
+    "empId": "AMD-069",
+    "handoverDate": "2026-07-21",
+    "handoverBy": "Karthick S",
+    "department": "MIS Executive  • Sales",
+    "assets": [
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Pen stand",
+        "qty": "1",
+        "condition": "Used"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T09:42:28.149Z",
+    "acknowledgementDetails": {
+      "missingItems": "No",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-23T04:47:08.311Z"
+    }
+  },
+  {
+    "id": "1784627100910",
+    "location": "Chennai",
+    "name": "Sivasankar",
+    "phone": "+91 9043288206",
+    "email": "siva@avanamedical.com",
+    "empId": "AMD-019",
+    "handoverDate": "2026-07-21",
+    "handoverBy": "NA",
+    "department": "Senior Executive  • Accounts & Finance",
+    "assets": [
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Calculator",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Knife",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Steel ruler",
+        "qty": "1",
+        "condition": "Used"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T09:45:00.910Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "These above items were received 6 years ago ",
+      "acknowledgedAt": "2026-07-21T09:59:56.568Z"
+    }
+  },
+  {
+    "id": "1784627241806",
+    "location": "Chennai",
+    "name": "Sureshgobi",
+    "phone": "Na",
+    "email": "sureshgobi@avanamedical.com",
+    "empId": "AMD-166",
+    "handoverDate": "2026-07-21",
+    "handoverBy": "Karthick S",
+    "department": "Manager – Finance",
+    "assets": [
+      {
+        "particular": "Pen stand",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Calculator",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T09:47:21.806Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-21T09:59:07.005Z"
+    }
+  },
+  {
+    "id": "1784627436195",
+    "location": "Chennai",
+    "name": "Singaravel",
+    "phone": "+91 9976678100",
+    "email": "singaravel@avanamedical.com",
+    "empId": "AMD-007",
+    "handoverDate": "2026-07-21",
+    "handoverBy": "Karthick S",
+    "department": "Manager • Service & IT",
+    "assets": [
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Calculator",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Steel ruler",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Sharpener",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Laptop Mat",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Knife",
+        "qty": "1",
+        "condition": "Used"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T09:50:36.195Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-23T07:28:37.199Z"
+    }
+  },
+  {
+    "id": "1784627774962",
+    "location": "Chennai",
+    "name": "A Dinesh Kumar",
+    "phone": "+91 8825818162",
+    "email": "dineshkumar@avanamedical.com",
+    "empId": "AMD-079",
+    "handoverDate": "2026-07-21",
+    "handoverBy": "Karthick S",
+    "department": "Service Engineer • Service ",
+    "assets": [
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T09:56:14.962Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "The Office tray is more than 4 years old",
+      "acknowledgedAt": "2026-07-23T04:20:16.509Z"
+    }
+  },
+  {
+    "id": "1784630274466",
+    "location": "Chennai",
+    "name": "Karthick S",
+    "phone": "08925531209",
+    "email": "karthicksankar@avanamedical.com",
+    "empId": "AMD_131",
+    "handoverDate": "2026-07-21",
+    "handoverBy": "Karthick S",
+    "department": "Admin",
+    "assets": [
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Steel ruler",
+        "qty": "1",
+        "condition": "New"
+      },
+      {
+        "particular": "Pen stand",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Knife",
+        "qty": "1",
+        "condition": "New"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-21T10:37:54.466Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-21T10:38:59.602Z"
+    }
+  },
+  {
+    "id": "1784786418808",
+    "location": "Chennai",
+    "name": "Malini",
+    "phone": "NA",
+    "email": "malini@avanamedical.com",
+    "empId": "AMD-091",
+    "handoverDate": "2026-07-23",
+    "handoverBy": "Karthick S",
+    "department": "Service Coordinator • Service",
+    "assets": [
+      {
+        "particular": "Steel ruler",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Punching machine",
+        "qty": "1",
+        "condition": "Used"
+      },
+      {
+        "particular": "Knife",
+        "qty": "2",
+        "condition": "Used"
+      },
+      {
+        "particular": "Stapler",
+        "qty": "1",
+        "condition": "Used"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-23T06:00:18.808Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "The above-mentioned items are commonly used in service department and am acknowledge it",
+      "acknowledgedAt": "2026-07-23T06:02:16.316Z"
+    }
+  },
+  {
+    "id": "1784786476347",
+    "location": "Chennai",
+    "name": "Kumaresan",
+    "phone": "NA",
+    "email": "kumaresan@avanamedical.com",
+    "empId": "AMD-005",
+    "handoverDate": "2026-07-23",
+    "handoverBy": "Karthick S",
+    "department": "Sr. Service & Networking Engineer • Service & IT",
+    "assets": [
+      {
+        "particular": "Office tray",
+        "qty": "1",
+        "condition": "Used"
+      }
+    ],
+    "status": "Acknowledged",
+    "createdAt": "2026-07-23T06:01:16.347Z",
+    "acknowledgementDetails": {
+      "missingItems": "",
+      "remarks": "",
+      "acknowledgedAt": "2026-07-23T06:03:44.047Z"
+    }
+  }
+]

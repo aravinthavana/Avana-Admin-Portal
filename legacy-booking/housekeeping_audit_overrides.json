@@ -1,0 +1,76 @@
+{
+  "2026-07": {
+    "Toilet Cleaner": {
+      "startingStock": 8,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 8
+    },
+    "Handwash Bottle": {
+      "startingStock": 9,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 9
+    },
+    "Garbage Bags": {
+      "startingStock": 4,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 4
+    },
+    "Toilet Paper Roll": {
+      "startingStock": 9,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 9
+    },
+    "Garbage Bags Small": {
+      "startingStock": 14,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 14
+    },
+    "odonil zipper": {
+      "startingStock": 19,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 19
+    },
+    "Dishwash Liquid": {
+      "startingStock": 3,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 3
+    },
+    "EXO": {
+      "startingStock": 5,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 5
+    },
+    "Restroom spray": {
+      "startingStock": 2,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 2
+    },
+    "Handwash tissue": {
+      "startingStock": 10,
+      "purchased": 0,
+      "used": 2,
+      "endingStock": 8
+    },
+    "Soft cloth": {
+      "startingStock": 2,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 2
+    },
+    "Mop": {
+      "startingStock": 4,
+      "purchased": 0,
+      "used": 0,
+      "endingStock": 4
+    }
+  }
+}

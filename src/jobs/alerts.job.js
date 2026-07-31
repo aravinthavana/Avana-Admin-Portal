@@ -1,17 +1,17 @@
 const cron = require('node-cron');
-// We would import services here (e.g., amcService, utilitiesService)
-// const { checkAMCAlerts } = require('../services/amc.service');
+const { checkAndSendReminders } = require('../services/reminders.service');
+
+// Run once on startup (delayed by 10 seconds to let database connection initialize)
+setTimeout(() => {
+  console.log('[CRON Startup] Running initial deadline checks...');
+  checkAndSendReminders().catch(console.error);
+}, 10000);
 
 // Schedule tasks to be run on the server at 9:30 AM every day.
 cron.schedule('30 9 * * *', () => {
   console.log('[CRON] Running daily alerts check at 9:30 AM...');
-  
   try {
-    // Ported background tasks will be executed here:
-    // checkAMCAlerts();
-    // checkUtilityReminders();
-    // checkTaxReminders();
-    // rolloverUtilityPayments();
+    checkAndSendReminders().catch(console.error);
     console.log('[CRON] Daily alerts completed successfully.');
   } catch (error) {
     console.error('[CRON] Error running daily alerts:', error);

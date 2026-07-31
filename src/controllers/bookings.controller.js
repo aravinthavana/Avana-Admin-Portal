@@ -4,7 +4,8 @@ const bookingService = require('../services/bookings.service');
 exports.getBookings = async (req, res, next) => {
   try {
     const bookings = await bookingService.getAllBookings();
-    const sanitized = bookings.map(b => ({
+    const activeBookings = bookings.filter(b => !(b.status && b.status.toLowerCase() === 'rejected'));
+    const sanitized = activeBookings.map(b => ({
       id: b.id,
       date: b.date,
       startDate: b.startDate || b.date,
@@ -12,7 +13,8 @@ exports.getBookings = async (req, res, next) => {
       bookingType: b.bookingType,
       startTime: b.startTime,
       endTime: b.endTime,
-      name: b.name
+      name: b.name,
+      status: b.status
     }));
     res.status(200).json(sanitized);
   } catch (error) {
@@ -52,7 +54,9 @@ exports.createBooking = async (req, res, next) => {
       bookingType,
       startTime: bookingType === 'full' ? '00:00' : startTime,
       endTime: bookingType === 'full' ? '23:59' : endTime,
-      reason, attendees, remarks: remarks || '',
+      reason,
+      attendees: Array.isArray(attendees) ? JSON.stringify(attendees) : (typeof attendees === 'string' ? attendees : '[]'),
+      remarks: remarks || '',
       food: food || 'none',
       foodSpecify: food === 'others' ? foodSpecify : '',
       foodCount: food !== 'none' ? parseInt(foodCount) || 1 : 0,
@@ -81,18 +85,115 @@ exports.cancelBooking = async (req, res, next) => {
   try {
     const { id, email } = req.query;
     if (!id || !email) {
-      return res.status(400).send('Invalid Request: Missing ID or email');
+      return res.status(400).send(`
+        <html>
+          <head>
+            <title>Invalid Request</title>
+            <style>
+              body { font-family: sans-serif; background: #f5f5f7; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+              .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; max-width: 400px; }
+              h1 { color: #dc2626; margin-bottom: 10px; font-size: 24px; }
+              p { color: #6b7280; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
+              .btn { background: #c17f24; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
+              .btn:hover { background: #9e6418; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+              <h1>Invalid Link</h1>
+              <p>Missing required parameters. Make sure to click the link directly from your email.</p>
+              <a href="/" class="btn">Go to Portal</a>
+            </div>
+          </body>
+        </html>
+      `);
     }
 
     const bookings = await bookingService.getAllBookings();
-    const booking = bookings.find(b => b.id === id && b.email.toLowerCase() === email.toLowerCase());
+    const booking = bookings.find(b => b.id === id && b.email && b.email.toLowerCase() === email.toLowerCase());
 
     if (!booking) {
-      return res.status(404).send('Booking Not Found or already cancelled');
+      return res.status(404).send(`
+        <html>
+          <head>
+            <title>Booking Not Found</title>
+            <style>
+              body { font-family: sans-serif; background: #f5f5f7; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+              .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; max-width: 400px; }
+              h1 { color: #dc2626; margin-bottom: 10px; font-size: 24px; }
+              p { color: #6b7280; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
+              .btn { background: #c17f24; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
+              .btn:hover { background: #9e6418; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <div style="font-size: 48px; margin-bottom: 20px;">ℹ️</div>
+              <h1>Booking Not Found</h1>
+              <p>The booking does not exist or has already been cancelled.</p>
+              <a href="/" class="btn">Go to Portal</a>
+            </div>
+          </body>
+        </html>
+      `);
+    }
+
+    // Check if the meeting is already completed
+    const endDateTimeStr = `${booking.endDate || booking.date || ''}T${booking.endTime || '18:00'}:00`;
+    const meetingEndTime = new Date(endDateTimeStr);
+    if (!isNaN(meetingEndTime.getTime()) && new Date() > meetingEndTime) {
+      return res.status(200).send(`
+        <html>
+          <head>
+            <title>Meeting Completed</title>
+            <style>
+              body { font-family: sans-serif; background: #f5f5f7; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+              .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; max-width: 450px; }
+              h1 { color: #f59e0b; margin-bottom: 10px; font-size: 24px; }
+              p { color: #6b7280; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
+              .btn { background: #c17f24; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
+              .btn:hover { background: #9e6418; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <div style="font-size: 48px; margin-bottom: 20px;">⏰</div>
+              <h1>Meeting Already Completed</h1>
+              <p>The meeting scheduled for <strong>${booking.startDate || booking.date || ''}</strong> (${booking.startTime || '09:00'} - ${booking.endTime || '18:00'}) is already over and cannot be cancelled.</p>
+              <a href="/" class="btn">Go to Portal</a>
+            </div>
+          </body>
+        </html>
+      `);
     }
 
     if (await bookingService.deleteBooking(id)) {
-      res.status(200).send('Booking Cancelled Successfully');
+      bookingService.sendBookingCancellationNotification(booking).catch(console.error);
+
+      res.status(200).send(`
+        <html>
+          <head>
+            <title>Booking Cancelled</title>
+            <style>
+              body { font-family: sans-serif; background: #f5f5f7; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+              .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; max-width: 400px; }
+              h1 { color: #1c1c1e; margin-bottom: 10px; font-size: 24px; }
+              p { color: #6b7280; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
+              .btn { background: #c17f24; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
+              .btn:hover { background: #9e6418; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+              <h1>Booking Cancelled</h1>
+              <p>Your room booking has been successfully cancelled and the slot has been released.</p>
+              <a href="/" class="btn">Go to Portal</a>
+            </div>
+          </body>
+        </html>
+      `);
     } else {
       res.status(500).send('Server Error updating database');
     }

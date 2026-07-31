@@ -1,122 +1,89 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import { EmployeeLayout, AdminLayout, ConferenceAdminLayout } from './components/Layout';
+import { RequireEmployee, RequireAdmin, RedirectIfEmployee, RedirectIfAdmin } from './components/ProtectedRoute';
 
-function App() {
-  const [count, setCount] = useState(0)
+// ── Pages (lazy-loaded for performance) ────────────────────────────────────
+import { lazy, Suspense } from 'react';
+import { Spinner } from './components/ui';
 
+const LoginPage          = lazy(() => import('./pages/LoginPage'));
+const HelpDeskPage       = lazy(() => import('./pages/HelpDeskPage'));
+const BookingPage        = lazy(() => import('./pages/BookingPage'));
+const StatusPage         = lazy(() => import('./pages/StatusPage'));
+const AdminLoginPage     = lazy(() => import('./pages/AdminLoginPage'));
+const AdminDashPage      = lazy(() => import('./pages/AdminDashPage'));
+const HelpDeskAdminPage  = lazy(() => import('./pages/HelpDeskAdminPage'));
+const AssetAcknowledgementPage = lazy(() => import('./pages/AssetAcknowledgementPage'));
+
+function PageLoader() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+      <Spinner size="lg" label="Loading page…" />
+    </div>
+  );
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <ToastProvider>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              {/* ── Public ── */}
+              <Route path="/status" element={<StatusPage />} />
+              <Route path="/asset-acknowledgement" element={<AssetAcknowledgementPage />} />
+
+              {/* ── Employee Auth & Portal ── */}
+              <Route path="/" element={
+                <RedirectIfEmployee>
+                  <LoginPage />
+                </RedirectIfEmployee>
+              } />
+
+              <Route element={
+                <RequireEmployee>
+                  <EmployeeLayout />
+                </RequireEmployee>
+              }>
+                <Route path="/helpdesk" element={<HelpDeskPage />} />
+                <Route path="/booking" element={<BookingPage />} />
+              </Route>
+
+              {/* ── Admin Login ── */}
+              <Route path="/admin-login" element={
+                <RedirectIfAdmin>
+                  <AdminLoginPage />
+                </RedirectIfAdmin>
+              } />
+
+              {/* ── Conference Room Admin ── */}
+              <Route element={
+                <RequireAdmin>
+                  <ConferenceAdminLayout />
+                </RequireAdmin>
+              }>
+                <Route path="/admin" element={<AdminDashPage />} />
+              </Route>
+
+              {/* ── Help Desk Admin (sidebar layout) ── */}
+              <Route element={
+                <RequireAdmin>
+                  <AdminLayout />
+                </RequireAdmin>
+              }>
+                <Route path="/helpdesk-admin/*" element={<HelpDeskAdminPage />} />
+              </Route>
+
+              {/* ── Fallback ── */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </ToastProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}

@@ -14,12 +14,12 @@
   --color-booked: #dc2626;
   --color-booked-glow: rgba(220, 38, 38, 0.08);
   
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-glow: rgba(79, 70, 229, 0.15);
+  --primary: #c29100;
+  --primary-hover: #a37a00;
+  --primary-glow: rgba(194, 145, 0, 0.15);
   
   --input-bg: #ffffff;
-  --input-focus: rgba(79, 70, 229, 0.2);
+  --input-focus: rgba(194, 145, 0, 0.2);
   
   --shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.06);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -669,7 +669,7 @@ footer a:hover {
 .stat-number {
   font-size: 2.2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  background: linear-gradient(135deg, #c29100, #e5b400);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1;

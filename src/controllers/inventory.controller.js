@@ -1,11 +1,19 @@
 const inventoryService = require('../services/inventory.service');
 
-// Employee endpoint
 exports.getStationeryCatalog = (req, res, next) => {
   try {
     const catalog = inventoryService.getStationeryCatalog();
+    const stationery = [];
+    const printing = [];
+    for (const [name, type] of Object.entries(catalog || {})) {
+      if (type === 'stationery') {
+        stationery.push(name);
+      } else if (type === 'printing') {
+        printing.push(name);
+      }
+    }
     res.setHeader('Cache-Control', 'no-store');
-    res.status(200).json(catalog);
+    res.status(200).json({ stationery, printing });
   } catch (error) {
     next(error);
   }
@@ -62,6 +70,10 @@ const handleUpdateStock = async (type, req, res, next) => {
     });
     await inventoryService.saveTransactions(type, logs);
 
+    if (newStock < previousStock) {
+      inventoryService.checkLowStockAlert(item, newStock, type).catch(console.error);
+    }
+
     res.status(200).json({ message: 'Stock updated successfully.', stock: newStock });
   } catch (error) {
     next(error);
@@ -96,7 +108,9 @@ const handleAuditOverride = async (type, req, res, next) => {
     }
 
     const overrides = await inventoryService.getAuditOverrides(type);
-    if (!overrides[month]) overrides[month] = {};
+    if (!overrides[month]) {
+      overrides[month] = {};
+    }
     
     overrides[month][item] = {
       startingStock: parseInt(startingStock) || 0,
@@ -112,6 +126,81 @@ const handleAuditOverride = async (type, req, res, next) => {
   }
 };
 
+exports.addStationeryItemType = async (req, res, next) => {
+  try {
+    const { item, type, initialStock } = req.body;
+    if (!item) {
+      return res.status(400).json({ error: 'Missing item name.' });
+    }
+    const itemClean = item.trim();
+    const catalog = inventoryService.getStationeryCatalog();
+    if (catalog[itemClean]) {
+      return res.status(400).json({ error: 'Item already exists in catalog.' });
+    }
+
+    const updatedCatalog = inventoryService.addStationeryCatalogItem(itemClean, type || 'stationery');
+    
+    const qty = parseInt(initialStock, 10) || 0;
+    const stock = await inventoryService.getStock('stationery');
+    stock[itemClean] = qty;
+    await inventoryService.saveStock('stationery', stock);
+
+    if (qty > 0) {
+      const logs = await inventoryService.getTransactions('stationery');
+      logs.push({
+        item: itemClean,
+        type: 'purchase',
+        quantity: qty,
+        previousStock: 0,
+        newStock: qty,
+        timestamp: new Date().toISOString(),
+        remarks: 'Initial stock creation'
+      });
+      await inventoryService.saveTransactions('stationery', logs);
+    }
+
+    res.status(200).json({ message: 'Stationery item added successfully.', catalog: updatedCatalog });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.addHousekeepingItemType = async (req, res, next) => {
+  try {
+    const { item, initialStock } = req.body;
+    if (!item) {
+      return res.status(400).json({ error: 'Missing item name.' });
+    }
+    const itemClean = item.trim();
+    const stock = await inventoryService.getStock('housekeeping');
+    if (stock[itemClean] !== undefined) {
+      return res.status(400).json({ error: 'Housekeeping item already exists.' });
+    }
+
+    const qty = parseInt(initialStock, 10) || 0;
+    stock[itemClean] = qty;
+    await inventoryService.saveStock('housekeeping', stock);
+
+    if (qty > 0) {
+      const logs = await inventoryService.getTransactions('housekeeping');
+      logs.push({
+        item: itemClean,
+        type: 'purchase',
+        quantity: qty,
+        previousStock: 0,
+        newStock: qty,
+        timestamp: new Date().toISOString(),
+        remarks: 'Initial stock creation'
+      });
+      await inventoryService.saveTransactions('housekeeping', logs);
+    }
+
+    res.status(200).json({ message: 'Housekeeping item added successfully.', stock });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Route Handlers
 exports.getStationeryStock = (req, res, next) => handleGetStock('stationery', req, res, next);
 exports.updateStationeryStock = (req, res, next) => handleUpdateStock('stationery', req, res, next);
@@ -122,4 +211,3 @@ exports.getHousekeepingStock = (req, res, next) => handleGetStock('housekeeping'
 exports.updateHousekeepingStock = (req, res, next) => handleUpdateStock('housekeeping', req, res, next);
 exports.getHousekeepingAudit = (req, res, next) => handleGetAudit('housekeeping', req, res, next);
 exports.overrideHousekeepingAudit = (req, res, next) => handleAuditOverride('housekeeping', req, res, next);
-

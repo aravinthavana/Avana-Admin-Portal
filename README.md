@@ -1,89 +1,109 @@
 # Avana Office Admin & Booking Portal
 
-A modern, database-agnostic Office Administrative Management system built with Node.js, Express, and Prisma ORM.
+A full-stack office management system built with **React + Vite** frontend and **Express + Prisma + SQLite** backend.
 
 ## Features
-- **Conference Room Booking**: Avoid conflicts, manages catering selections and attendee counts.
-- **Help Desk Requests**: Categorized support requests for Stationery, IT, Maintenance, and Housekeeping.
-- **Inventory Stock & Audit**: Tracks office inventory usage, purchases, and provides monthly audits with manual override capabilities.
-- **Billing & AMC Tracker**: Manage equipment contracts (AMC), maintenance visits, and track utility and tax payments.
-- **Email Notifications**: Formatted HTML transaction receipts sent automatically to users and admins.
 
----
+### Employee Portal
+- 🔐 Employee login with email & password
+- 🏢 Conference Room Booking with calendar view and conflict detection
+- 🎫 Help Desk Requests — Maintenance, Stationery, Housekeeping, Office Assets, Printing & Scanning, Admin Support
+- 📦 Stationery catalog browsing with item requests
+- 📊 Personal request tracker (view status of own submitted requests)
+- 🔑 Self-service password change
 
-## Technical Stack
-- **Backend**: Express.js
-- **Database Access**: Prisma ORM
-- **Default Database**: SQLite (`database.sqlite`)
-- **Frontend**: Static legacy CSS & Vanilla JS (soon to be modern React)
+### Admin Panel
+- 📋 All Help Desk Requests — view, filter by category/date, mark complete, delete
+- 📅 Conference Room Bookings — filter, export CSV, approve/reject
+- 📦 Stationery & Housekeeping Stock Management
+- 📊 Monthly Stationery & Housekeeping Audit Reports
+- 📋 AMC Contract Management with visit logging
+- ⚡ Utility Payments tracking
+- 🏛️ Tax Payments tracking
+- 🔐 Employee Login Audit
+- ⚙️ Admin Password Management
 
----
+## Tech Stack
 
-## How to Switch to PostgreSQL or MySQL
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18 + Vite, React Router, Vanilla CSS |
+| Backend | Node.js + Express 5 |
+| Database | SQLite via Prisma ORM |
+| Auth | Cookie-based sessions (Admin) + JWT (Employee) |
+| Email | Nodemailer (Microsoft 365 / Office 365 SMTP) |
 
-Prisma is configured to make swapping database backends extremely easy. To switch from SQLite to **PostgreSQL** or **MySQL**, follow these three steps:
+## Project Structure
 
-### Step 1: Update the datasource provider in `prisma/schema.prisma`
-Open `prisma/schema.prisma` and edit the `datasource` block:
-
-```prisma
-// For PostgreSQL
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-// OR For MySQL
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-}
+```
+booking/
+├── frontend/          # React SPA (Vite)
+│   ├── src/
+│   │   ├── pages/     # Page components
+│   │   ├── components/# Shared UI components
+│   │   ├── context/   # Auth + Toast context
+│   │   └── lib/       # API client
+│   └── dist/          # Production build (served by Express)
+├── src/               # Express API server
+│   ├── controllers/   # Route handlers
+│   ├── services/      # Business logic
+│   ├── routes/        # API route definitions
+│   ├── middlewares/   # Auth, error handlers
+│   └── utils/         # Email, notifications
+├── prisma/
+│   └── schema.prisma  # Database schema
+├── database.sqlite    # SQLite database
+└── .env               # Environment config
 ```
 
-### Step 2: Update the `DATABASE_URL` in `.env`
-Open your `.env` file and replace the SQLite configuration with your new connection string:
+## Setup
 
-```env
-# Example for PostgreSQL
-DATABASE_URL="postgresql://username:password@localhost:5432/avana_admin?schema=public"
+### Prerequisites
+- Node.js 18+
 
-# Example for MySQL
-DATABASE_URL="mysql://username:password@localhost:3306/avana_admin"
-```
-
-### Step 3: Run Database Migrations
-Run the following commands in your terminal to apply the schema to your new database and regenerate the client:
-
+### Install dependencies
 ```bash
-# Push schema structure directly to the new database
+npm install
+cd frontend && npm install && cd ..
+```
+
+### Configure environment
+Copy `.env.example` to `.env` and fill in your values:
+```
+PORT=3000
+ADMIN_EMAIL=your-admin@email.com
+ADMIN_PASSWORD_HASH=   # Set via update_password.bat or admin panel
+SMTP_HOST=smtp.office365.com
+SMTP_PORT=587
+SMTP_USER=your@email.com
+SMTP_PASS=yourpassword
+BASE_URL=http://your-server-ip:3000
+```
+
+### Push database schema
+```bash
 npx prisma db push
-
-# Re-generate the Prisma Client to align with the new database driver
-npx prisma generate
 ```
 
-*(Optional)* Run the migration script to copy any existing legacy backup JSON data into your new database:
+### Build frontend
 ```bash
-node src/utils/migrate_to_prisma.js
+cd frontend && npm run build && cd ..
 ```
 
----
+### Start server
+```bash
+npm start
+```
 
-## Local Development Setup
+The app will be available at `http://localhost:3000`
 
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+## Development
 
-2. **Run database setup**:
-   ```bash
-   npx prisma db push
-   npx prisma generate
-   ```
+Run the Vite dev server (proxies API to Express on port 3000):
+```bash
+cd frontend && npm run dev
+```
 
-3. **Start the server**:
-   ```bash
-   npm start
-   ```
-   The portal will be live at `http://localhost:3000`.
+## Admin Access
+Default admin password is set in `.env` as `ADMIN_PASSWORD_HASH`.
+Use the `update_password.bat` script or the Admin Settings page to change it.

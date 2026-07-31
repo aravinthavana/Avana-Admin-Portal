@@ -1,0 +1,7 @@
+node_modules/
+.env
+temp_mail_*.html
+*.log
+.DS_Store
+.system_generated/
+.gemini/

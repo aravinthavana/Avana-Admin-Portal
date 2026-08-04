@@ -61,11 +61,10 @@ exports.getAllTravelExpenses = async (month) => {
 };
 
 exports.createTravelExpense = async (data) => {
-  const { date, employeeName, vehicleNo, fromLoc, toLoc, mode, totalKm, fuelLiters, fuelCost, tollParking, totalExpense, remarks } = data;
+  const { date, employeeName, vehicleNo, fromLoc, toLoc, mode, totalKm, remarks } = data;
   const km = parseFloat(totalKm) || 0;
-  const fCost = parseFloat(fuelCost) || 0;
-  const tpCost = parseFloat(tollParking) || 0;
-  const tot = parseFloat(totalExpense) || (fCost + tpCost);
+  const rate = (mode === 'Car') ? 10 : 5;
+  const tot = km * rate;
 
   return prisma.travelExpense.create({
     data: {
@@ -74,11 +73,11 @@ exports.createTravelExpense = async (data) => {
       vehicleNo: vehicleNo || '',
       fromLoc: fromLoc || 'HO',
       toLoc: toLoc || '',
-      mode: mode || 'Bike',
+      mode: mode === 'Car' ? 'Car' : 'Bike',
       totalKm: km,
-      fuelLiters: parseFloat(fuelLiters) || null,
-      fuelCost: fCost || null,
-      tollParking: tpCost || null,
+      fuelLiters: null,
+      fuelCost: null,
+      tollParking: null,
       totalExpense: tot,
       remarks: remarks || '',
       createdAt: new Date().toISOString(),
@@ -88,8 +87,16 @@ exports.createTravelExpense = async (data) => {
 };
 
 exports.updateTravelExpense = async (id, data) => {
-  const { date, employeeName, vehicleNo, fromLoc, toLoc, mode, totalKm, fuelLiters, fuelCost, tollParking, totalExpense, remarks } = data;
-  
+  const { date, employeeName, vehicleNo, fromLoc, toLoc, mode, totalKm, remarks } = data;
+  const km = totalKm !== undefined ? (parseFloat(totalKm) || 0) : undefined;
+  const m = mode || undefined;
+  let tot = undefined;
+  if (km !== undefined || m !== undefined) {
+    const targetKm = km !== undefined ? km : 0;
+    const targetMode = m || 'Bike';
+    tot = targetKm * (targetMode === 'Car' ? 10 : 5);
+  }
+
   return prisma.travelExpense.update({
     where: { id },
     data: {
@@ -98,12 +105,9 @@ exports.updateTravelExpense = async (id, data) => {
       vehicleNo: vehicleNo !== undefined ? vehicleNo : undefined,
       fromLoc: fromLoc || undefined,
       toLoc: toLoc || undefined,
-      mode: mode || undefined,
-      totalKm: totalKm !== undefined ? parseFloat(totalKm) : undefined,
-      fuelLiters: fuelLiters !== undefined ? parseFloat(fuelLiters) : undefined,
-      fuelCost: fuelCost !== undefined ? parseFloat(fuelCost) : undefined,
-      tollParking: tollParking !== undefined ? parseFloat(tollParking) : undefined,
-      totalExpense: totalExpense !== undefined ? parseFloat(totalExpense) : undefined,
+      mode: m,
+      totalKm: km,
+      totalExpense: tot,
       remarks: remarks !== undefined ? remarks : undefined,
       updatedAt: new Date().toISOString()
     }

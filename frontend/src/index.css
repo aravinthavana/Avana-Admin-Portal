@@ -654,3 +654,16 @@ ul { list-style: none; }
   outline: 2px solid var(--brand-amber);
   outline-offset: 2px;
 }
+
+/* ── Print Media (PDF Generation) ── */
+@media print {
+  @page { margin: 10mm; size: A4 portrait; }
+  body { background: #fff !important; color: #000 !important; font-size: 10pt; }
+  .no-print, .sidebar, header, nav, .toast-container, button, .modal-backdrop { display: none !important; }
+  .print-only { display: block !important; }
+  .print-area { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+  .table { border: 1px solid #000; width: 100%; border-collapse: collapse; }
+  .table th, .table td { border: 1px solid #000 !important; padding: 4px !important; font-size: 9pt !important; color: #000 !important; }
+  .table th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .card { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
+}

@@ -4,7 +4,7 @@ const bookingService = require('../services/bookings.service');
 exports.getBookings = async (req, res, next) => {
   try {
     const bookings = await bookingService.getAllBookings();
-    const activeBookings = bookings.filter(b => !(b.status && b.status.toLowerCase() === 'rejected'));
+    const activeBookings = bookings.filter(b => b.status && b.status.toLowerCase() === 'confirmed');
     const sanitized = activeBookings.map(b => ({
       id: b.id,
       date: b.date,
@@ -25,7 +25,7 @@ exports.getBookings = async (req, res, next) => {
 exports.createBooking = async (req, res, next) => {
   try {
     const data = req.body;
-    const { name, email, phone, startDate, endDate, bookingType, startTime, endTime, reason, attendees, remarks, food, foodSpecify, foodCount } = data;
+    const { name, email, phone, startDate, endDate, bookingType, startTime, endTime, reason, attendees, remarks, food, foodSpecify, foodCount, origin } = data;
 
     const sDate = startDate || data.date;
     const eDate = endDate || data.date || sDate;
@@ -70,7 +70,7 @@ exports.createBooking = async (req, res, next) => {
     }
 
     if (await bookingService.saveBooking(newBooking)) {
-      const host = req.headers.host ? `${req.protocol}://${req.headers.host}` : 'http://localhost:3000';
+      const host = origin || (req.headers.origin) || (req.headers.host ? `${req.protocol}://${req.headers.host}` : 'http://localhost:5173');
       bookingService.sendBookingRequestToAdminNotification(newBooking, host).catch(console.error);
       res.status(201).json({ message: 'Booking request submitted for Admin approval.', booking: newBooking });
     } else {
@@ -111,7 +111,7 @@ exports.cancelBooking = async (req, res, next) => {
     }
 
     const bookings = await bookingService.getAllBookings();
-    const booking = bookings.find(b => b.id === id && b.email && b.email.toLowerCase() === email.toLowerCase());
+    const booking = bookings.find(b => String(b.id) === String(id) && b.email && b.email.trim().toLowerCase() === email.trim().toLowerCase());
 
     if (!booking) {
       return res.status(404).send(`
@@ -168,7 +168,8 @@ exports.cancelBooking = async (req, res, next) => {
       `);
     }
 
-    if (await bookingService.deleteBooking(id)) {
+    booking.status = 'cancelled';
+    if (await bookingService.saveBooking(booking)) {
       bookingService.sendBookingCancellationNotification(booking).catch(console.error);
 
       res.status(200).send(`

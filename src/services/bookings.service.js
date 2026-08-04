@@ -89,7 +89,7 @@ exports.checkConflict = (newBooking, existingBookings) => {
 
   for (const date of requestedDates) {
     const sameDateBookings = existingBookings.filter(b => {
-      if (b.status && b.status !== 'confirmed') return false;
+      if (b.status && (b.status.toLowerCase() === 'rejected' || b.status.toLowerCase() === 'cancelled')) return false;
       const bStart = b.startDate || b.date;
       const bEnd = b.endDate || b.date;
       return date >= bStart && date <= bEnd;
@@ -136,10 +136,10 @@ exports.deleteBooking = deleteBooking;
 exports.sendBookingRequestToAdminNotification = async (booking, host) => {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
   
-  // 1. Confirmation email to Employee
+  // 1. Confirmation email to Employee (Pending Approval)
   if (booking.email) {
-    const employeeSubject = `Conference Room Booked: ${(() => { const s = booking.startDate || booking.date; const e = booking.endDate || booking.date; return s === e ? s : `${s} to ${e}`; })()} (${booking.bookingType === 'full' ? 'Full Day' : `${booking.startTime} to ${booking.endTime}`})`;
-    sendEmail({ to: booking.email, subject: employeeSubject, htmlBody: templates.bookingConfirmation({ booking, host }) }).catch(console.error);
+    const employeeSubject = `Conference Room Request Received: ${(() => { const s = booking.startDate || booking.date; const e = booking.endDate || booking.date; return s === e ? s : `${s} to ${e}`; })()} (${booking.bookingType === 'full' ? 'Full Day' : `${booking.startTime} to ${booking.endTime}`})`;
+    sendEmail({ to: booking.email, subject: employeeSubject, htmlBody: templates.bookingSubmitted({ booking, host }) }).catch(console.error);
   }
 
   // 2. Alert email to Admin

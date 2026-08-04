@@ -20,7 +20,7 @@ function logMockEmail(to, subject, html) {
  * Sends an email using Nodemailer. 
  * If SMTP is not configured, it logs the email to a mock file.
  */
-exports.sendEmail = async ({ to, subject, htmlBody }) => {
+exports.sendEmail = async ({ to, subject, htmlBody, attachments = [] }) => {
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
   const smtpUser = process.env.SMTP_USER;
@@ -45,12 +45,29 @@ exports.sendEmail = async ({ to, subject, htmlBody }) => {
       }
     });
 
-    const info = await transporter.sendMail({
-      from: smtpUser,
+    const finalAttachments = [...attachments];
+    try {
+      const logoPath = path.join(__dirname, '../../frontend/public/Logo new.png');
+      if (fs.existsSync(logoPath)) {
+        finalAttachments.push({
+          filename: 'avana-logo.png',
+          path: logoPath,
+          cid: 'avanalogo'
+        });
+      }
+    } catch (e) {
+      console.error('Failed to attach logo:', e);
+    }
+
+    const mailOptions = {
+      from: `"Avana Admin Portal" <${smtpUser}>`,
       to,
       subject,
-      html: htmlBody
-    });
+      html: htmlBody,
+      attachments: finalAttachments
+    };
+
+    const info = await transporter.sendMail(mailOptions);
 
     console.log(`Email sent to ${to}: ${info.messageId}`);
     return { success: true, info };

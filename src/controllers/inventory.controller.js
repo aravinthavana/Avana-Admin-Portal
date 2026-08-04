@@ -120,6 +120,15 @@ const handleAuditOverride = async (type, req, res, next) => {
     };
 
     await inventoryService.saveAuditOverrides(type, overrides);
+
+    // If overriding the current month, update the actual stock
+    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+    if (month === currentMonth && endingStock !== undefined) {
+      const stock = await inventoryService.getStock(type);
+      stock[item] = parseInt(endingStock) || 0;
+      await inventoryService.saveStock(type, stock);
+    }
+
     res.status(200).json({ message: 'Audit overrides saved successfully.', overrides: overrides[month] });
   } catch (error) {
     next(error);

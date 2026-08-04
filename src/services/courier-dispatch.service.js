@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const prisma = require('../config/db');
 const { sendEmail } = require('../utils/notifications');
+const { templates } = require('../utils/email-templates');
+const pdfGenerator = require('../utils/courier_pdf_generator');
 
 // Seed legacy courier_dispatches.json if table is empty
 async function ensureLegacyDispatchesMigrated() {
@@ -78,7 +80,7 @@ async function getNextDcNumber() {
   const num = parseInt(match[0], 10) + 1;
   return num.toString().padStart(3, '0');
 }
-
+exports.getNextDcNumber = getNextDcNumber;
 exports.getAllDispatches = async () => {
   await ensureLegacyDispatchesMigrated();
   return prisma.courierDispatch.findMany({
@@ -125,6 +127,7 @@ exports.createDispatch = async (data, requesterEmail, host) => {
       docketNo: data.docketNo || '',
       noOfBoxes: parseInt(data.noOfBoxes, 10) || 1,
       courierBilling: data.courierBilling || 'Avana Medical Devices Pvt Ltd',
+      signatoryCompany: data.signatoryCompany || 'Avana Medical Devices Pvt. Ltd.',
       fromAddressText: data.fromAddressText || 'Avana Medical Devices Pvt Ltd.,\nNo.91, Sundar Nagar 4th Avenue, Nandambakkam,\nChennai – 600032, Tamil Nadu, India.',
       senderName: data.senderName || 'Admin',
       senderPhone: data.senderPhone || '',
@@ -132,7 +135,7 @@ exports.createDispatch = async (data, requesterEmail, host) => {
       receiverName: data.receiverName || '',
       receiverPhone: data.receiverPhone || '',
       totalAmount,
-      dimensions: data.dimensions || '',
+      dimensions: data.boxes ? JSON.stringify(data.boxes) : (data.dimensions || ''),
       weight: data.weight || '',
       status: 'approved',
       requesterEmail: requesterEmail || data.requesterEmail || '',
@@ -145,23 +148,104 @@ exports.createDispatch = async (data, requesterEmail, host) => {
     include: { items: true }
   });
 
+  created.declaration = data.declaration || false;
+  created.isFragile = data.isFragile || false;
+
+  // Send Emails
+  try {
+    let dcPath = '';
+    let labelPath = '';
+
+    try {
+      const dcBytes = await pdfGenerator.generateDCCopyPDF(created);
+      const labelBytes = await pdfGenerator.generateAddressLabelPDF(created);
+      
+      dcPath = path.join(__dirname, `../temp_dc_${created.id}.pdf`);
+      labelPath = path.join(__dirname, `../temp_label_${created.id}.pdf`);
+      
+      fs.writeFileSync(dcPath, Buffer.from(dcBytes));
+      fs.writeFileSync(labelPath, Buffer.from(labelBytes));
+
+      const attachments = [
+        { filename: `DC_Copy_${created.dcNo}.pdf`, path: dcPath },
+        { filename: `Address_Label_${created.dcNo}.pdf`, path: labelPath }
+      ];
+
+      if (requesterEmail) {
+        await sendEmail({
+          to: requesterEmail,
+          subject: `Delivery Challan #${created.dcNo} Generated`,
+          htmlBody: templates.courierDispatchSubmission(created),
+          attachments
+        });
+      }
+      // Admin Alert
+      await sendEmail({
+        to: process.env.ADMIN_EMAIL || 'admin@avanamedical.com',
+        subject: `New Courier Dispatch (#${created.dcNo})`,
+        htmlBody: templates.courierDispatchAdminAlert(created, host),
+        attachments
+      });
+
+    } catch (pdfErr) {
+      console.error('Failed to generate or send Courier PDFs:', pdfErr);
+    } finally {
+      setTimeout(() => {
+        try { if (dcPath && fs.existsSync(dcPath)) fs.unlinkSync(dcPath); } catch (e) {}
+        try { if (labelPath && fs.existsSync(labelPath)) fs.unlinkSync(labelPath); } catch (e) {}
+      }, 5000);
+    }
+  } catch (err) {
+    console.error('Failed to send Courier Dispatch emails:', err);
+  }
+
   return created;
 };
 
 exports.updateTrackingInfo = async (id, data) => {
   const { transporterName, docketNo, transporterAmount, status, remarksOther } = data;
+  const dispatch = await prisma.courierDispatch.findUnique({ where: { id } });
+  if (!dispatch) throw new Error('Dispatch not found');
+
+  const newStatus = (transporterName && docketNo && status !== 'Delivered') ? 'Dispatched' : (status || dispatch.status);
+
   const updated = await prisma.courierDispatch.update({
     where: { id },
     data: {
       transporterName: transporterName !== undefined ? transporterName : undefined,
       docketNo: docketNo !== undefined ? docketNo : undefined,
       transporterAmount: transporterAmount !== undefined ? parseFloat(transporterAmount) : undefined,
-      status: status || undefined,
+      status: newStatus,
       remarksOther: remarksOther || undefined,
       updatedAt: new Date().toISOString()
     },
     include: { items: true }
   });
+
+  if (transporterName && docketNo && dispatch.status !== 'Dispatched' && newStatus === 'Dispatched') {
+    let trackingLink = '';
+    const tn = transporterName.toLowerCase();
+    if (tn.includes('bluedart')) trackingLink = `https://www.bluedart.com/web/guest/trackdart`;
+    else if (tn.includes('delhivery')) trackingLink = `https://www.delhivery.com/tracking`;
+    else if (tn.includes('dxpress')) trackingLink = `https://www.dxpress.in/tracking`;
+    else trackingLink = `Track via ${transporterName} website`;
+
+    const emailContent = `
+      <h3>Courier Dispatch Tracking Details</h3>
+      <p>Hello,</p>
+      <p>Your courier request has been dispatched.</p>
+      <p><strong>Courier Partner:</strong> ${transporterName}</p>
+      <p><strong>Tracking / Docket No:</strong> ${docketNo}</p>
+      <p><strong>Tracking Link:</strong> ${trackingLink}</p>
+      <p><br>Thanks,<br>Avana Admin</p>
+    `;
+    try {
+      await sendEmail(dispatch.requesterEmail, 'Courier Dispatched - Tracking Details', emailContent);
+    } catch (e) {
+      console.error('Failed to send tracking email:', e);
+    }
+  }
+
   return updated;
 };
 
@@ -213,8 +297,9 @@ exports.deleteDispatch = async (id) => {
 exports.renderDeliveryChallanHtml = (dispatch) => {
   const itemsHtml = (dispatch.items || []).map((it, idx) => `
     <tr>
-      <td style="border:1px solid #cbd5e1; padding:8px; text-align:center;">${idx + 1}</td>
-      <td style="border:1px solid #cbd5e1; padding:8px;">${it.description} ${it.serialNo ? `<br/><small style="color:#64748b">S/N: ${it.serialNo}</small>` : ''}</td>
+      <td style="border:1px solid #cbd5e1; padding:8px; text-align:center;">${it.itemCode || (idx + 1)}</td>
+      <td style="border:1px solid #cbd5e1; padding:8px;">${it.description}</td>
+      <td style="border:1px solid #cbd5e1; padding:8px;">${it.serialNo || '-'}</td>
       <td style="border:1px solid #cbd5e1; padding:8px; text-align:center;">${it.qty}</td>
       <td style="border:1px solid #cbd5e1; padding:8px; text-align:right;">₹${(it.rate || 0).toLocaleString()}</td>
       <td style="border:1px solid #cbd5e1; padding:8px; text-align:right; font-weight:600;">₹${(it.value || 0).toLocaleString()}</td>
@@ -283,8 +368,9 @@ exports.renderDeliveryChallanHtml = (dispatch) => {
       <table>
         <thead>
           <tr>
-            <th style="width: 40px; text-align:center;">#</th>
+            <th style="width: 80px; text-align:center;">Item Code</th>
             <th>Item Description</th>
+            <th style="width: 100px;">Serial No</th>
             <th style="width: 60px; text-align:center;">Qty</th>
             <th style="width: 100px; text-align:right;">Rate (₹)</th>
             <th style="width: 110px; text-align:right;">Total Value (₹)</th>
@@ -293,18 +379,50 @@ exports.renderDeliveryChallanHtml = (dispatch) => {
         <tbody>
           ${itemsHtml}
           <tr class="total-row">
-            <td colspan="4" style="border:1px solid #cbd5e1; padding:10px; text-align:right;">Total Declared Value:</td>
+            <td colspan="5" style="border:1px solid #cbd5e1; padding:10px; text-align:right;">Total Declared Value:</td>
             <td style="border:1px solid #cbd5e1; padding:10px; text-align:right; color:#2563eb;">₹${(dispatch.totalAmount || 0).toLocaleString()}</td>
           </tr>
         </tbody>
       </table>
 
-      ${dispatch.dimensions || dispatch.weight ? `
-        <div style="font-size: 12px; color: #64748b; margin-bottom: 30px;">
-          ${dispatch.dimensions ? `<strong>Dimensions:</strong> ${dispatch.dimensions} &nbsp;&nbsp;` : ''}
-          ${dispatch.weight ? `<strong>Weight:</strong> ${dispatch.weight}` : ''}
-        </div>
-      ` : ''}
+      ${(() => {
+        try {
+          const parsed = JSON.parse(dispatch.dimensions);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return `
+              <h4 style="margin-bottom: 10px; font-size: 14px; color: #475569;">Box Details (Dimensions & Weight)</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 60px; text-align:center;">Box No</th>
+                    <th>Dimensions (optional)</th>
+                    <th>Weight (optional)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${parsed.map(box => `
+                    <tr>
+                      <td style="border:1px solid #cbd5e1; padding:8px; text-align:center;">Box ${box.boxNo}</td>
+                      <td style="border:1px solid #cbd5e1; padding:8px;">${box.dimensions || '-'}</td>
+                      <td style="border:1px solid #cbd5e1; padding:8px;">${box.weight || '-'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `;
+          }
+        } catch (e) {}
+        
+        if (dispatch.dimensions || dispatch.weight) {
+          return `
+            <div style="font-size: 12px; color: #64748b; margin-bottom: 30px;">
+              ${dispatch.dimensions ? `<strong>Dimensions:</strong> ${dispatch.dimensions} &nbsp;&nbsp;` : ''}
+              ${dispatch.weight ? `<strong>Weight:</strong> ${dispatch.weight}` : ''}
+            </div>
+          `;
+        }
+        return '';
+      })()}
 
       <div class="footer">
         <div>

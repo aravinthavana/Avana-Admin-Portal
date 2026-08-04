@@ -24,4 +24,16 @@ router.post('/login-password', employeeAuthController.loginPassword);
 const inventoryController = require('../controllers/inventory.controller');
 router.get('/stationery-items', inventoryController.getStationeryCatalog);
 
+// Courier Dispatch (Employee Side)
+const courierController = require('../controllers/courier-dispatch.controller');
+router.get('/courier-dispatch/next-dc', courierController.getNextDcNumber);
+router.post('/courier-dispatch', courierController.createDispatch);
+router.post('/shipping-label', courierController.generateShippingLabel);
+
+// Address Book (per-user)
+const addressBookController = require('../controllers/address-book.controller');
+router.get('/address-book', addressBookController.getAddresses);
+router.post('/address-book', addressBookController.saveAddress);
+router.delete('/address-book/:id', addressBookController.deleteAddress);
+
 module.exports = router;

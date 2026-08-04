@@ -59,6 +59,38 @@ export const employeeApi = {
 
   getStationeryItems: () =>
     request('/employee/stationery-items', {}, 'employee'),
+
+  createCourierDispatch: (data) =>
+    request('/employee/courier-dispatch', { method: 'POST', body: JSON.stringify(data) }, 'employee'),
+
+  // Address Book
+  getAddressBook: () =>
+    request('/employee/address-book', {}, 'employee'),
+
+  saveAddress: (data) =>
+    request('/employee/address-book', { method: 'POST', body: JSON.stringify(data) }, 'employee'),
+
+  deleteAddress: (id) =>
+    request(`/employee/address-book/${id}`, { method: 'DELETE' }, 'employee'),
+
+  // Shipping Label — returns a PDF blob
+  generateShippingLabel: async (from, to, recipientEmail, isFragile) => {
+    const token = localStorage.getItem('avana_employee_token');
+    const response = await fetch('/api/employee/shipping-label', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ from, to, recipientEmail, isFragile }),
+    });
+    if (!response.ok) {
+      let err;
+      try { err = await response.json(); } catch { err = {}; }
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    return response.blob(); // returns PDF blob
+  },
 };
 
 // ─── Admin Auth ──────────────────────────────────────────────
@@ -220,8 +252,8 @@ export const assetTrackerApi = {
   append: (id, assets, sendEmail = true) =>
     request('/admin/assets/append', { method: 'POST', body: JSON.stringify({ id, assets, sendEmail }) }, 'admin'),
 
-  returnAssets: (id, itemIds, remarks) =>
-    request('/admin/assets/return', { method: 'POST', body: JSON.stringify({ id, itemIds, remarks }) }, 'admin'),
+  returnAssets: (id, items, remarks) =>
+    request('/admin/assets/return', { method: 'POST', body: JSON.stringify({ id, items, remarks }) }, 'admin'),
 
   delete: (id) =>
     request(`/admin/assets/${id}`, { method: 'DELETE' }, 'admin'),

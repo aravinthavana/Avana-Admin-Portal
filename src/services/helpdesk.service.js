@@ -50,14 +50,15 @@ exports.sendHelpdeskNotification = async (request, host) => {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
   const catTitle = request.categoryTitle || request.category;
   const emailSubject = `Help Desk Request #${request.id}: ${catTitle}`;
-  const emailHtml = templates.helpdeskSubmission(request);
+  const employeeHtml = templates.helpdeskSubmission(request);
+  const adminHtml = templates.helpdeskAdminAlert(request, host);
 
   try {
     const sends = [];
     if (request.requester_email || request.email) {
-      sends.push(sendEmail({ to: request.requester_email || request.email, subject: emailSubject, htmlBody: emailHtml }));
+      sends.push(sendEmail({ to: request.requester_email || request.email, subject: emailSubject, htmlBody: employeeHtml }));
     }
-    sends.push(sendEmail({ to: adminEmail, subject: emailSubject, htmlBody: emailHtml }));
+    sends.push(sendEmail({ to: adminEmail, subject: `ACTION REQUIRED: New Help Desk Request #${request.id}`, htmlBody: adminHtml }));
     await Promise.all(sends);
   } catch (error) {
     console.error('Background sendHelpdeskEmailNotification failed:', error);

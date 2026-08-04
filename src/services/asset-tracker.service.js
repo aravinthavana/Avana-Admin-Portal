@@ -153,16 +153,24 @@ exports.acknowledgeAssets = async (id, signatureName, remarks) => {
   return updated;
 };
 
-exports.processReturn = async (id, returnedItemIds, remarks) => {
+exports.processReturn = async (id, returnedItems, remarks) => {
   const handover = await prisma.assetHandover.findUnique({ where: { id }, include: { items: true } });
   if (!handover) return null;
 
-  if (Array.isArray(returnedItemIds) && returnedItemIds.length > 0) {
-    for (const itemId of returnedItemIds) {
-      await prisma.assetHandoverItem.update({
-        where: { id: itemId },
-        data: { status: 'Returned', returnedAt: new Date().toISOString() }
-      });
+  if (Array.isArray(returnedItems) && returnedItems.length > 0) {
+    for (const item of returnedItems) {
+      if (typeof item === 'string') {
+        // Fallback for old API callers passing array of IDs
+        await prisma.assetHandoverItem.update({
+          where: { id: item },
+          data: { status: 'Returned', returnedAt: new Date().toISOString() }
+        });
+      } else {
+        await prisma.assetHandoverItem.update({
+          where: { id: item.itemId },
+          data: { status: 'Returned', condition: item.condition || 'Reusable', returnedAt: new Date().toISOString() }
+        });
+      }
     }
   } else {
     // Mark all as returned

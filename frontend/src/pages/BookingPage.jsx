@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { bookingsApi } from '../lib/api';
 import {
-  Spinner, EmptyState, Alert, Modal, FormField, PageHeader, Badge,
+  Spinner, EmptyState, Alert, Modal, FormField, PageHeader, Badge, Breadcrumbs
 } from '../components/ui';
 
 /* ─── Helpers ─────────────────────────────────────────────── */
@@ -234,6 +234,14 @@ export default function BookingPage() {
           return 'End time must be after start time.';
         }
 
+        if (form.start_date === todayStr()) {
+          const now = new Date();
+          const currentMins = now.getHours() * 60 + now.getMinutes();
+          if (newTimeStart < currentMins) {
+            return 'Start time cannot be in the past.';
+          }
+        }
+
         for (const b of sameDateBookings) {
           if (b.bookingType === 'full') {
             return `The room is already booked for the entire day on ${formatDateDisplay(d)}.`;
@@ -332,6 +340,7 @@ export default function BookingPage() {
         foodSpecify: form.food_arrangement === 'Others' ? form.food_specify.trim() : '',
         foodCount: form.food_arrangement !== 'None' ? Number(form.food_count) : null,
         remarks: form.remarks.trim(),
+        origin: window.location.origin,
       });
       toast.success('Conference room booked successfully! 🎉');
       setModalOpen(false);
@@ -349,6 +358,7 @@ export default function BookingPage() {
   /* ── Render ── */
   return (
     <div style={{ padding: 'var(--space-6)', maxWidth: 900, margin: '0 auto' }}>
+      <Breadcrumbs items={[{ label: 'Home', link: '/helpdesk' }, { label: 'Conference Booking' }]} />
       <PageHeader
         title="📅 Book Conference Room"
         subtitle="Select a date on the calendar to make a reservation"
@@ -675,15 +685,16 @@ export default function BookingPage() {
               display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)',
               marginBottom: 'var(--space-4)',
             }}>
-              <FormField label="Start Time" required htmlFor="booking-start-time" error={errors.start_time}>
+              <FormField label="Start Time" error={errors.start_time} required>
                 <input
-                  id="booking-start-time"
                   type="time"
-                  className={`form-input${errors.start_time ? ' form-input--error' : ''}`}
                   value={form.start_time}
-                  min="09:00" max="18:00" step="900"
-                  onChange={e => set('start_time', e.target.value)}
-                  required
+                  min={form.start_date === todayStr() ? `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}` : undefined}
+                  onChange={e => setForm({ ...form, start_time: e.target.value })}
+                  style={{
+                    width: '100%', padding: 'var(--space-3)', borderRadius: 'var(--radius-md)',
+                    border: `1px solid ${errors.start_time ? 'var(--color-red-500)' : 'var(--color-slate-300)'}`
+                  }}
                 />
               </FormField>
               <FormField label="End Time" required htmlFor="booking-end-time" error={errors.end_time}>
@@ -752,17 +763,22 @@ export default function BookingPage() {
                 required
               />
             </FormField>
-            <FormField label="Email" required htmlFor="booking-email" error={errors.email}>
-              <input
-                id="booking-email"
-                type="email"
-                className={`form-input${errors.email ? ' form-input--error' : ''}`}
-                value={form.email}
-                placeholder="your@email.com"
-                onChange={e => set('email', e.target.value)}
-                required
-              />
-            </FormField>
+            <FormField label="Email" error={errors.email} required>
+            <input
+              type="email"
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              readOnly={!!employeeEmail}
+              disabled={!!employeeEmail}
+              style={{
+                width: '100%', padding: 'var(--space-3)', borderRadius: 'var(--radius-md)',
+                border: `1px solid ${errors.email ? 'var(--color-red-500)' : 'var(--color-slate-300)'}`,
+                backgroundColor: employeeEmail ? 'var(--color-slate-100)' : 'white',
+                color: employeeEmail ? 'var(--color-slate-500)' : 'inherit',
+                cursor: employeeEmail ? 'not-allowed' : 'text'
+              }}
+            />
+          </FormField>
           </div>
 
           {/* Phone */}

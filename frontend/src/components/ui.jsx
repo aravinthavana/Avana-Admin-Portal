@@ -1,7 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 /**
- * Avana Logo component — renders the brand wordmark + amber icon.
  * Uses the actual logo image from public assets served by the Express backend.
  */
 export function AvanaLogo({ size = 'md', className = '' }) {
@@ -209,5 +209,35 @@ export function StatCard({ label, value, icon, color = 'var(--brand-amber)', tre
         {trend && <div style={{ fontSize: '0.75rem', color: 'var(--color-success)', marginTop: 2 }}>{trend}</div>}
       </div>
     </div>
+  );
+}
+
+/**
+ * Breadcrumbs navigation trail
+ * items: [{ label: 'Home', link: '/' }, { label: 'Category' }]
+ */
+export function Breadcrumbs({ items }) {
+  return (
+    <nav aria-label="Breadcrumb" style={{ marginBottom: 'var(--space-4)', fontSize: '0.9rem' }}>
+      <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+        {items.map((item, idx) => {
+          const isLast = idx === items.length - 1;
+          return (
+             <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              {item.link && !isLast ? (
+                <Link to={item.link} style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 500 }}>
+                  {item.label}
+                </Link>
+              ) : (
+                <span style={{ color: 'var(--color-text-secondary)' }} aria-current={isLast ? 'page' : undefined}>
+                  {item.label}
+                </span>
+              )}
+              {!isLast && <span style={{ color: 'var(--color-border)' }}>/</span>}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }

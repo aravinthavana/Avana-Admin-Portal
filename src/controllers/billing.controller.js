@@ -31,8 +31,9 @@ exports.deleteAMC = async (req, res, next) => {
 
 exports.saveAMCVisit = async (req, res, next) => {
   try {
-    const { amcId, ...visitData } = req.body;
-    await billingService.saveAMCVisit(amcId, visitData);
+    const { amc_id, amcId, ...visitData } = req.body;
+    const finalAmcId = amc_id || amcId;
+    await billingService.saveAMCVisit(finalAmcId, visitData);
     res.status(200).json({ message: 'Visit saved successfully' });
   } catch (error) {
     next(error);

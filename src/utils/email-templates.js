@@ -29,22 +29,22 @@ function buildEmail({ title, subtitle = 'Avana Admin Helpdesk Portal', accentCol
       <td align="center">
         <table width="640" cellpadding="0" cellspacing="0" style="max-width: 640px; width: 100%; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
 
-          <!-- ── Header: Legacy gradient matching the portal ── -->
+          <!-- ── Header ── -->
           <tr>
-            <td style="background: linear-gradient(to right, #fde68a 0%, #1e293b 45%, #0f172a 100%); border-bottom: 3px solid ${accentColor}; padding: 20px 28px;">
+            <td style="background: #ffffff; border-bottom: 3px solid ${accentColor}; padding: 20px 28px;">
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td>
-                    <div style="font-weight: 800; font-size: 20px; color: #ffffff; letter-spacing: -0.02em; line-height: 1.2;">
+                    <div style="font-weight: 800; font-size: 20px; color: #1e293b; letter-spacing: -0.02em; line-height: 1.2;">
                       Avana Admin Help Desk
                     </div>
-                    <div style="font-size: 13px; color: #fde68a; margin-top: 4px; font-weight: 500;">
+                    <div style="font-size: 13px; color: ${accentColor}; margin-top: 4px; font-weight: 700;">
                       ${subtitle}
                     </div>
                   </td>
                   <td align="right">
-                    <div style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 6px 14px; display: inline-block;">
-                      <span style="font-size: 12px; font-weight: 700; color: #fde68a; letter-spacing: 0.08em; text-transform: uppercase;">AVANA</span>
+                    <div style="padding: 6px 0; display: inline-block;">
+                      <img src="cid:avanalogo" alt="Avana" style="height: 28px; display: block;" />
                     </div>
                   </td>
                 </tr>
@@ -153,6 +153,44 @@ const templates = {
     });
   },
 
+  // 2.5 Booking Request Received — to Employee (Pending Approval)
+  bookingSubmitted({ booking, host }) {
+    const timeText = booking.bookingType === 'full' ? 'Full Day' : `${booking.startTime} to ${booking.endTime}`;
+    const start = booking.startDate || booking.date;
+    const end = booking.endDate || booking.date;
+    const dateText = start === end ? start : `${start} to ${end}`;
+    const foodText = booking.food === 'none' || !booking.food
+      ? 'No Food'
+      : `${booking.food === 'others' ? `Other (${booking.foodSpecify || ''})` : booking.food} (Count: ${booking.foodCount || 0})`;
+    const cancelUrl = `${host || APP_URL}/api/bookings/cancel?id=${booking.id}&email=${encodeURIComponent(booking.email)}`;
+
+    return buildEmail({
+      title: 'Conference Room Booking Request Received',
+      subtitle: 'Booking Pending Approval',
+      accentColor: '#b45309',
+      bodyHtml: `
+        <p style="margin: 0 0 6px 0;">Dear ${booking.name},</p>
+        <p style="margin: 0 0 20px 0; color: #374151;">
+          Your request for the conference room has been received and is currently <strong>pending review</strong> by the Admin team. You will receive another email once your booking is approved or if it needs to be rescheduled.
+        </p>
+        <table style="${TABLE_WRAP}">
+          ${tableRow('Booking Person Name', booking.name)}
+          ${tableRow('Date', dateText, true)}
+          ${tableRow('Time', timeText)}
+          ${tableRow('Meeting Purpose', booking.reason, true)}
+          ${tableRow('Food Requirement', foodText)}
+          ${tableRow('Phone', booking.phone, true)}
+          ${tableRow('Status', '<strong style="color:#b45309;">Pending Approval ⏳</strong>')}
+        </table>
+        <p style="margin: 16px 0;">Please wait for final confirmation before proceeding with your meeting arrangements.</p>
+        <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 8px;">
+          <p style="margin: 0 0 12px 0; font-size: 13px; color: #6b7280;">If you need to cancel this request, please click below:</p>
+          ${actionButton('Cancel This Request', cancelUrl, '#dc2626')}
+        </div>
+      `,
+    });
+  },
+
   // 3. Booking Confirmation to Employee
   bookingConfirmation({ booking, host }) {
     const timeText = booking.bookingType === 'full' ? 'Full Day' : `${booking.startTime} to ${booking.endTime}`;
@@ -215,7 +253,11 @@ const templates = {
           ${tableRow('Date', dateText, true)}
           ${tableRow('Timings', timeText)}
           ${tableRow('Purpose / Reason', booking.reason, true)}
-          ${booking.attendees && booking.attendees.length ? tableRow('Attendees', (booking.attendees || []).join(', ')) : ''}
+          ${(() => {
+            let att = booking.attendees;
+            if (typeof att === 'string') { try { att = JSON.parse(att); } catch (e) { att = [att]; } }
+            return att && att.length ? tableRow('Attendees', att.join(', ')) : '';
+          })()}
         </table>
         ${actionButton('Open Admin Portal to Review', `${host || APP_URL}/admin`, '#4f46e5')}
       `,
@@ -341,7 +383,7 @@ const templates = {
     });
   },
 
-  // 9. Helpdesk Request Submission — to Employee & Admin
+  // 9. Helpdesk Request Submission — to Employee
   helpdeskSubmission(request) {
     let detailsText = '';
     if (Array.isArray(request.items) && request.items.length) {
@@ -376,6 +418,98 @@ const templates = {
         <p style="margin: 20px 0 0 0; font-size: 13px; color: #6b7280; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 16px;">
           The Admin team is reviewing your request and will take action shortly.
         </p>
+      `,
+    });
+  },
+
+  // 9.5 Helpdesk Request Alert — to Admin
+  helpdeskAdminAlert(request, host) {
+    let detailsText = '';
+    if (Array.isArray(request.items) && request.items.length) {
+      detailsText = request.items.map(it => `<strong>${it.item}</strong> (Qty: ${it.quantity})`).join(', ');
+    } else if (request.item) {
+      detailsText = `${request.stationery_type || 'Item'}: <strong>${request.item}</strong> (Qty: ${request.quantity || 1})`;
+    } else {
+      detailsText = request.exact_issue || request.description || 'N/A';
+    }
+    const catTitle = request.categoryTitle || request.category;
+
+    return buildEmail({
+      title: `New Help Desk Request: ${catTitle} (#${request.id})`,
+      subtitle: 'Admin Action Required',
+      accentColor: '#dc2626',
+      bodyHtml: `
+        <p style="margin: 0 0 8px 0;">Hello Admin,</p>
+        <p style="margin: 0 0 20px 0; color: #374151;">
+          A new service request has been submitted by an employee. Please review and assign/resolve it.
+        </p>
+        <table style="${TABLE_WRAP}">
+          ${tableRow('Request ID', `<strong style="color:#dc2626;">#${request.id}</strong>`)}
+          ${tableRow('Category', catTitle, true)}
+          ${tableRow('Sub-Type', request.subcategory || 'N/A')}
+          ${tableRow('Location/Floor', request.floor || request.location || 'N/A', true)}
+          ${tableRow('Details', detailsText)}
+          ${tableRow('Remarks', request.remarks || 'None', true)}
+          ${tableRow('Submitted By', request.requester_name || request.name || 'N/A')}
+          ${tableRow('Contact', `${request.requester_email || 'N/A'} / ${request.requester_phone || 'N/A'}`, true)}
+        </table>
+        ${actionButton('Open Admin Dashboard', `${host || APP_URL}/helpdesk-admin`, '#dc2626')}
+      `,
+    });
+  },
+
+  // 9.6 Courier Dispatch Submission — to Employee
+  courierDispatchSubmission(dispatch) {
+    const itemsList = Array.isArray(dispatch.items) && dispatch.items.length 
+      ? dispatch.items.map(it => `• ${it.description} (Qty: ${it.qty})`).join('<br/>')
+      : 'N/A';
+
+    return buildEmail({
+      title: `Delivery Challan #${dispatch.dcNo} Generated`,
+      subtitle: 'Courier Dispatch Confirmation',
+      accentColor: '#10b981',
+      bodyHtml: `
+        <p style="margin: 0 0 8px 0;">Hello ${dispatch.senderName || 'Employee'},</p>
+        <p style="margin: 0 0 20px 0; color: #374151;">
+          Your courier dispatch request has been successfully created. Here is a copy of your Delivery Challan details:
+        </p>
+        <table style="${TABLE_WRAP}">
+          ${tableRow('DC Number', `<strong style="color:#10b981;">#${dispatch.dcNo}</strong>`)}
+          ${tableRow('DC Date', dispatch.dcDate, true)}
+          ${tableRow('Sender', `${dispatch.senderName} (${dispatch.senderPhone || 'N/A'})`)}
+          ${tableRow('Receiver', `${dispatch.receiverName} (${dispatch.receiverPhone || 'N/A'})`, true)}
+          ${tableRow('Destination Address', dispatch.toAddress)}
+          ${tableRow('From Address', dispatch.fromAddressText, true)}
+          ${tableRow('Transporter', dispatch.transporterName || 'N/A')}
+          ${tableRow('No. of Boxes', dispatch.noOfBoxes || 1, true)}
+          ${tableRow('Items Dispatched', itemsList)}
+        </table>
+        <p style="margin: 20px 0 0 0; font-size: 13px; color: #6b7280; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+          Please print this copy or note down the DC number for your records. The Admin team has been notified.
+        </p>
+      `,
+    });
+  },
+
+  // 9.7 Courier Dispatch Alert — to Admin
+  courierDispatchAdminAlert(dispatch, host) {
+    return buildEmail({
+      title: `New Courier Dispatch (#${dispatch.dcNo})`,
+      subtitle: 'Admin Notification',
+      accentColor: '#f59e0b',
+      bodyHtml: `
+        <p style="margin: 0 0 8px 0;">Hello Admin,</p>
+        <p style="margin: 0 0 20px 0; color: #374151;">
+          A new Courier Dispatch / Delivery Challan has been created by ${dispatch.senderName}.
+        </p>
+        <table style="${TABLE_WRAP}">
+          ${tableRow('DC Number', `<strong style="color:#f59e0b;">#${dispatch.dcNo}</strong>`)}
+          ${tableRow('Sender', `${dispatch.senderName} (${dispatch.requesterEmail || 'N/A'})`, true)}
+          ${tableRow('Receiver', `${dispatch.receiverName} - ${dispatch.toAddress}`)}
+          ${tableRow('Transporter', dispatch.transporterName || 'N/A', true)}
+          ${tableRow('No. of Boxes', dispatch.noOfBoxes || 1)}
+        </table>
+        ${actionButton('View in Admin Dashboard', `${host}/admin-login`, '#4f46e5')}
       `,
     });
   },

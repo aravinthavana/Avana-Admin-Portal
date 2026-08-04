@@ -5,24 +5,33 @@ const prisma = require('../config/db');
 exports.getAMCs = async () => {
   return await prisma.amcContract.findMany({
     orderBy: { start_date: 'desc' },
-    include: { visits: { orderBy: { visit_date: 'asc' } } }
+    include: { visits: { orderBy: { scheduled_date: 'asc' } } }
   });
 };
 
 exports.saveAMC = async (data) => {
   const id = data.id || crypto.randomUUID();
+  const payload = {
+    doc_no: data.doc_no,
+    amc_name: data.amc_name,
+    category: data.category,
+    no_of_visits: data.no_of_visits ? parseInt(data.no_of_visits, 10) : null,
+    units_location: data.units_location,
+    pricing: data.pricing ? parseFloat(data.pricing) : null,
+    frequency: data.frequency,
+    start_date: data.start_date,
+    end_date: data.end_date,
+    last_service: data.last_service,
+    next_service: data.next_service,
+    vendor_contact: data.vendor_contact,
+    vendor_phone: data.vendor_phone,
+    coverage_specs: data.coverage_specs,
+    status: data.status
+  };
   await prisma.amcContract.upsert({
     where: { id },
-    update: {
-      equipment_name: data.equipment_name, vendor_name: data.vendor_name, contact_person: data.contact_person,
-      contact_number: data.contact_number, contact_email: data.contact_email, start_date: data.start_date,
-      end_date: data.end_date, cost: data.cost ? parseFloat(data.cost) : null, status: data.status, remarks: data.remarks
-    },
-    create: {
-      id, equipment_name: data.equipment_name, vendor_name: data.vendor_name, contact_person: data.contact_person,
-      contact_number: data.contact_number, contact_email: data.contact_email, start_date: data.start_date,
-      end_date: data.end_date, cost: data.cost ? parseFloat(data.cost) : null, status: data.status, remarks: data.remarks, created_at: data.created_at || new Date().toISOString()
-    }
+    update: payload,
+    create: { id, ...payload, created_at: data.created_at || new Date().toISOString() }
   });
   return id;
 };
@@ -33,14 +42,22 @@ exports.deleteAMC = async (id) => {
 
 exports.saveAMCVisit = async (amc_id, data) => {
   const id = data.id || crypto.randomUUID();
+  const payload = {
+    amc_id,
+    visit_no: data.visit_no ? parseInt(data.visit_no, 10) : null,
+    scheduled_date: data.scheduled_date,
+    last_service_date: data.last_service_date,
+    next_service_date: data.next_service_date,
+    service_no: data.service_no,
+    service_person: data.service_person,
+    contact_number: data.contact_number,
+    remarks: data.remarks,
+    status: data.status || 'Pending'
+  };
   await prisma.amcVisit.upsert({
     where: { id },
-    update: {
-      visit_date: data.visit_date, technician_name: data.technician_name, work_done: data.work_done, status: data.status
-    },
-    create: {
-      id, amc_id, visit_date: data.visit_date, technician_name: data.technician_name, work_done: data.work_done, status: data.status, created_at: data.created_at || new Date().toISOString()
-    }
+    update: payload,
+    create: { id, ...payload, created_at: data.created_at || new Date().toISOString() }
   });
 };
 
@@ -78,18 +95,23 @@ exports.getTaxPayments = async () => {
 
 exports.saveTaxPayment = async (data) => {
   const id = data.id || crypto.randomUUID();
+  const payload = {
+    tax_type: data.tax_type,
+    location: data.location,
+    bill_no: data.bill_no,
+    year: data.year,
+    term: data.term,
+    due_date: data.due_date,
+    amount: data.amount ? parseFloat(data.amount) : null,
+    status: data.status,
+    payment_date: data.payment_date,
+    transaction_ref: data.transaction_ref,
+    remarks: data.remarks
+  };
   await prisma.taxPayment.upsert({
     where: { id },
-    update: {
-      tax_type: data.tax_type, authority_name: data.authority_name, assessment_year: data.assessment_year,
-      due_date: data.due_date, amount: data.amount ? parseFloat(data.amount) : null, status: data.status, payment_date: data.payment_date,
-      transaction_ref: data.transaction_ref, remarks: data.remarks
-    },
-    create: {
-      id, tax_type: data.tax_type, authority_name: data.authority_name, assessment_year: data.assessment_year,
-      due_date: data.due_date, amount: data.amount ? parseFloat(data.amount) : null, status: data.status, payment_date: data.payment_date,
-      transaction_ref: data.transaction_ref, remarks: data.remarks, created_at: data.created_at || new Date().toISOString()
-    }
+    update: payload,
+    create: { id, ...payload, created_at: data.created_at || new Date().toISOString() }
   });
   return id;
 };

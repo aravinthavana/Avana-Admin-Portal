@@ -54,10 +54,10 @@ exports.appendAssets = async (req, res, next) => {
 
 exports.returnAssets = async (req, res, next) => {
   try {
-    const { id, itemIds, remarks } = req.body;
+    const { id, items, remarks } = req.body;
     if (!id) return res.status(400).json({ error: 'Missing ID.' });
 
-    const updated = await assetTrackerService.processReturn(id, itemIds, remarks);
+    const updated = await assetTrackerService.processReturn(id, items, remarks);
     if (!updated) return res.status(404).json({ error: 'Handover record not found.' });
 
     res.status(200).json({ message: 'Asset return processed successfully.', handover: updated });

@@ -66,7 +66,7 @@ exports.createRequest = async (req, res, next) => {
     };
 
     if (await helpdeskService.saveRequest(newRequest)) {
-      const host = req.headers.host ? `${req.protocol}://${req.headers.host}` : 'http://localhost:3000';
+      const host = req.headers.origin || (req.headers.host ? `${req.protocol}://${req.headers.host}` : 'http://localhost:5173');
       helpdeskService.sendHelpdeskNotification(newRequest, host).catch(console.error);
       res.status(201).json({ message: 'Request submitted successfully.', request: newRequest });
     } else {
@@ -122,7 +122,7 @@ exports.updateStatus = async (req, res, next) => {
       }
       
       if (await bookingsService.saveBooking(b)) {
-        const host = req.protocol + '://' + req.get('host');
+        const host = req.headers.origin || (req.protocol + '://' + req.get('host'));
         if (status === 'confirmed') {
           bookingsService.sendBookingApprovalToEmployeeNotification(b, host, approvalRemarks).catch(console.error);
         } else if (status === 'rejected') {
@@ -150,7 +150,7 @@ exports.updateStatus = async (req, res, next) => {
     }
 
     if (await helpdeskService.saveRequest(request)) {
-      const host = req.protocol + '://' + req.get('host');
+      const host = req.headers.origin || (req.protocol + '://' + req.get('host'));
       if (status === 'completed') {
         helpdeskService.sendHelpdeskCompletionEmailNotification(request, host).catch(console.error);
 

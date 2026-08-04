@@ -61,15 +61,15 @@ export function EmployeeLayout() {
   };
 
   return (
-    <div className="layout layout--employee">
-      {/* Legacy-matching gradient header */}
+    <div className="layout layout--employee" style={{ background: 'linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%)', minHeight: '100vh' }}>
+      {/* Header matching login page aesthetic */}
       <header
         role="banner"
         style={{
-          background: 'linear-gradient(to right, #fde68a 0%, #1e293b 45%, #0f172a 100%)',
+          background: 'linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%)',
           borderBottom: '3px solid #c29100',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          padding: '1.4rem 2rem',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+          padding: '1.2rem 2rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -84,10 +84,10 @@ export function EmployeeLayout() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
           <AvanaLogo size="md" style={{ filter: 'none' }} />
           <div>
-            <div style={{ fontWeight: 800, fontSize: '1.35rem', color: 'white', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
+            <div style={{ fontWeight: 800, fontSize: '1.35rem', color: '#0f172a', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
               Admin Help Desk
             </div>
-            <div style={{ fontSize: '0.85rem', color: '#fde68a', marginTop: 3, fontWeight: 500 }}>
+            <div style={{ fontSize: '0.85rem', color: '#b45309', marginTop: 3, fontWeight: 600 }}>
               Select a category below to submit your request
             </div>
           </div>
@@ -95,30 +95,12 @@ export function EmployeeLayout() {
 
         {/* Right: Nav links + User badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <NavLink
-            to="/booking"
-            style={({ isActive }) => ({
-              background: isActive ? 'rgba(194,145,0,0.3)' : 'rgba(255,255,255,0.1)',
-              border: `1px solid ${isActive ? '#c29100' : 'rgba(255,255,255,0.2)'}`,
-              color: 'white',
-              padding: '0.4rem 0.9rem',
-              borderRadius: 8,
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-            })}
-          >
-            📅 Book Room
-          </NavLink>
 
           {employeeEmail && (
             <div style={{
-              background: 'rgba(255,255,255,0.12)',
-              color: 'white',
-              border: '1px solid rgba(255,255,255,0.2)',
+              background: '#ffffff',
+              color: '#0f172a',
+              border: '1px solid #cbd5e1',
               padding: '0.45rem 0.9rem',
               borderRadius: 12,
               fontSize: '0.82rem',
@@ -126,16 +108,16 @@ export function EmployeeLayout() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.6rem',
-              backdropFilter: 'blur(8px)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
             }}>
               <span>👤 {employeeEmail}</span>
               <button
                 type="button"
                 onClick={handleLogout}
                 style={{
-                  background: 'rgba(239,68,68,0.25)',
-                  color: '#fca5a5',
-                  border: '1px solid rgba(239,68,68,0.4)',
+                  background: '#fef2f2',
+                  color: '#dc2626',
+                  border: '1px solid #fca5a5',
                   padding: '0.2rem 0.55rem',
                   borderRadius: 6,
                   fontFamily: 'inherit',
@@ -163,20 +145,8 @@ export function AdminLayout() {
   const navigate = useNavigate();
   const toast = useToast();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
-
-  const [darkMode, setDarkMode] = React.useState(() => {
-    return localStorage.getItem('theme') === 'dark';
-  });
-
-  React.useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add('dark-theme');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.body.classList.remove('dark-theme');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [darkMode]);
+  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
+  const [expandedSection, setExpandedSection] = React.useState(0);
 
   const handleLogout = async () => {
     await logoutAdmin();
@@ -184,8 +154,10 @@ export function AdminLayout() {
     navigate('/');
   };
 
+  const currentSidebarWidth = sidebarCollapsed ? '70px' : '260px';
+
   return (
-    <div className="layout layout--admin">
+    <div className="layout layout--admin" style={{ '--current-sidebar-width': currentSidebarWidth }}>
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -195,153 +167,216 @@ export function AdminLayout() {
         />
       )}
 
-      {/* Sidebar — matches legacy layout exactly */}
-      <aside className={`sidebar${sidebarOpen ? ' sidebar--open' : ''}`} aria-label="Admin navigation">
-
-        {/* Sidebar Header — Logo + App Name */}
+      {/* Sidebar — Solid Black with White Text */}
+      <aside 
+        className={`sidebar${sidebarOpen ? ' sidebar--open' : ''}`} 
+        aria-label="Admin navigation" 
+        style={{ 
+          background: '#000000', 
+          color: '#ffffff'
+        }}
+      >
+        {/* Sidebar Header */}
         <div className="sidebar__header" style={{
-          background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+          background: '#000000',
           borderBottom: '2px solid #c29100',
-          padding: '1.1rem 1.2rem',
+          padding: sidebarCollapsed && !sidebarOpen ? '1.2rem 0' : '1.2rem 1.5rem',
           display: 'flex',
           alignItems: 'center',
-          gap: '0.75rem',
+          justifyContent: sidebarCollapsed && !sidebarOpen ? 'center' : 'space-between',
         }}>
-          <AvanaLogo size="sm" />
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'white', lineHeight: 1.2 }}>
-              Help Desk — Admin
+          {(!sidebarCollapsed || sidebarOpen) ? (
+            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#ffffff', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              Admin <span style={{ color: '#c29100' }}>Portal</span>
             </div>
-            <div style={{ fontSize: '0.72rem', color: '#fde68a', marginTop: 2 }}>
-              Avana Admin Portal
-            </div>
-          </div>
+          ) : (
+            <div style={{ fontWeight: 800, color: '#c29100', fontSize: '1.2rem' }}>A</div>
+          )}
           <button
             type="button"
             className="sidebar__close btn btn--ghost btn--sm"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close sidebar"
-            style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.6)' }}
+            style={{ color: '#ffffff', fontSize: '1.2rem', display: sidebarOpen ? 'block' : 'none' }}
           >
             ✕
           </button>
         </div>
 
         {/* Nav Sections */}
-        <nav className="sidebar__nav" aria-label="Admin sections" style={{ overflowY: 'auto', flex: 1, padding: '0.75rem 0' }}>
-          {SIDEBAR_SECTIONS.map((section, si) => (
-            <div key={si} style={{ marginBottom: '0.5rem' }}>
-              {/* Section Header */}
-              <div style={{
-                fontWeight: 700,
-                fontSize: '0.72rem',
-                textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.45)',
-                letterSpacing: '0.06em',
-                padding: '0.55rem 1rem 0.3rem',
-              }}>
-                {section.label}
-              </div>
+        <nav className="sidebar__nav" aria-label="Admin sections" style={{ overflowY: 'auto', overflowX: 'hidden', flex: 1, padding: '0.75rem 0', background: '#000000' }}>
+          {SIDEBAR_SECTIONS.map((section, si) => {
+            const isExpanded = expandedSection === si;
+            const sectionIcon = section.label.split(' ')[0];
+            const sectionText = section.label.substring(section.label.indexOf(' ') + 1);
 
-              {/* Nav Items */}
-              {section.items.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end || false}
-                  onClick={() => setSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`
-                  }
-                  style={({ isActive }) => ({
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '0.55rem 1rem',
-                    margin: '0 0.5rem 0.1rem',
-                    borderRadius: 8,
-                    fontFamily: 'inherit',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    textDecoration: 'none',
+            return (
+              <div key={si} style={{ marginBottom: '0.5rem' }}>
+                {/* Section Header */}
+                <div 
+                  onClick={() => {
+                    setExpandedSection(isExpanded ? null : si);
+                    if (sidebarCollapsed && !sidebarOpen) setSidebarCollapsed(false);
+                  }}
+                  style={{
+                    fontWeight: 700,
+                    fontSize: (sidebarCollapsed && !sidebarOpen) ? '1.2rem' : '0.8rem',
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    padding: (sidebarCollapsed && !sidebarOpen) ? '0.8rem 0' : '0.8rem 1.2rem',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    background: isActive ? item.color : 'transparent',
-                    color: isActive ? 'white' : item.color,
-                    border: `1.5px solid ${isActive ? item.color : item.color + '55'}`,
-                    boxShadow: isActive ? `0 3px 10px ${item.color}44` : 'none',
-                  })}
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: (sidebarCollapsed && !sidebarOpen) ? 'center' : 'space-between',
+                    background: isExpanded ? 'rgba(255,255,255,0.05)' : 'transparent',
+                    transition: 'background 0.2s',
+                  }}
+                  title={sectionText}
                 >
-                  <span>{item.label}</span>
-                </NavLink>
-              ))}
+                  {(sidebarCollapsed && !sidebarOpen) ? (
+                    <span>{sectionIcon}</span>
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <span>{sectionIcon}</span>
+                        <span>{sectionText}</span>
+                      </div>
+                      <span style={{ 
+                        fontSize: '0.6rem', 
+                        transition: 'transform 0.3s', 
+                        transform: isExpanded ? 'rotate(180deg)' : 'none',
+                        color: 'rgba(255,255,255,0.5)'
+                      }}>▼</span>
+                    </>
+                  )}
+                </div>
 
-              {/* Section Divider */}
-              {si < SIDEBAR_SECTIONS.length - 1 && (
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '0.6rem 0.5rem' }} />
-              )}
-            </div>
-          ))}
+                {/* Nav Items — Pure White Text */}
+                {(!sidebarCollapsed || sidebarOpen) && (
+                  <div style={{
+                    maxHeight: isExpanded ? '1000px' : '0px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out',
+                  }}>
+                    <div style={{ padding: '0.25rem 0' }}>
+                      {section.items.map((item) => {
+                        const itemIcon = item.label.split(' ')[0];
+                        const itemText = item.label.substring(item.label.indexOf(' ') + 1);
+
+                        return (
+                          <NavLink
+                            key={item.to}
+                            to={item.to}
+                            end={item.end || false}
+                            onClick={() => setSidebarOpen(false)}
+                            className={({ isActive }) =>
+                              `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`
+                            }
+                            style={({ isActive }) => ({
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.6rem',
+                              padding: '0.6rem 1rem',
+                              margin: '0.1rem 0.6rem',
+                              borderRadius: 8,
+                              fontFamily: 'inherit',
+                              fontSize: '0.86rem',
+                              fontWeight: isActive ? 700 : 500,
+                              textDecoration: 'none',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              background: isActive ? (item.color || '#c29100') : 'rgba(255, 255, 255, 0.05)',
+                              color: '#ffffff',
+                              border: `1px solid ${isActive ? (item.color || '#c29100') : 'rgba(255, 255, 255, 0.15)'}`,
+                              boxShadow: isActive ? `0 2px 8px ${item.color || '#c29100'}55` : 'none',
+                            })}
+                          >
+                            <span>{itemIcon}</span>
+                            <span>{itemText}</span>
+                          </NavLink>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Section Divider */}
+                {si < SIDEBAR_SECTIONS.length - 1 && (!sidebarCollapsed || sidebarOpen) && (
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.12)', margin: '0.5rem 0.6rem' }} />
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         {/* Sidebar Footer */}
         <div className="sidebar__footer" style={{
-          borderTop: '1px solid rgba(255,255,255,0.1)',
-          padding: '0.75rem 1rem',
+          borderTop: '1px solid rgba(255,255,255,0.15)',
+          padding: (sidebarCollapsed && !sidebarOpen) ? '0.85rem 0' : '0.85rem 1rem',
+          background: '#000000',
           display: 'flex',
           flexDirection: 'column',
           gap: '0.5rem',
+          alignItems: 'center'
         }}>
+          {/* Toggle Collapse Button */}
           <button
             type="button"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             style={{
-              background: 'rgba(255,255,255,0.08)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              color: 'rgba(255,255,255,0.8)',
-              padding: '0.5rem 1rem',
-              borderRadius: 8,
-              fontFamily: 'inherit',
-              fontSize: '0.85rem',
-              fontWeight: 600,
+              background: 'transparent',
+              border: 'none',
+              color: 'rgba(255,255,255,0.5)',
               cursor: 'pointer',
-              width: '100%',
-              textAlign: 'left',
+              padding: '0.4rem',
+              display: sidebarOpen ? 'none' : 'block'
             }}
-            onClick={() => setDarkMode(!darkMode)}
+            title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+            {sidebarCollapsed ? '❯❯' : '❮❮ Collapse'}
           </button>
+
           <button
             type="button"
             style={{
-              background: 'rgba(194,145,0,0.15)',
-              border: '1px solid rgba(194,145,0,0.4)',
-              color: '#fde68a',
-              padding: '0.5rem 1rem',
+              background: 'rgba(239,68,68,0.2)',
+              border: '1px solid rgba(239,68,68,0.5)',
+              color: '#fca5a5',
+              padding: (sidebarCollapsed && !sidebarOpen) ? '0.6rem 0' : '0.6rem 1rem',
               borderRadius: 8,
               fontFamily: 'inherit',
               fontSize: '0.85rem',
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: 'pointer',
-              width: '100%',
-              textAlign: 'left',
+              width: (sidebarCollapsed && !sidebarOpen) ? '80%' : '100%',
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.4rem',
             }}
             onClick={handleLogout}
+            title="Log Out"
           >
-            🚪 Log Out
+            {(sidebarCollapsed && !sidebarOpen) ? '🚪' : '🚪 Log Out'}
           </button>
         </div>
       </aside>
 
       {/* Main area */}
-      <div className="layout__content">
-        {/* Top header bar — matches legacy gradient header */}
+      <div 
+        className="layout__content" 
+        style={{ 
+          background: 'linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%)', 
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        {/* Top header bar — matching login page aesthetic */}
         <header
           role="banner"
           style={{
-            background: 'linear-gradient(to right, #fde68a 0%, #1e293b 45%, #0f172a 100%)',
+            background: 'linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%)',
             borderBottom: '3px solid #c29100',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
             display: 'flex',
             alignItems: 'center',
             gap: '1rem',
@@ -359,9 +394,9 @@ export function AdminLayout() {
             aria-expanded={sidebarOpen}
             style={{
               display: 'none',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: 'white',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
+              color: '#0f172a',
               borderRadius: 6,
               padding: '0.3rem 0.5rem',
               cursor: 'pointer',
@@ -373,14 +408,14 @@ export function AdminLayout() {
             ☰
           </button>
 
-          {/* Logo (mobile) */}
+          {/* Logo (mobile) + Header Title */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <AvanaLogo size="sm" />
             <div>
-              <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'white', lineHeight: 1.2 }}>
+              <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#0f172a', lineHeight: 1.2 }}>
                 Help Desk — Admin View
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#fde68a', marginTop: 1 }}>
+              <div style={{ fontSize: '0.78rem', color: '#b45309', marginTop: 1, fontWeight: 600 }}>
                 Track work completion status, manage requests, and export reports
               </div>
             </div>
@@ -388,37 +423,20 @@ export function AdminLayout() {
 
           {/* Right side controls */}
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <NavLink
-              to="/admin"
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                color: 'white',
-                padding: '0.4rem 0.85rem',
-                borderRadius: 8,
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.3rem',
-              }}
-            >
-              📅 Bookings
-            </NavLink>
             <button
               type="button"
               onClick={handleLogout}
               style={{
-                background: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                color: 'white',
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                color: '#dc2626',
                 padding: '0.4rem 0.85rem',
                 borderRadius: 8,
                 fontFamily: 'inherit',
                 fontSize: '0.82rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
               }}
             >
               Log Out
@@ -447,14 +465,14 @@ export function ConferenceAdminLayout() {
   };
 
   return (
-    <div className="layout layout--employee">
-      {/* Legacy-matching gradient header */}
+    <div className="layout layout--employee" style={{ background: 'linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%)', minHeight: '100vh' }}>
+      {/* Header matching login page aesthetic */}
       <header
         role="banner"
         style={{
-          background: 'linear-gradient(to right, #fde68a 0%, #1e293b 45%, #0f172a 100%)',
+          background: 'linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%)',
           borderBottom: '3px solid #c29100',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
           padding: '1rem 2rem',
           display: 'flex',
           alignItems: 'center',
@@ -470,69 +488,53 @@ export function ConferenceAdminLayout() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
           <AvanaLogo size="md" />
           <div>
-            <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'white', lineHeight: 1.2 }}>
+            <div style={{ fontWeight: 800, fontSize: '1.15rem', color: '#0f172a', lineHeight: 1.2 }}>
               Conference Room Bookings
             </div>
-            <div style={{ fontSize: '0.82rem', color: '#fde68a', marginTop: 2, fontWeight: 500 }}>
+            <div style={{ fontSize: '0.82rem', color: '#b45309', marginTop: 2, fontWeight: 600 }}>
               Admin Portal — Manage reservations and reports
             </div>
           </div>
         </div>
 
-        {/* Right: Nav + Logout */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <NavLink
-            to="/admin"
-            style={({ isActive }) => ({
-              background: isActive ? 'rgba(194,145,0,0.3)' : 'rgba(255,255,255,0.1)',
-              border: `1px solid ${isActive ? '#c29100' : 'rgba(255,255,255,0.2)'}`,
-              color: 'white',
-              padding: '0.4rem 0.85rem',
-              borderRadius: 8,
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-            })}
-          >
-            📅 Bookings
-          </NavLink>
+        {/* Right side controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <NavLink
             to="/helpdesk-admin"
-            style={({ isActive }) => ({
-              background: isActive ? 'rgba(194,145,0,0.3)' : 'rgba(255,255,255,0.1)',
-              border: `1px solid ${isActive ? '#c29100' : 'rgba(255,255,255,0.2)'}`,
-              color: 'white',
-              padding: '0.4rem 0.85rem',
+            style={{
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
+              color: '#0f172a',
+              padding: '0.45rem 1rem',
               borderRadius: 8,
               fontSize: '0.82rem',
-              fontWeight: 600,
+              fontWeight: 700,
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.3rem',
-            })}
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            }}
           >
-            📋 Help Desk
+            📋 Help Desk Admin
           </NavLink>
           <button
             type="button"
             onClick={handleLogout}
             style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: 'white',
-              padding: '0.4rem 0.85rem',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
+              color: '#dc2626',
+              padding: '0.45rem 1rem',
               borderRadius: 8,
               fontFamily: 'inherit',
               fontSize: '0.82rem',
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: 'pointer',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
             }}
           >
-            Sign Out
+            Log Out
           </button>
         </div>
       </header>

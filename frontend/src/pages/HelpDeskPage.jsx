@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Routes, Route, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { employeeApi, helpdeskApi, courierApi } from '../lib/api';
 import {
   Badge, Spinner, EmptyState, Alert, Modal, ConfirmModal,
-  FormField, PageHeader, StatCard,
+  FormField, PageHeader, StatCard, Breadcrumbs
 } from '../components/ui';
 
 /* ─── Constants ───────────────────────────────────────────── */
@@ -112,33 +112,57 @@ function getStatusBadge(status) {
 /* ─── Request Change Password Panel ──────────────────────── */
 function ChangePasswordPanel() {
   const toast = useToast();
-  const { employeeToken } = useAuth();
-  const [form, setForm] = useState({ current: '', newPass: '', confirm: '' });
+  const { employeeToken, employeeEmail } = useAuth();
+  const [step, setStep] = useState('request'); // 'request' | 'verify'
+  const [form, setForm] = useState({ newPass: '', confirm: '', otp: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e) {
+  async function handleSendOtp(e) {
     e.preventDefault();
     const errs = {};
-    if (!form.current) errs.current = 'Current password is required';
     if (!form.newPass || form.newPass.length < 6) errs.newPass = 'New password must be at least 6 characters';
     if (form.newPass !== form.confirm) errs.confirm = 'Passwords do not match';
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    
     setLoading(true);
     try {
-      await fetch('/api/employee/change-password', {
+      await fetch('/api/employee/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: employeeEmail }),
+      }).then(async res => {
+        if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed to send OTP'); }
+      });
+      toast.success('OTP sent to your email!');
+      setStep('verify');
+      setErrors({});
+    } catch (err) {
+      toast.error(err.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerifySubmit(e) {
+    e.preventDefault();
+    if (!form.otp || form.otp.length !== 6) { setErrors({ otp: 'Please enter a valid 6-digit OTP' }); return; }
+    setLoading(true);
+    try {
+      await fetch('/api/employee/set-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${employeeToken}`,
         },
-        body: JSON.stringify({ currentPassword: form.current, newPassword: form.newPass }),
+        body: JSON.stringify({ newPassword: form.newPass, otp: form.otp }),
       }).then(async res => {
         if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed'); }
         return res.json();
       });
       toast.success('Password changed successfully!');
-      setForm({ current: '', newPass: '', confirm: '' });
+      setForm({ newPass: '', confirm: '', otp: '' });
+      setStep('request');
       setErrors({});
     } catch (err) {
       toast.error(err.message || 'Failed to change password');
@@ -150,29 +174,43 @@ function ChangePasswordPanel() {
   return (
     <div className="card" style={{ marginTop: 'var(--space-6)' }}>
       <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1rem' }}>
-        🔑 Change Password
+        🔑 Set / Change Password
       </h3>
-      <form onSubmit={handleSubmit} noValidate>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 'var(--space-4)' }}>
-          <FormField label="Current Password" required htmlFor="cp-current" error={errors.current}>
-            <input id="cp-current" type="password" className={`form-input${errors.current ? ' form-input--error' : ''}`}
-              value={form.current} onChange={e => setForm(f => ({ ...f, current: e.target.value }))} />
+      {step === 'request' ? (
+        <form onSubmit={handleSendOtp} noValidate>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 'var(--space-4)' }}>
+            <FormField label="New Password" required htmlFor="cp-new" error={errors.newPass}>
+              <input id="cp-new" type="password" className={`form-input${errors.newPass ? ' form-input--error' : ''}`}
+                value={form.newPass} onChange={e => setForm(f => ({ ...f, newPass: e.target.value }))} />
+            </FormField>
+            <FormField label="Confirm New Password" required htmlFor="cp-confirm" error={errors.confirm}>
+              <input id="cp-confirm" type="password" className={`form-input${errors.confirm ? ' form-input--error' : ''}`}
+                value={form.confirm} onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))} />
+            </FormField>
+          </div>
+          <div style={{ marginTop: 'var(--space-4)', display: 'flex', justifyContent: 'flex-end' }}>
+            <button type="submit" className={`btn btn--primary${loading ? ' btn--loading' : ''}`} disabled={loading}>
+              {loading ? 'Sending OTP…' : 'Send OTP & Continue'}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={handleVerifySubmit} noValidate>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: 'var(--space-4)' }}>
+            Enter the 6-digit OTP sent to <strong>{employeeEmail}</strong> to confirm your new password.
+          </p>
+          <FormField label="One-Time Password (OTP)" required htmlFor="cp-otp" error={errors.otp}>
+            <input id="cp-otp" type="text" maxLength={6} placeholder="• • • • • •" className={`form-input${errors.otp ? ' form-input--error' : ''}`}
+              value={form.otp} onChange={e => setForm(f => ({ ...f, otp: e.target.value.replace(/\D/g, '') }))} style={{ maxWidth: 200 }} />
           </FormField>
-          <FormField label="New Password" required htmlFor="cp-new" error={errors.newPass}>
-            <input id="cp-new" type="password" className={`form-input${errors.newPass ? ' form-input--error' : ''}`}
-              value={form.newPass} onChange={e => setForm(f => ({ ...f, newPass: e.target.value }))} />
-          </FormField>
-          <FormField label="Confirm New Password" required htmlFor="cp-confirm" error={errors.confirm}>
-            <input id="cp-confirm" type="password" className={`form-input${errors.confirm ? ' form-input--error' : ''}`}
-              value={form.confirm} onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))} />
-          </FormField>
-        </div>
-        <div style={{ marginTop: 'var(--space-4)', display: 'flex', justifyContent: 'flex-end' }}>
-          <button type="submit" className={`btn btn--primary${loading ? ' btn--loading' : ''}`} disabled={loading}>
-            {loading ? 'Updating…' : 'Update Password'}
-          </button>
-        </div>
-      </form>
+          <div style={{ marginTop: 'var(--space-4)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)' }}>
+            <button type="button" className="btn btn--secondary" onClick={() => setStep('request')}>Cancel</button>
+            <button type="submit" className={`btn btn--primary${loading ? ' btn--loading' : ''}`} disabled={loading}>
+              {loading ? 'Updating…' : 'Update Password'}
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
@@ -326,6 +364,8 @@ function RequestTracker() {
 
 /* ─── Item Selector (multi-item with quantity) ────────────── */
 function ItemSelector({ items, selected, onChange, label = 'Select items' }) {
+  const [search, setSearch] = useState('');
+
   function toggleItem(item) {
     const exists = selected.find(s => s.name === item);
     if (exists) {
@@ -334,21 +374,37 @@ function ItemSelector({ items, selected, onChange, label = 'Select items' }) {
       onChange([...selected, { name: item, qty: 1 }]);
     }
   }
-  function updateQty(item, qty) {
-    onChange(selected.map(s => s.name === item ? { ...s, qty: Math.max(1, Number(qty)) } : s));
+  function updateQty(item, val) {
+    const qty = parseInt(val, 10);
+    onChange(selected.map(s => s.name === item ? { ...s, qty: isNaN(qty) || qty < 1 ? 1 : qty } : s));
   }
+
+  const filteredItems = items.filter(it => it.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div>
       <label className="form-label" style={{ marginBottom: 'var(--space-2)', display: 'block' }}>{label}</label>
+      
+      <div style={{ position: 'relative', marginBottom: 'var(--space-2)' }}>
+        <input 
+          type="text" 
+          className="form-input" 
+          placeholder="🔍 Search items..." 
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ width: '100%' }}
+        />
+      </div>
+
       <div style={{
         border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius-md)',
-        maxHeight: 240,
+        maxHeight: 180,
         overflowY: 'auto',
         background: 'var(--color-surface)',
+        marginBottom: 'var(--space-3)'
       }}>
-        {items.map(item => {
+        {filteredItems.map(item => {
           const sel = selected.find(s => s.name === item);
           return (
             <div key={item} style={{
@@ -357,37 +413,62 @@ function ItemSelector({ items, selected, onChange, label = 'Select items' }) {
               borderBottom: '1px solid var(--color-border-light)',
               background: sel ? 'var(--brand-amber-bg)' : 'transparent',
               transition: 'background var(--transition-fast)',
-            }}>
+              cursor: 'pointer'
+            }} onClick={() => toggleItem(item)}>
               <input
                 type="checkbox"
-                id={`item-${item.replace(/\s+/g, '-')}`}
                 checked={!!sel}
-                onChange={() => toggleItem(item)}
+                onChange={() => {}} /* Handled by parent div onClick */
                 style={{ accentColor: 'var(--brand-amber)', cursor: 'pointer' }}
               />
-              <label
-                htmlFor={`item-${item.replace(/\s+/g, '-')}`}
-                style={{ flex: 1, cursor: 'pointer', fontSize: '0.9rem' }}
-              >
+              <span style={{ flex: 1, fontSize: '0.9rem' }}>
                 {item}
-              </label>
-              {sel && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                  <button type="button" className="btn btn--ghost btn--sm"
-                    onClick={() => updateQty(item, sel.qty - 1)} aria-label={`Decrease ${item} qty`}>−</button>
-                  <span style={{ minWidth: 28, textAlign: 'center', fontWeight: 600 }}>{sel.qty}</span>
-                  <button type="button" className="btn btn--ghost btn--sm"
-                    onClick={() => updateQty(item, sel.qty + 1)} aria-label={`Increase ${item} qty`}>+</button>
-                </div>
-              )}
+              </span>
             </div>
           );
         })}
+        {filteredItems.length === 0 && (
+          <div style={{ padding: 'var(--space-3)', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+            No items found.
+          </div>
+        )}
       </div>
+
       {selected.length > 0 && (
-        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: 'var(--space-2)' }}>
-          {selected.length} item{selected.length !== 1 ? 's' : ''} selected
-        </p>
+        <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2)' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', display: 'block', marginBottom: 'var(--space-2)' }}>
+            Selected Items & Quantities
+          </label>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
+                <th style={{ padding: 'var(--space-1)', textAlign: 'left' }}>Item Name</th>
+                <th style={{ padding: 'var(--space-1)', width: 80, textAlign: 'center' }}>Qty</th>
+                <th style={{ padding: 'var(--space-1)', width: 40, textAlign: 'center' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {selected.map(sel => (
+                <tr key={sel.name} style={{ borderBottom: '1px solid var(--color-border-light)' }}>
+                  <td style={{ padding: 'var(--space-1)' }}>{sel.name}</td>
+                  <td style={{ padding: 'var(--space-1)', textAlign: 'center' }}>
+                    <input 
+                      type="number" 
+                      className="form-input" 
+                      style={{ width: '100%', padding: '0.2rem 0.4rem', textAlign: 'center' }} 
+                      value={sel.qty} 
+                      min="1"
+                      onChange={e => updateQty(sel.name, e.target.value)} 
+                    />
+                  </td>
+                  <td style={{ padding: 'var(--space-1)', textAlign: 'center' }}>
+                    <button type="button" onClick={() => toggleItem(sel.name)} style={{ background: 'none', border: 'none', color: 'var(--color-danger)', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1 }}>&times;</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
@@ -402,7 +483,7 @@ function MaintenanceForm({ form, setForm, errors }) {
           <select id="maint-type" className="form-select" value={form.issue_type || ''}
             onChange={e => setForm(f => ({ ...f, issue_type: e.target.value }))}>
             <option value="">Select issue type</option>
-            {['AC not working','Light-Fan issue','Electrical problem','Plumbing issue','Furniture repair','Office equipment issue'].map(o => (
+            {['AC not working','Light-Fan issue','Electrical problem','Plumbing issue','Furniture repair','Office equipment issue', 'Other'].map(o => (
               <option key={o} value={o}>{o}</option>
             ))}
           </select>
@@ -439,7 +520,7 @@ function HousekeepingForm({ form, setForm, errors }) {
           <select id="hk-type" className="form-select" value={form.request_type || ''}
             onChange={e => setForm(f => ({ ...f, request_type: e.target.value }))}>
             <option value="">Select type</option>
-            {['Cleaning request','Waste removal'].map(o => <option key={o} value={o}>{o}</option>)}
+            {['Cleaning request','Waste removal', 'Other'].map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
         <FormField label="Floor" required htmlFor="hk-floor" error={errors.floor}>
@@ -568,7 +649,7 @@ function OfficeAssetForm({ form, setForm, errors }) {
           <select id="oa-type" className="form-select" value={form.request_type || ''}
             onChange={e => setForm(f => ({ ...f, request_type: e.target.value }))}>
             <option value="">Select type</option>
-            {['Chair-Table requirement','New equipment request','Replacement request'].map(o =>
+            {['Chair-Table requirement','New equipment request','Replacement request', 'Other'].map(o =>
               <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
@@ -603,7 +684,7 @@ function PrintScanForm({ form, setForm, errors }) {
           <select id="ps-type" className="form-select" value={form.service_type || ''}
             onChange={e => setForm(f => ({ ...f, service_type: e.target.value }))}>
             <option value="">Select service</option>
-            {['Bulk printing','Scanning','Binding-Lamination'].map(o => <option key={o} value={o}>{o}</option>)}
+            {['Bulk printing','Scanning','Binding-Lamination', 'Other'].map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
       </div>
@@ -630,7 +711,7 @@ function AdminSupportForm({ form, setForm, errors }) {
           <select id="as-type" className="form-select" value={form.support_type || ''}
             onChange={e => setForm(f => ({ ...f, support_type: e.target.value }))}>
             <option value="">Select type</option>
-            {['Safety Concern','Pantry-Refreshment','Courier-Dispatch','Event-Celebration','Lost-Found','Feedback-Suggestions','Other'].map(o =>
+            {['Safety Concern','Pantry-Refreshment','Event-Celebration','Lost-Found','Feedback-Suggestions','Other'].map(o =>
               <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
@@ -657,214 +738,652 @@ function AdminSupportForm({ form, setForm, errors }) {
   );
 }
 
-function CourierDispatchForm({ form, setForm, errors }) {
-  const [items, setItems] = useState(form.items || [{ description: '', serialNo: '', qty: 1, rate: 0 }]);
 
-  const updateItems = (newItems) => {
-    setItems(newItems);
-    setForm(f => ({ ...f, items: newItems }));
-  };
+/* --- Address Directory Modal --- */
+/* ─── Common Company Addresses (shown for all users) ─────── */
+const COMMON_ADDRESSES = [
+  {
+    id: 'common-1',
+    label: 'Avana Medical',
+    name: 'Avana Medical Devices Pvt Ltd.,',
+    phone: '',
+    address: 'No.91, Sundar Nagar 4th Avenue, Nandambakkam,\nChennai – 600032, Tamil Nadu, India.\nGST: 33AAHCA6669B1ZT',
+    isCommon: true,
+  },
+  {
+    id: 'common-2',
+    label: 'Avana Surgical',
+    name: 'Avana Surgical Systems Pvt Ltd.,',
+    phone: '',
+    address: 'No.91, Sundar Nagar 4th Avenue, Nandambakkam,\nChennai – 600032, Tamil Nadu, India.\nGST: 33AAQCA5951K1ZA',
+    isCommon: true,
+  },
+  {
+    id: 'common-3',
+    label: 'Avana Technology',
+    name: 'Avana Technology Services Pvt Ltd.,',
+    phone: '',
+    address: 'No.91, Sundar Nagar 4th Avenue, Nandambakkam,\nChennai – 600032, Tamil Nadu, India.\nGST: 33ABACA8707A1Z9',
+    isCommon: true,
+  },
+];
+
+function AddressDirectoryModal({ isOpen, onClose, onSelect, userEmail }) {
+  const toast = useToast();
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [deleting, setDeleting] = useState(null);
+
+  const fetchAddresses = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await employeeApi.getAddressBook();
+      setAddresses(data || []);
+    } catch (err) {
+      toast.error('Failed to load address book.');
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    if (isOpen) { setSearch(''); fetchAddresses(); }
+  }, [isOpen, fetchAddresses]);
+
+  const q = search.toLowerCase();
+  const filteredCommon = COMMON_ADDRESSES.filter(a =>
+    !search ||
+    a.name.toLowerCase().includes(q) ||
+    (a.address || '').toLowerCase().includes(q) ||
+    (a.label || '').toLowerCase().includes(q)
+  );
+  const filteredPersonal = addresses.filter(a =>
+    !search ||
+    a.name.toLowerCase().includes(q) ||
+    (a.address || '').toLowerCase().includes(q) ||
+    (a.label || '').toLowerCase().includes(q)
+  );
+
+  async function handleDelete(id) {
+    setDeleting(id);
+    try {
+      await employeeApi.deleteAddress(id);
+      setAddresses(prev => prev.filter(a => a.id !== id));
+      toast.success('Address removed.');
+    } catch {
+      toast.error('Failed to delete address.');
+    } finally {
+      setDeleting(null);
+    }
+  }
+
+  function renderEntry(a, canDelete) {
+    return (
+      <div key={a.id} style={{
+        background: a.isCommon ? 'var(--color-surface-2)' : 'var(--color-surface)',
+        border: `1px solid ${a.isCommon ? 'var(--brand-amber)' : 'var(--color-border)'}`,
+        borderRadius: 'var(--radius-md)', padding: 'var(--space-3)',
+        display: 'flex', gap: 'var(--space-3)', alignItems: 'flex-start',
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {a.label && (
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: a.isCommon ? 'var(--brand-amber)' : 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
+              {a.label}
+            </div>
+          )}
+          <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{a.name}</div>
+          {a.phone && <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{a.phone}</div>}
+          <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', marginTop: 2, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{a.address}</div>
+        </div>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', flexShrink: 0, flexDirection: 'column' }}>
+          <button type="button" className="btn btn--sm btn--primary" onClick={() => { onSelect(a); onClose(); }}>Select</button>
+          {canDelete && (
+            <button type="button" className="btn btn--sm btn--danger" onClick={() => handleDelete(a.id)} disabled={deleting === a.id} aria-label={`Delete ${a.name}`}>
+              {deleting === a.id ? '…' : 'Del'}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (!isOpen) return null;
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem',
+    }} role="dialog" aria-modal="true" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{
+        background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)',
+        width: '100%', maxWidth: 540, maxHeight: '82vh', display: 'flex', flexDirection: 'column',
+        boxShadow: 'var(--shadow-xl)',
+      }}>
+        {/* Header */}
+        <div style={{ padding: 'var(--space-4) var(--space-5)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h3 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: '1.1rem' }}>📒 Address Directory</h3>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--color-text-muted)', lineHeight: 1 }}>×</button>
+        </div>
+        {/* Search */}
+        <div style={{ padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid var(--color-border)' }}>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="🔍  Search by name, label or address…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            autoFocus
+          />
+        </div>
+        {/* List */}
+        <div style={{ overflowY: 'auto', flex: 1, padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+
+          {/* Company Addresses (always visible unless filtered out) */}
+          {filteredCommon.length > 0 && (
+            <>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 'var(--space-1)', padding: '0 2px' }}>
+                Company Addresses
+              </div>
+              {filteredCommon.map(a => renderEntry(a, false))}
+              <div style={{ borderTop: '1px solid var(--color-border)', margin: 'var(--space-2) 0' }} />
+            </>
+          )}
+
+          {/* Personal Addresses */}
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: 'var(--space-5)' }}><Spinner /></div>
+          ) : filteredPersonal.length > 0 ? (
+            <>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 'var(--space-1)', padding: '0 2px' }}>
+                My Saved Addresses
+              </div>
+              {filteredPersonal.map(a => renderEntry(a, true))}
+            </>
+          ) : !loading && filteredCommon.length > 0 ? (
+            <div style={{ textAlign: 'center', padding: 'var(--space-3)', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+              No personal addresses saved yet. Fill in an address and tick "Save to directory".
+            </div>
+          ) : !loading && filteredCommon.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 'var(--space-5)', color: 'var(--color-text-muted)' }}>
+              No addresses match your search.
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* --- AddressInputSection: manual + directory --- */
+function AddressInputSection({ title, nameKey, phoneKey, addressKey, form, setForm, errors, userEmail }) {
+  const toast = useToast();
+  const [directoryOpen, setDirectoryOpen] = useState(false);
+  const [saveToDir, setSaveToDir] = useState(false);
+  const [label, setLabel] = useState('');
+
+  function handleSelectFromDir(entry) {
+    setForm(f => ({
+      ...f,
+      [nameKey]: entry.name,
+      [phoneKey]: entry.phone || '',
+      [addressKey]: entry.address,
+    }));
+  }
+
+  async function handleSaveNow() {
+    const name = form[nameKey] || '';
+    const address = form[addressKey] || '';
+    if (!name || !address) { toast.warning('Fill in name and address before saving.'); return; }
+    try {
+      await employeeApi.saveAddress({ name, phone: form[phoneKey] || '', address, label });
+      toast.success('Address saved to directory!');
+      setSaveToDir(false);
+      setLabel('');
+    } catch (err) {
+      toast.error('Failed to save address: ' + err.message);
+    }
+  }
+
+  const isManuallyFilled = !!(form[nameKey] || form[addressKey]);
 
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
-        <FormField label="Challan Date" required htmlFor="cd-date">
-          <input id="cd-date" type="date" className="form-input" value={form.dcDate || new Date().toISOString().slice(0,10)}
-            onChange={e => setForm(f => ({ ...f, dcDate: e.target.value }))} />
-        </FormField>
-        <FormField label="Billing Entity" required htmlFor="cd-billing">
-          <select id="cd-billing" className="form-select" value={form.courierBilling || 'Avana Medical Devices Pvt Ltd'}
-            onChange={e => setForm(f => ({ ...f, courierBilling: e.target.value }))}>
-            <option value="Avana Medical Devices Pvt Ltd">Avana Medical Devices Pvt Ltd</option>
-            <option value="Avana Technology Services Pvt Ltd">Avana Technology Services Pvt Ltd</option>
-          </select>
-        </FormField>
-        <FormField label="Category / Remarks" required htmlFor="cd-remarks">
-          <select id="cd-remarks" className="form-select" value={form.remarksType || 'Service'}
-            onChange={e => setForm(f => ({ ...f, remarksType: e.target.value }))}>
-            <option value="Stationery">Stationery</option>
-            <option value="Glass item">Glass item</option>
-            <option value="Service">Service</option>
-            <option value="Demo">Demo</option>
-            <option value="Others">Others</option>
-          </select>
-        </FormField>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
-        <FormField label="Receiver / Recipient Name" required htmlFor="cd-receiver" error={errors.receiverName}>
-          <input id="cd-receiver" type="text" className="form-input" value={form.receiverName || ''}
-            placeholder="Dr. John / Client Name"
-            onChange={e => setForm(f => ({ ...f, receiverName: e.target.value }))} />
-        </FormField>
-        <FormField label="Receiver Phone" htmlFor="cd-rphone">
-          <input id="cd-rphone" type="tel" className="form-input" value={form.receiverPhone || ''}
-            placeholder="Recipient Contact Number"
-            onChange={e => setForm(f => ({ ...f, receiverPhone: e.target.value }))} />
-        </FormField>
-      </div>
-
-      <FormField label="Destination Address" required htmlFor="cd-address" error={errors.toAddress}>
-        <textarea id="cd-address" className="form-textarea" rows={2} value={form.toAddress || ''}
-          placeholder="Full delivery address with Pincode..."
-          onChange={e => setForm(f => ({ ...f, toAddress: e.target.value }))} />
-      </FormField>
-
-      <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginTop: 'var(--space-4)', marginBottom: 'var(--space-2)' }}>
-        📦 Dispatched Items
-      </h4>
-      {items.map((it, idx) => (
-        <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', alignItems: 'center' }}>
-          <input type="text" className="form-input" placeholder="Item Description" required value={it.description}
-            onChange={e => { const arr = [...items]; arr[idx].description = e.target.value; updateItems(arr); }} style={{ flex: 3 }} />
-          <input type="text" className="form-input" placeholder="S/N" value={it.serialNo}
-            onChange={e => { const arr = [...items]; arr[idx].serialNo = e.target.value; updateItems(arr); }} style={{ flex: 2 }} />
-          <input type="number" className="form-input" placeholder="Qty" min="1" value={it.qty}
-            onChange={e => { const arr = [...items]; arr[idx].qty = parseInt(e.target.value, 10) || 1; updateItems(arr); }} style={{ width: 70 }} />
-          <input type="number" className="form-input" placeholder="Rate (₹)" min="0" value={it.rate}
-            onChange={e => { const arr = [...items]; arr[idx].rate = parseFloat(e.target.value) || 0; updateItems(arr); }} style={{ width: 100 }} />
-          {items.length > 1 && (
-            <button type="button" className="btn btn--sm btn--danger" onClick={() => updateItems(items.filter((_, i) => i !== idx))}>✕</button>
-          )}
+      <AddressDirectoryModal
+        isOpen={directoryOpen}
+        onClose={() => setDirectoryOpen(false)}
+        onSelect={handleSelectFromDir}
+        userEmail={userEmail}
+      />
+      <div style={{
+        border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-md)',
+        padding: 'var(--space-4)', background: 'var(--color-surface-2)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
+          <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700 }}>{title}</h4>
+          <button type="button" className="btn btn--sm btn--outline" onClick={() => setDirectoryOpen(true)} style={{ fontSize: '0.8rem' }}>
+            Directory
+          </button>
         </div>
-      ))}
-      <button type="button" className="btn btn--sm btn--outline" onClick={() => updateItems([...items, { description: '', serialNo: '', qty: 1, rate: 0 }])} style={{ marginBottom: 'var(--space-4)' }}>
-        ➕ Add Item
-      </button>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-4)', marginTop: 'var(--space-2)' }}>
-        <FormField label="Courier Vendor" htmlFor="cd-vendor">
-          <input id="cd-vendor" type="text" className="form-input" placeholder="Dexpress / DTDC" value={form.transporterName || ''}
-            onChange={e => setForm(f => ({ ...f, transporterName: e.target.value }))} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+          <FormField label="Name" required htmlFor={`${nameKey}-input`} error={errors && errors[nameKey]}>
+            <input
+              id={`${nameKey}-input`}
+              type="text"
+              className={`form-input${errors && errors[nameKey] ? ' form-input--error' : ''}`}
+              placeholder="Contact name"
+              value={form[nameKey] || ''}
+              onChange={e => setForm(f => ({ ...f, [nameKey]: e.target.value }))}
+            />
+          </FormField>
+          <FormField label="Phone" htmlFor={`${phoneKey}-input`} error={errors && errors[phoneKey]}>
+            <input
+              id={`${phoneKey}-input`}
+              type="tel"
+              className={`form-input${errors && errors[phoneKey] ? ' form-input--error' : ''}`}
+              placeholder="Mobile number"
+              value={form[phoneKey] || ''}
+              onChange={e => setForm(f => ({ ...f, [phoneKey]: e.target.value }))}
+            />
+          </FormField>
+        </div>
+        <FormField label="Address" required htmlFor={`${addressKey}-input`} error={errors && errors[addressKey]}>
+          <textarea
+            id={`${addressKey}-input`}
+            className={`form-textarea${errors && errors[addressKey] ? ' form-input--error' : ''}`}
+            rows="3"
+            placeholder="Full address..."
+            value={form[addressKey] || ''}
+            onChange={e => setForm(f => ({ ...f, [addressKey]: e.target.value }))}
+          />
         </FormField>
-        <FormField label="Waybill / Docket No" htmlFor="cd-docket">
-          <input id="cd-docket" type="text" className="form-input" placeholder="Tracking Number" value={form.docketNo || ''}
-            onChange={e => setForm(f => ({ ...f, docketNo: e.target.value }))} />
-        </FormField>
+        {isManuallyFilled && (
+          <div style={{ marginTop: 'var(--space-3)', padding: 'var(--space-3)', background: 'var(--color-surface)', border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', fontSize: '0.85rem' }}>
+              <input type="checkbox" checked={saveToDir} onChange={e => setSaveToDir(e.target.checked)} />
+              Save this address to my directory
+            </label>
+            {saveToDir && (
+              <div style={{ marginTop: 'var(--space-2)', display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder='Label (optional) e.g. "Office", "Client"'
+                  value={label}
+                  onChange={e => setLabel(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <button type="button" className="btn btn--sm btn--primary" onClick={handleSaveNow}>Save</button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </>
   );
 }
 
-/* ─── Main HelpDeskPage ───────────────────────────────────── */
-export default function HelpDeskPage() {
-  const { employeeEmail, employeeToken } = useAuth();
-  const navigate = useNavigate();
+/* --- ShippingLabelForm --- */
+function ShippingLabelForm({ userEmail }) {
   const toast = useToast();
-
-  const [openModal, setOpenModal] = useState(null); // category key
-  const [formData, setFormData] = useState({});
+  const [form, setForm] = useState({
+    fromName: '', fromPhone: '', fromAddressText: '',
+    receiverName: '', receiverPhone: '', toAddress: '',
+    recipientEmail: userEmail || '',
+    isFragile: false,
+  });
   const [errors, setErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    document.title = 'Help Desk | Avana';
-  }, []);
-
-  /* Validate based on category */
-  function validateForm(category, form) {
+  function validate() {
     const e = {};
-    if (category !== 'courier_dispatch') {
-      if (!form.requester_phone?.trim()) {
-        e.requester_phone = 'Phone number is required';
-      } else if (!/^[6-9]\d{9}$/.test(form.requester_phone.trim())) {
-        e.requester_phone = 'Phone must be a valid 10-digit mobile number';
-      }
-    }
-
-    if (category === 'maintenance') {
-      if (!form.issue_type) e.issue_type = 'Issue type is required';
-      if (!form.floor) e.floor = 'Floor is required';
-      if (!form.description?.trim()) e.description = 'Exact issue is required';
-    } else if (category === 'housekeeping') {
-      if (!form.request_type) e.request_type = 'Request type is required';
-      if (!form.floor) e.floor = 'Floor is required';
-      if (!form.description?.trim()) e.description = 'Exact query is required';
-    } else if (category === 'hk_material') {
-      if (!form.items?.length) e.items = 'Select at least one item';
-      if (!form.floor) e.floor = 'Floor is required';
-      if (form.items?.some(s => s.name === 'Other') && !form.remarks?.trim()) {
-        e.remarks = 'Remarks required when Other is selected';
-      }
-    } else if (category === 'stationery') {
-      if (!form.items?.length) e.items = 'Select at least one item';
-      if (!form.floor) e.floor = 'Floor is required';
-    } else if (category === 'office_asset') {
-      if (!form.request_type) e.request_type = 'Request type is required';
-      if (!form.floor) e.floor = 'Floor is required';
-      if (!form.description?.trim()) e.description = 'Exact query is required';
-    } else if (category === 'print_scan') {
-      if (!form.service_type) e.service_type = 'Service type is required';
-      if (!form.description?.trim()) e.description = 'Exact query is required';
-    } else if (category === 'admin_support') {
-      if (!form.support_type) e.support_type = 'Support type is required';
-      if (!form.description?.trim()) e.description = 'Description is required';
-    } else if (category === 'courier_dispatch') {
-      if (!form.receiverName?.trim()) e.receiverName = 'Receiver name is required';
-      if (!form.toAddress?.trim()) e.toAddress = 'Destination address is required';
-    }
+    if (!form.fromName?.trim()) e.fromName = 'From name is required';
+    if (!form.fromAddressText?.trim()) e.fromAddressText = 'From address is required';
+    if (!form.receiverName?.trim()) e.receiverName = 'To name is required';
+    if (!form.toAddress?.trim()) e.toAddress = 'To address is required';
     return e;
   }
 
-  async function handleSubmit() {
-    const errs = validateForm(openModal, formData);
+  async function handleGenerate() {
+    const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setSubmitting(true);
+    setLoading(true);
     try {
-      if (openModal === 'courier_dispatch') {
-        await courierApi.create({
-          requesterEmail: employeeEmail,
-          senderName: employeeEmail?.split('@')[0] || 'Employee',
-          ...formData
-        });
-        toast.success('Courier dispatch request & Delivery Challan created! 📦');
-      } else {
-        const payload = {
-          category: openModal,
-          requester_name: employeeEmail?.split('@')[0] || '',
-          requester_email: employeeEmail || '',
-          ...formData,
-          items: formData.items ? JSON.stringify(formData.items) : undefined,
-        };
-        await helpdeskApi.submit(payload);
-        toast.success('Request submitted successfully! ✅');
-      }
-      setOpenModal(null);
-      setFormData({});
-      setErrors({});
+      const blob = await employeeApi.generateShippingLabel(
+        { name: form.fromName, phone: form.fromPhone, address: form.fromAddressText },
+        { name: form.receiverName, phone: form.receiverPhone, address: form.toAddress },
+        form.recipientEmail,
+        form.isFragile
+      );
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `shipping-label${form.isFragile ? '-fragile' : ''}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Shipping label generated and downloaded!');
     } catch (err) {
-      toast.error(err.message || 'Failed to submit request');
+      toast.error(err.message || 'Failed to generate label');
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      {/* From Address Section */}
+      <AddressInputSection
+        title="📤 FROM (Sender Address)"
+        nameKey="fromName"
+        phoneKey="fromPhone"
+        addressKey="fromAddressText"
+        form={form}
+        setForm={setForm}
+        errors={errors}
+        userEmail={userEmail}
+      />
+
+      {/* To Address Section */}
+      <AddressInputSection
+        title="📥 TO (Receiver Address)"
+        nameKey="receiverName"
+        phoneKey="receiverPhone"
+        addressKey="toAddress"
+        form={form}
+        setForm={setForm}
+        errors={errors}
+        userEmail={userEmail}
+      />
+
+      {/* Fragile Checkbox Option */}
+      <div style={{
+        padding: 'var(--space-3) var(--space-4)',
+        background: form.isFragile ? '#ffffe0' : 'var(--color-surface-2)',
+        border: `1.5px dashed ${form.isFragile ? '#d97706' : 'var(--color-border)'}`,
+        borderRadius: 'var(--radius-md)',
+        transition: 'all 0.2s'
+      }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', cursor: 'pointer', fontWeight: 600, fontSize: '0.92rem' }}>
+          <input
+            type="checkbox"
+            checked={form.isFragile}
+            onChange={e => setForm(f => ({ ...f, isFragile: e.target.checked }))}
+            style={{ width: 18, height: 18, accentColor: '#d97706' }}
+          />
+          <span style={{ color: form.isFragile ? '#b45309' : 'var(--color-text)' }}>
+            ⚠️ Add Fragile Warning Label (Includes Fragile logo taking half the page)
+          </span>
+        </label>
+      </div>
+
+      <FormField label="Send label PDF to email" htmlFor="sl-email" hint="Leave empty to only download, or enter an email to also send it">
+        <input id="sl-email" type="email" className="form-input" placeholder="e.g. yourname@avanamedical.com"
+          value={form.recipientEmail} onChange={e => setForm(f => ({ ...f, recipientEmail: e.target.value }))} />
+      </FormField>
+
+      <div style={{ marginTop: 'var(--space-4)', display: 'flex', justifyContent: 'flex-end' }}>
+        <button type="button" className={`btn btn--primary${loading ? ' btn--loading' : ''}`} disabled={loading} onClick={handleGenerate} style={{ minWidth: 240, fontSize: '1rem' }}>
+          {loading ? 'Generating...' : '🏷️ Generate & Download Shipping Label'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* --- CourierDispatchForm --- */
+function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
+  const { employeeEmail } = useAuth();
+  const [activeTab, setActiveTab] = useState('challan');
+  const [items, setItems] = useState(form.items || [{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }]);
+  const [boxes, setBoxes] = useState(form.boxes || [{ weight: '', dim: '' }]);
+
+  function switchTab(tab) {
+    setActiveTab(tab);
+    if (onTabChange) onTabChange(tab);
+  }
+
+  useEffect(() => {
+    if (!form.dcNo) {
+      fetch('/api/employee/courier-dispatch/next-dc')
+        .then(res => res.json())
+        .then(data => { if (data.dcNo) setForm(f => ({ ...f, dcNo: data.dcNo })); })
+        .catch(err => console.error(err));
+    }
+  }, []);
+
+  const updateItems = (newItems) => { setItems(newItems); setForm(f => ({ ...f, items: newItems })); };
+  const updateBoxes = (newBoxes) => { setBoxes(newBoxes); setForm(f => ({ ...f, boxes: newBoxes, noOfBoxes: newBoxes.length })); };
+
+  const tabStyle = (active) => ({
+    padding: 'var(--space-3) var(--space-5)',
+    fontWeight: 700, fontSize: '0.9rem',
+    border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+    borderBottom: active ? '2.5px solid var(--brand-amber)' : '2.5px solid transparent',
+    color: active ? 'var(--brand-amber)' : 'var(--color-text-muted)',
+    background: 'transparent',
+  });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--space-4)' }}>
+        <button type="button" style={tabStyle(activeTab === 'challan')} onClick={() => switchTab('challan')}>
+          Delivery Challan
+        </button>
+        <button type="button" style={tabStyle(activeTab === 'label')} onClick={() => switchTab('label')}>
+          Shipping Label
+        </button>
+      </div>
+
+      {activeTab === 'label' && <ShippingLabelForm userEmail={employeeEmail} />}
+
+      {activeTab === 'challan' && (<>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+          <FormField label="Delivery Challan No" required htmlFor="cd-dc-no">
+            <input id="cd-dc-no" type="text" className="form-input" style={{ fontWeight: 'bold' }}
+              value={form.dcNo || ''} onChange={e => setForm(f => ({ ...f, dcNo: e.target.value }))} required />
+          </FormField>
+          <FormField label="Delivery Challan Date" required htmlFor="cd-date">
+            <input id="cd-date" type="date" className="form-input" value={form.dcDate || new Date().toISOString().slice(0,10)}
+              onChange={e => setForm(f => ({ ...f, dcDate: e.target.value }))} />
+          </FormField>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+          <FormField label="Remarks" required htmlFor="cd-remarks">
+            <select id="cd-remarks" className="form-select" value={form.remarksType || ''}
+              onChange={e => setForm(f => ({ ...f, remarksType: e.target.value }))}>
+              <option value="">Select Remarks</option>
+              <option value="Stationery">Stationery</option>
+              <option value="Glass item">Glass item</option>
+              <option value="Service">Service</option>
+              <option value="Demo">Demo</option>
+              <option value="Others">Others (Specify)</option>
+            </select>
+            {form.remarksType === 'Others' && (
+              <input type="text" className="form-input" placeholder="Specify other remarks..." style={{ marginTop: '0.5rem' }}
+                value={form.remarksOther || ''} onChange={e => setForm(f => ({ ...f, remarksOther: e.target.value }))} required />
+            )}
+          </FormField>
+          <FormField label="Transporter Name" required htmlFor="cd-transporter">
+            <select id="cd-transporter" className="form-select" value={form.transporterSelect || ''}
+              onChange={e => setForm(f => ({ ...f, transporterSelect: e.target.value }))}>
+              <option value="">Select Transporter</option>
+              <option value="Dexpress">Dexpress</option>
+              <option value="Other">Other (Specify)</option>
+            </select>
+            {form.transporterSelect === 'Other' && (
+              <input type="text" className="form-input" placeholder="Enter transporter name..." style={{ marginTop: '0.5rem' }}
+                value={form.transporterName || ''} onChange={e => setForm(f => ({ ...f, transporterName: e.target.value }))} required />
+            )}
+            {form.transporterSelect && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: '0.25rem' }}>Transporter Amount (Optional)</label>
+                <input type="number" className="form-input" placeholder="e.g. 150" min="0" step="any"
+                  value={form.transporterAmount || ''} onChange={e => setForm(f => ({ ...f, transporterAmount: e.target.value }))} />
+              </div>
+            )}
+          </FormField>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+          <FormField label="No. of Boxes" required htmlFor="cd-boxes-count">
+            <input id="cd-boxes-count" type="number" className="form-input" min="1" value={boxes.length}
+              onChange={e => {
+                const count = Math.max(1, parseInt(e.target.value, 10) || 1);
+                let newBoxes = [...boxes];
+                if (count > boxes.length) { while (newBoxes.length < count) newBoxes.push({ weight: '', dim: '' }); }
+                else { newBoxes = newBoxes.slice(0, count); }
+                updateBoxes(newBoxes);
+              }} required />
+          </FormField>
+          <FormField label="Courier Billing" required htmlFor="cd-billing">
+            <select id="cd-billing" className="form-select" value={form.courierBilling || ''}
+              onChange={e => setForm(f => ({ ...f, courierBilling: e.target.value }))}>
+              <option value="">Select Billing Entity</option>
+              <option value="Avana Medical Devices Pvt. Ltd.">Avana Medical Devices Pvt. Ltd.</option>
+              <option value="Avana Surgical Systems Pvt. Ltd.">Avana Surgical Systems Pvt. Ltd.</option>
+              <option value="Avana Technology Services Pvt. Ltd.">Avana Technology Services Pvt. Ltd.</option>
+            </select>
+          </FormField>
+          <FormField label="Authority Signatory Company" required htmlFor="cd-signatory">
+            <select id="cd-signatory" className="form-select" value={form.signatoryCompany || 'Avana Medical Devices Pvt. Ltd.'}
+              onChange={e => setForm(f => ({ ...f, signatoryCompany: e.target.value }))}>
+              <option value="Avana Medical Devices Pvt. Ltd.">Avana Medical Devices Pvt. Ltd.</option>
+              <option value="Avana Surgical Systems Pvt. Ltd.">Avana Surgical Systems Pvt. Ltd.</option>
+              <option value="Avana Technology Services Pvt. Ltd.">Avana Technology Services Pvt. Ltd.</option>
+              <option value="None">None</option>
+            </select>
+          </FormField>
+        </div>
+
+        <AddressInputSection
+          title="From Address"
+          nameKey="senderName"
+          phoneKey="senderPhone"
+          addressKey="fromAddressText"
+          form={form}
+          setForm={setForm}
+          errors={errors}
+          userEmail={employeeEmail}
+        />
+
+        <AddressInputSection
+          title="Destination / To Address"
+          nameKey="receiverName"
+          phoneKey="receiverPhone"
+          addressKey="toAddress"
+          form={form}
+          setForm={setForm}
+          errors={errors}
+          userEmail={employeeEmail}
+        />
+
+        <div style={{
+          padding: 'var(--space-3) var(--space-4)',
+          background: form.isFragile ? '#ffffe0' : 'var(--color-surface-2)',
+          border: `1.5px dashed ${form.isFragile ? '#d97706' : 'var(--color-border)'}`,
+          borderRadius: 'var(--radius-md)',
+          transition: 'all 0.2s'
+        }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', cursor: 'pointer', fontWeight: 600, fontSize: '0.92rem' }}>
+            <input
+              type="checkbox"
+              checked={!!form.isFragile}
+              onChange={e => setForm(f => ({ ...f, isFragile: e.target.checked }))}
+              style={{ width: 18, height: 18, accentColor: '#d97706' }}
+            />
+            <span style={{ color: form.isFragile ? '#b45309' : 'var(--color-text)' }}>
+              ⚠️ Add Fragile Warning Label (Include Fragile graphic in parcel shipping label)
+            </span>
+          </label>
+        </div>
+
+        <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
+          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-3)' }}>Dispatched Items</h4>
+          {items.map((it, idx) => (
+            <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', flexWrap: 'wrap' }}>
+              <input type="text" className="form-input" placeholder="Item Code" value={it.itemCode || ''}
+                onChange={e => { const arr = [...items]; arr[idx].itemCode = e.target.value; updateItems(arr); }} style={{ width: '90px' }} />
+              <input type="text" className="form-input" placeholder="Item Description *" required value={it.description || ''}
+                onChange={e => { const arr = [...items]; arr[idx].description = e.target.value; updateItems(arr); }} style={{ flex: 2, minWidth: '150px' }} />
+              <input type="text" className="form-input" placeholder="S/N" value={it.serialNo || ''}
+                onChange={e => { const arr = [...items]; arr[idx].serialNo = e.target.value; updateItems(arr); }} style={{ flex: 1, minWidth: '90px' }} />
+              <input type="number" className="form-input" placeholder="Qty" min="1" value={it.qty || ''}
+                onChange={e => {
+                  const arr = [...items];
+                  arr[idx].qty = parseInt(e.target.value, 10) || 0;
+                  arr[idx].value = arr[idx].qty * (parseFloat(arr[idx].rate) || 0);
+                  updateItems(arr);
+                }} style={{ width: '70px' }} />
+              <input type="number" step="any" className="form-input" placeholder="Rate" min="0" value={it.rate || ''}
+                onChange={e => {
+                  const arr = [...items];
+                  arr[idx].rate = parseFloat(e.target.value) || 0;
+                  arr[idx].value = arr[idx].rate * (parseInt(arr[idx].qty) || 0);
+                  updateItems(arr);
+                }} style={{ width: '90px' }} />
+              <input type="number" step="any" className="form-input" placeholder="Value" value={it.value || ''} disabled
+                style={{ width: '100px', backgroundColor: 'var(--color-surface)', cursor: 'not-allowed' }} />
+              {items.length > 1 && (
+                <button type="button" className="btn btn--sm btn--danger" onClick={() => updateItems(items.filter((_, i) => i !== idx))} style={{ padding: '0 0.5rem' }}>X</button>
+              )}
+            </div>
+          ))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-3)' }}>
+            <button type="button" className="btn btn--sm btn--outline" onClick={() => updateItems([...items, { itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }])}>
+              + Add Item
+            </button>
+            <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>
+              Total Value: Rs.{items.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0).toFixed(2)}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
+          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-3)' }}>Box Details (Dimensions & Weight)</h4>
+          <div style={{ display: 'grid', gap: 'var(--space-2)' }}>
+            {boxes.map((bx, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, width: 45 }}>Box {idx + 1}</span>
+                <input type="text" className="form-input" placeholder="Dimensions (optional)" value={bx.dim || ''}
+                  onChange={e => { const arr = [...boxes]; arr[idx].dim = e.target.value; updateBoxes(arr); }} style={{ flex: 1 }} />
+                <input type="text" className="form-input" placeholder="Weight (optional)" value={bx.weight || ''}
+                  onChange={e => { const arr = [...boxes]; arr[idx].weight = e.target.value; updateBoxes(arr); }} style={{ flex: 1 }} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginTop: 'var(--space-2)', padding: 'var(--space-2)', background: 'var(--color-surface-alt)', border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={form.declaration || false} onChange={e => setForm(f => ({ ...f, declaration: e.target.checked }))} style={{ marginTop: '4px' }} />
+            <span style={{ fontSize: '0.85rem', color: 'var(--color-text)' }}>
+              <strong>Include Demo Declaration line in DC Copy PDF:</strong><br />
+              "Declaration: This is to confirm that goods containing in the parcel are surgical goods used for Demo purpose Not for Sale."
+            </span>
+          </label>
+        </div>
+      </>)}
+    </div>
+  );
+}
+
+
+/* ─── Helpdesk Dashboard ────────────────────────────────────── */
+function HelpdeskDashboard() {
+  const { employeeEmail } = useAuth();
+  const navigate = useNavigate();
+  const toast = useToast();
 
   function openCategory(cat) {
     if (cat.restricted && employeeEmail !== RESTRICTED_EMAIL) {
       toast.warning('This section is restricted to authorized personnel only.');
       return;
     }
-    if (cat.link) { navigate(cat.link); return; }
-    setOpenModal(cat.key);
-    setFormData({});
-    setErrors({});
-  }
-
-  const activeCat = CATEGORIES.find(c => c.key === openModal);
-
-  function renderForm() {
-    const props = { form: formData, setForm: setFormData, errors };
-    switch (openModal) {
-      case 'maintenance':      return <MaintenanceForm {...props} />;
-      case 'housekeeping':     return <HousekeepingForm {...props} />;
-      case 'hk_material':      return <HkMaterialForm {...props} />;
-      case 'stationery':       return <StationeryForm {...props} />;
-      case 'office_asset':     return <OfficeAssetForm {...props} />;
-      case 'print_scan':       return <PrintScanForm {...props} />;
-      case 'admin_support':    return <AdminSupportForm {...props} />;
-      case 'courier_dispatch': return <CourierDispatchForm {...props} />;
-      default: return null;
+    if (cat.link) {
+      navigate(cat.link);
+      return;
     }
+    navigate(`/helpdesk/${cat.key}`);
   }
 
   return (
@@ -883,7 +1402,7 @@ export default function HelpDeskPage() {
       }}>
         {CATEGORIES.map(cat => {
           const isRestricted = cat.restricted && employeeEmail !== RESTRICTED_EMAIL;
-          if (isRestricted) return null; // Hide restricted cards entirely, matching legacy behavior
+          if (isRestricted) return null; // Hide restricted cards entirely
 
           return (
             <button
@@ -943,76 +1462,222 @@ export default function HelpDeskPage() {
         })}
       </div>
 
-      {/* ── Request Tracker ── */}
       <RequestTracker />
-
-      {/* ── Change Password ── */}
       <ChangePasswordPanel />
+    </div>
+  );
+}
 
-      {/* ── Category Modal ── */}
-      {openModal && activeCat && (
-        <Modal
-          isOpen={!!openModal}
-          onClose={() => { setOpenModal(null); setFormData({}); setErrors({}); }}
-          title={`${activeCat.icon} ${activeCat.label}`}
-          size="wide"
-          footer={
-            <>
-              <button type="button" className="btn btn--secondary"
-                onClick={() => { setOpenModal(null); setFormData({}); setErrors({}); }}>
+/* ─── Helpdesk Request View ─────────────────────────────────── */
+function HelpdeskRequestView() {
+  const { categoryKey } = useParams();
+  const { employeeEmail } = useAuth();
+  const navigate = useNavigate();
+  const toast = useToast();
+
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [courierTab, setCourierTab] = useState('challan'); // tracks tab inside CourierDispatchForm
+
+  const activeCat = CATEGORIES.find(c => c.key === categoryKey);
+
+  useEffect(() => {
+    if (activeCat?.restricted && employeeEmail !== RESTRICTED_EMAIL) {
+      toast.warning('This section is restricted.');
+      navigate('/helpdesk', { replace: true });
+    }
+  }, [activeCat, employeeEmail, navigate, toast]);
+
+  if (!activeCat) {
+    return <div style={{ padding: 'var(--space-6)', textAlign: 'center' }}>Category not found.</div>;
+  }
+
+  /* Validate based on category */
+  function validateForm(category, form) {
+    const e = {};
+    if (category !== 'courier_dispatch') {
+      if (!form.requester_phone?.trim()) {
+        e.requester_phone = 'Phone number is required';
+      } else if (!/^[6-9]\d{9}$/.test(form.requester_phone.trim())) {
+        e.requester_phone = 'Phone must be a valid 10-digit mobile number';
+      }
+    }
+
+    if (category === 'maintenance') {
+      if (!form.issue_type) e.issue_type = 'Issue type is required';
+      if (!form.floor) e.floor = 'Floor is required';
+      if (!form.description?.trim()) e.description = 'Exact issue is required';
+    } else if (category === 'housekeeping') {
+      if (!form.request_type) e.request_type = 'Request type is required';
+      if (!form.floor) e.floor = 'Floor is required';
+      if (!form.description?.trim()) e.description = 'Exact query is required';
+    } else if (category === 'hk_material') {
+      if (!form.items?.length) e.items = 'Select at least one item';
+      if (!form.floor) e.floor = 'Floor is required';
+      if (form.items?.some(s => s.name === 'Other') && !form.remarks?.trim()) {
+        e.remarks = 'Remarks required when Other is selected';
+      }
+    } else if (category === 'stationery') {
+      if (!form.items?.length) e.items = 'Select at least one item';
+      if (!form.floor) e.floor = 'Floor is required';
+    } else if (category === 'office_asset') {
+      if (!form.request_type) e.request_type = 'Request type is required';
+      if (!form.floor) e.floor = 'Floor is required';
+      if (!form.description?.trim()) e.description = 'Exact query is required';
+    } else if (category === 'print_scan') {
+      if (!form.service_type) e.service_type = 'Service type is required';
+      if (!form.description?.trim()) e.description = 'Exact query is required';
+    } else if (category === 'admin_support') {
+      if (!form.support_type) e.support_type = 'Support type is required';
+      if (!form.description?.trim()) e.description = 'Description is required';
+    } else if (category === 'courier_dispatch') {
+      if (!form.dcNo?.trim()) e.dcNo = 'Challan Number is required';
+      if (!form.senderName?.trim()) e.senderName = 'Sender name is required';
+      if (!form.senderPhone?.trim()) {
+        e.senderPhone = 'Sender phone is required';
+      } else if (!/^[6-9]\d{9}$/.test(form.senderPhone.trim())) {
+        e.senderPhone = 'Phone must be a valid 10-digit mobile number';
+      }
+      if (!form.receiverName?.trim()) e.receiverName = 'Receiver name is required';
+      if (!form.toAddress?.trim()) e.toAddress = 'Destination address is required';
+    }
+    return e;
+  }
+
+  async function handleSubmit(e) {
+    if (e) e.preventDefault();
+    const errs = validateForm(categoryKey, formData);
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    setSubmitting(true);
+    try {
+      if (categoryKey === 'courier_dispatch') {
+        await employeeApi.createCourierDispatch({
+          requesterEmail: employeeEmail,
+          ...formData,
+          senderName: formData.senderName || employeeEmail?.split('@')[0] || 'Employee'
+        });
+        toast.success('Courier dispatch request & Delivery Challan created! 📦');
+      } else {
+        const payload = {
+          category: categoryKey,
+          requester_name: employeeEmail?.split('@')[0] || '',
+          requester_email: employeeEmail || '',
+          ...formData,
+          items: formData.items ? JSON.stringify(formData.items) : undefined,
+        };
+        await helpdeskApi.submit(payload);
+        toast.success('Request submitted successfully! ✅');
+      }
+      navigate('/helpdesk');
+    } catch (err) {
+      toast.error(err.message || 'Failed to submit request');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function renderForm() {
+    const props = { form: formData, setForm: setFormData, errors };
+    switch (categoryKey) {
+      case 'maintenance':      return <MaintenanceForm {...props} />;
+      case 'housekeeping':     return <HousekeepingForm {...props} />;
+      case 'hk_material':      return <HkMaterialForm {...props} />;
+      case 'stationery':       return <StationeryForm {...props} />;
+      case 'office_asset':     return <OfficeAssetForm {...props} />;
+      case 'print_scan':       return <PrintScanForm {...props} />;
+      case 'admin_support':    return <AdminSupportForm {...props} />;
+      case 'courier_dispatch': return <CourierDispatchForm {...props} onTabChange={setCourierTab} />;
+      default: return null;
+    }
+  }
+
+  // On the Shipping Label tab, the form manages its own submission — hide outer form chrome
+  const isLabelTab = categoryKey === 'courier_dispatch' && courierTab === 'label';
+
+  return (
+    <div style={{ padding: 'var(--space-6)', maxWidth: 800, margin: '0 auto' }}>
+      <Breadcrumbs items={[{ label: 'Home', link: '/helpdesk' }, { label: activeCat.label }]} />
+      
+      <PageHeader 
+        title={<span>{activeCat.icon} {activeCat.label}</span>} 
+        subtitle={activeCat.desc} 
+      />
+
+      <div className="card">
+        <form onSubmit={handleSubmit} noValidate>
+          {/* Requester info — hidden on shipping label tab */}
+          {!isLabelTab && (
+            <div style={{
+              background: 'var(--color-surface-2)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              padding: 'var(--space-4)',
+              marginBottom: 'var(--space-5)',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 'var(--space-3)',
+            }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: 2 }}>Name</div>
+                <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={employeeEmail?.split('@')[0]}>
+                  {employeeEmail?.split('@')[0] || '—'}
+                </div>
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: 2 }}>Email</div>
+                <div style={{ fontWeight: 500, fontSize: '0.9rem', wordBreak: 'break-word', overflowWrap: 'break-word' }} title={employeeEmail}>
+                  {employeeEmail || '—'}
+                </div>
+              </div>
+              <div>
+                <FormField label="Phone Number" required htmlFor="hd-req-phone" error={errors.requester_phone} style={{ marginBottom: 0 }}>
+                  <input
+                    id="hd-req-phone"
+                    type="tel"
+                    className={`form-input${errors.requester_phone ? ' form-input--error' : ''}`}
+                    placeholder="e.g. 9876543210"
+                    value={formData.requester_phone || ''}
+                    onChange={e => setFormData(d => ({ ...d, requester_phone: e.target.value }))}
+                  />
+                </FormField>
+              </div>
+            </div>
+          )}
+
+          {renderForm()}
+
+          {/* Submit/Cancel buttons — hidden on shipping label tab (which has its own submit) */}
+          {!isLabelTab && (
+            <div style={{ marginTop: 'var(--space-6)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)' }}>
+              <button type="button" className="btn btn--secondary" onClick={() => navigate('/helpdesk')}>
                 Cancel
               </button>
               <button
-                type="button"
+                type="submit"
                 className={`btn btn--primary${submitting ? ' btn--loading' : ''}`}
-                onClick={handleSubmit}
                 disabled={submitting}
               >
                 {submitting ? 'Submitting…' : 'Submit Request'}
               </button>
-            </>
-          }
-        >
-          {/* Requester info (readonly) */}
-          <div style={{
-            background: 'var(--color-surface-2)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: 'var(--space-4)',
-            marginBottom: 'var(--space-5)',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 'var(--space-3)',
-          }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: 2 }}>Name</div>
-              <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={employeeEmail?.split('@')[0]}>
-                {employeeEmail?.split('@')[0] || '—'}
-              </div>
             </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: 2 }}>Email</div>
-              <div style={{ fontWeight: 500, fontSize: '0.9rem', wordBreak: 'break-word', overflowWrap: 'break-word' }} title={employeeEmail}>
-                {employeeEmail || '—'}
-              </div>
-            </div>
-            <div>
-              <FormField label="Phone Number" required htmlFor="hd-req-phone" error={errors.requester_phone} style={{ marginBottom: 0 }}>
-                <input
-                  id="hd-req-phone"
-                  type="tel"
-                  className={`form-input${errors.requester_phone ? ' form-input--error' : ''}`}
-                  placeholder="e.g. 9876543210"
-                  value={formData.requester_phone || ''}
-                  onChange={e => setFormData(d => ({ ...d, requester_phone: e.target.value }))}
-                />
-              </FormField>
-            </div>
-          </div>
-
-          {renderForm()}
-        </Modal>
-      )}
+          )}
+        </form>
+      </div>
     </div>
+  );
+}
+
+/* ─── Main HelpDeskPage ───────────────────────────────────── */
+export default function HelpDeskPage() {
+  useEffect(() => {
+    document.title = 'Help Desk | Avana';
+  }, []);
+
+  return (
+    <Routes>
+      <Route index element={<HelpdeskDashboard />} />
+      <Route path=":categoryKey" element={<HelpdeskRequestView />} />
+    </Routes>
   );
 }

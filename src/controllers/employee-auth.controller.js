@@ -153,9 +153,23 @@ exports.setPassword = async (req, res, next) => {
 
     const email = decoded.email;
     const password = req.body.newPassword || req.body.password;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, error: 'Missing email or password.' });
+    const otp = req.body.otp;
+    if (!email || !password || !otp) {
+      return res.status(400).json({ success: false, error: 'Missing email, password, or OTP.' });
     }
+
+    const otpIp = req.socket.remoteAddress || req.headers['x-forwarded-for'] || '127.0.0.1';
+    const storedOtpData = otpStore.get(otpIp);
+
+    if (!storedOtpData || Date.now() > storedOtpData.expires) {
+      return res.status(400).json({ success: false, error: 'OTP has expired or was not requested.' });
+    }
+
+    if (storedOtpData.email !== email.toLowerCase() || storedOtpData.otp !== otp) {
+      return res.status(400).json({ success: false, error: 'Invalid OTP.' });
+    }
+
+    otpStore.delete(otpIp);
 
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');

@@ -375,7 +375,7 @@ export default function AdminDashPage() {
         )}
         {!loading && filtered.length > 0 && (
           <div className="table-wrapper">
-            <table className="table" aria-label="Conference room bookings admin table" style={{ minWidth: 900 }}>
+            <table className="table" aria-label="Conference room bookings admin table" style={{ width: '100%' }}>
               <thead>
                 <tr>
                   <th scope="col">#</th>

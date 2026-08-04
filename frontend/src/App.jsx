@@ -49,7 +49,7 @@ export default function App() {
                   <EmployeeLayout />
                 </RequireEmployee>
               }>
-                <Route path="/helpdesk" element={<HelpDeskPage />} />
+                <Route path="/helpdesk/*" element={<HelpDeskPage />} />
                 <Route path="/booking" element={<BookingPage />} />
               </Route>
 

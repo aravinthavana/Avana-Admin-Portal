@@ -2,11 +2,11 @@ version: '3.8'
 services:
   booking-app:
     build: .
-    container_name: \
+    container_name: ${CONTAINER_NAME:-booking-app}
     restart: unless-stopped
     ports:
-      - "\:8080"
+      - "${PORT:-8080}:8080"
     environment:
       - DATABASE_URL=file:/app/data/database.sqlite
     volumes:
-      - \:/app/data
+      - ${DATA_DIR:-./data}:/app/data

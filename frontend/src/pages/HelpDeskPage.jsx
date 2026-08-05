@@ -1129,10 +1129,10 @@ function ShippingLabelForm({ userEmail }) {
   );
 }
 
-function ItemsTable({ items, setItems }) {
+function ItemsTable({ items, setItems, title = 'Dispatched Items' }) {
   return (
     <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
-      <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-3)' }}>Dispatched Items</h4>
+      <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-3)' }}>{title}</h4>
       {items.map((it, idx) => (
         <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', flexWrap: 'wrap' }}>
           <input type="text" className="form-input" placeholder="Item Code" value={it.itemCode || ''}
@@ -1181,6 +1181,7 @@ function CourierMergeForm({ userEmail }) {
   const [dispatches, setDispatches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedDc, setSelectedDc] = useState(null);
+  const [items, setItems] = useState([{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }]);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -1195,14 +1196,15 @@ function CourierMergeForm({ userEmail }) {
     e.preventDefault();
     if (!selectedDc) return toast.error('Select a Delivery Challan to merge into.');
     
-    // We send a default dummy item since the user doesn't want the itemized table
-    const items = [{ itemCode: '', description: 'Merged Parcel Items', serialNo: '', qty: 1, rate: 0, value: 0 }];
+    const validItems = items.filter(it => it.description.trim());
+    if (validItems.length === 0) return toast.error('Add at least one item description.');
 
     try {
       setSubmitting(true);
-      await employeeApi.createMergeRequest(selectedDc, items);
+      await employeeApi.createMergeRequest(selectedDc, validItems);
       toast.success('Merge request submitted to the owner for approval.');
       setSelectedDc(null);
+      setItems([{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }]);
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to submit merge request.');
     } finally {
@@ -1214,19 +1216,45 @@ function CourierMergeForm({ userEmail }) {
   if (dispatches.length === 0) return <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>No other dispatches available today.</div>;
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-      <FormField label="Target Delivery Challan">
-        <select className="form-select" value={selectedDc || ''} onChange={e => setSelectedDc(e.target.value)}>
-          <option value="">-- Select Active Courier --</option>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+      {!selectedDc ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
           {dispatches.map(dc => (
-            <option key={dc.id} value={dc.id}>DC #{dc.dcNo} - To: {dc.receiverName}</option>
+            <div key={dc.id} style={{
+              background: 'white', border: '1px solid #fed7aa', borderRadius: '8px', padding: '0.8rem',
+              display: 'flex', flexDirection: 'column', gap: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', textAlign: 'left'
+            }}>
+              <div style={{ fontWeight: 700, color: '#9a3412', fontSize: '0.88rem' }}>DC No: #{dc.dcNo}</div>
+              <div style={{ fontSize: '0.8rem', color: '#4b5563' }}>
+                <strong>To:</strong> {dc.receiverName}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                <strong>Sender:</strong> {dc.senderName}
+              </div>
+              <button type="button" onClick={() => setSelectedDc(dc.id)} style={{
+                background: '#ea580c', color: 'white', border: 'none', borderRadius: '6px', padding: '0.45rem',
+                fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.3rem', marginTop: '0.2rem'
+              }}>
+                🔗 Merge Request
+              </button>
+            </div>
           ))}
-        </select>
-      </FormField>
-      <button type="submit" className="btn btn--primary" style={{ width: '100%', marginTop: 'var(--space-2)' }} disabled={submitting || !selectedDc}>
-        {submitting ? 'Submitting...' : 'Send Merge Request'}
-      </button>
-    </form>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--brand-amber)' }}>
+              Merging into DC #{dispatches.find(d => d.id === selectedDc)?.dcNo}
+            </span>
+            <button type="button" onClick={() => setSelectedDc(null)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Cancel</button>
+          </div>
+          <ItemsTable items={items} setItems={setItems} title="Items to Merge" />
+          <button type="submit" className="btn btn--primary" style={{ width: '100%', marginTop: 'var(--space-2)' }} disabled={submitting}>
+            {submitting ? 'Submitting...' : 'Send Merge Request'}
+          </button>
+        </form>
+      )}
+    </div>
   );
 }
 
@@ -1669,7 +1697,7 @@ function HelpdeskRequestView() {
   const isLabelTab = categoryKey === 'courier_dispatch' && courierTab === 'label';
 
   return (
-    <div style={{ padding: 'var(--space-6)', maxWidth: 800, margin: '0 auto' }}>
+    <div style={{ padding: 'var(--space-6)', maxWidth: categoryKey === 'courier_dispatch' ? 1200 : 800, margin: '0 auto', width: '100%' }}>
       <Breadcrumbs items={[{ label: 'Home', link: '/helpdesk' }, { label: activeCat.label }]} />
       
       <PageHeader 

@@ -1129,6 +1129,51 @@ function ShippingLabelForm({ userEmail }) {
   );
 }
 
+function ItemsTable({ items, setItems }) {
+  return (
+    <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
+      <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-3)' }}>Dispatched Items</h4>
+      {items.map((it, idx) => (
+        <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', flexWrap: 'wrap' }}>
+          <input type="text" className="form-input" placeholder="Item Code" value={it.itemCode || ''}
+            onChange={e => { const arr = [...items]; arr[idx].itemCode = e.target.value; setItems(arr); }} style={{ width: '90px' }} />
+          <input type="text" className="form-input" placeholder="Item Description *" required value={it.description || ''}
+            onChange={e => { const arr = [...items]; arr[idx].description = e.target.value; setItems(arr); }} style={{ flex: 2, minWidth: '150px' }} />
+          <input type="text" className="form-input" placeholder="S/N" value={it.serialNo || ''}
+            onChange={e => { const arr = [...items]; arr[idx].serialNo = e.target.value; setItems(arr); }} style={{ flex: 1, minWidth: '90px' }} />
+          <input type="number" className="form-input" placeholder="Qty" min="1" value={it.qty || ''}
+            onChange={e => {
+              const arr = [...items];
+              arr[idx].qty = parseInt(e.target.value, 10) || 0;
+              arr[idx].value = arr[idx].qty * (parseFloat(arr[idx].rate) || 0);
+              setItems(arr);
+            }} style={{ width: '70px' }} />
+          <input type="number" step="any" className="form-input" placeholder="Rate" min="0" value={it.rate || ''}
+            onChange={e => {
+              const arr = [...items];
+              arr[idx].rate = parseFloat(e.target.value) || 0;
+              arr[idx].value = arr[idx].rate * (parseInt(arr[idx].qty) || 0);
+              setItems(arr);
+            }} style={{ width: '90px' }} />
+          <input type="number" step="any" className="form-input" placeholder="Value" value={it.value || ''} disabled
+            style={{ width: '100px', backgroundColor: 'var(--color-surface)', cursor: 'not-allowed' }} />
+          {items.length > 1 && (
+            <button type="button" className="btn btn--sm btn--danger" onClick={() => setItems(items.filter((_, i) => i !== idx))} style={{ padding: '0 0.5rem' }}>X</button>
+          )}
+        </div>
+      ))}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-3)' }}>
+        <button type="button" className="btn btn--sm btn--outline" onClick={() => setItems([...items, { itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }])}>
+          + Add Item
+        </button>
+        <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>
+          Total Value: Rs.{items.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0).toFixed(2)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // --- Courier Merge Form ---
 function CourierMergeForm({ userEmail }) {
   const { toast } = useToast();
@@ -1371,46 +1416,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
           </label>
         </div>
 
-        <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-3)' }}>Dispatched Items</h4>
-          {items.map((it, idx) => (
-            <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', flexWrap: 'wrap' }}>
-              <input type="text" className="form-input" placeholder="Item Code" value={it.itemCode || ''}
-                onChange={e => { const arr = [...items]; arr[idx].itemCode = e.target.value; updateItems(arr); }} style={{ width: '90px' }} />
-              <input type="text" className="form-input" placeholder="Item Description *" required value={it.description || ''}
-                onChange={e => { const arr = [...items]; arr[idx].description = e.target.value; updateItems(arr); }} style={{ flex: 2, minWidth: '150px' }} />
-              <input type="text" className="form-input" placeholder="S/N" value={it.serialNo || ''}
-                onChange={e => { const arr = [...items]; arr[idx].serialNo = e.target.value; updateItems(arr); }} style={{ flex: 1, minWidth: '90px' }} />
-              <input type="number" className="form-input" placeholder="Qty" min="1" value={it.qty || ''}
-                onChange={e => {
-                  const arr = [...items];
-                  arr[idx].qty = parseInt(e.target.value, 10) || 0;
-                  arr[idx].value = arr[idx].qty * (parseFloat(arr[idx].rate) || 0);
-                  updateItems(arr);
-                }} style={{ width: '70px' }} />
-              <input type="number" step="any" className="form-input" placeholder="Rate" min="0" value={it.rate || ''}
-                onChange={e => {
-                  const arr = [...items];
-                  arr[idx].rate = parseFloat(e.target.value) || 0;
-                  arr[idx].value = arr[idx].rate * (parseInt(arr[idx].qty) || 0);
-                  updateItems(arr);
-                }} style={{ width: '90px' }} />
-              <input type="number" step="any" className="form-input" placeholder="Value" value={it.value || ''} disabled
-                style={{ width: '100px', backgroundColor: 'var(--color-surface)', cursor: 'not-allowed' }} />
-              {items.length > 1 && (
-                <button type="button" className="btn btn--sm btn--danger" onClick={() => updateItems(items.filter((_, i) => i !== idx))} style={{ padding: '0 0.5rem' }}>X</button>
-              )}
-            </div>
-          ))}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-3)' }}>
-            <button type="button" className="btn btn--sm btn--outline" onClick={() => updateItems([...items, { itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }])}>
-              + Add Item
-            </button>
-            <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>
-              Total Value: Rs.{items.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0).toFixed(2)}
-            </div>
-          </div>
-        </div>
+        <ItemsTable items={items} setItems={updateItems} />
 
         <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
           <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-3)' }}>Box Details (Dimensions & Weight)</h4>

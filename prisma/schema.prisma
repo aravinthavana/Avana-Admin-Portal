@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:../database.sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model AdminLogin {
@@ -222,7 +222,9 @@ model CourierDispatch {
   submittedAt       String
   updatedAt         String
   parentDispatchId  String?
+  mergedRequesters  String?
   items             CourierDispatchItem[]
+  mergeRequests     CourierMergeRequest[]
 }
 
 model CourierDispatchItem {
@@ -235,6 +237,20 @@ model CourierDispatchItem {
   rate        Float           @default(0)
   value       Float           @default(0)
   dispatch    CourierDispatch @relation(fields: [dispatchId], references: [id], onDelete: Cascade)
+}
+
+model CourierMergeRequest {
+  id               String          @id @default(uuid())
+  targetDispatchId String
+  requesterEmail   String
+  requesterName    String?
+  itemsJson        String
+  status           String          @default("pending") // pending, approved, rejected
+  approvalToken    String?         @unique
+  rejectionReason  String?
+  createdAt        String
+  updatedAt        String
+  targetDispatch   CourierDispatch @relation(fields: [targetDispatchId], references: [id], onDelete: Cascade)
 }
 
 model PettyCash {

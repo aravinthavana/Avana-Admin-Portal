@@ -890,7 +890,7 @@ export function CourierDispatchPage() {
       rows: filtered.map(d => [
         `#${d.dcNo || d.id}`,
         d.dcDate || d.createdAt?.slice(0,10) || '—',
-        `${d.senderName || 'Admin'} (${d.requesterEmail || ''})`,
+        `${d.senderName || 'Admin'} (${d.requesterEmail || ''})${d.mergedRequesters ? '\n+ Merged: ' + d.mergedRequesters : ''}`,
         `${d.receiverName || '—'}, ${d.toAddress || ''}`,
         d.docketNo ? `${d.transporterName || 'Courier'}: ${d.docketNo}` : 'Unassigned',
         d.status || 'Pending',
@@ -959,6 +959,11 @@ export function CourierDispatchPage() {
                     <td>
                       <div style={{ fontWeight: 600 }}>{d.senderName || 'N/A'}</div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{d.requesterEmail || d.senderPhone}</div>
+                      {d.mergedRequesters && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--brand-amber)', marginTop: 4 }}>
+                          + Merged: {d.mergedRequesters.split(',').join(', ')}
+                        </div>
+                      )}
                     </td>
                     <td>
                       <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{d.courierBilling || 'Avana Group'}</div>

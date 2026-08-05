@@ -27,6 +27,8 @@ router.get('/stationery-items', inventoryController.getStationeryCatalog);
 // Courier Dispatch (Employee Side)
 const courierController = require('../controllers/courier-dispatch.controller');
 router.get('/courier-dispatch/next-dc', courierController.getNextDcNumber);
+router.get('/courier-dispatch/by-date', courierController.getDispatchesByDate);
+router.post('/courier-dispatch/merge-request', courierController.createMergeRequest);
 router.post('/courier-dispatch', courierController.createDispatch);
 router.post('/shipping-label', courierController.generateShippingLabel);
 

@@ -1129,6 +1129,76 @@ function ShippingLabelForm({ userEmail }) {
   );
 }
 
+// --- Courier Merge Form ---
+function CourierMergeForm({ userEmail }) {
+  const { toast } = useToast();
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [dispatches, setDispatches] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedDc, setSelectedDc] = useState(null);
+  const [items, setItems] = useState([{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }]);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (date) {
+      setLoading(true);
+      employeeApi.getDispatchesByDate(date)
+        .then(res => setDispatches(res.data))
+        .catch(err => toast.error('Failed to load dispatches'))
+        .finally(() => setLoading(false));
+    }
+  }, [date]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedDc) return toast.error('Select a Delivery Challan to merge into.');
+    const validItems = items.filter(it => it.description.trim());
+    if (validItems.length === 0) return toast.error('Add at least one item.');
+
+    try {
+      setSubmitting(true);
+      await employeeApi.createMergeRequest(selectedDc, validItems);
+      toast.success('Merge request submitted to the owner for approval.');
+      setSelectedDc(null);
+      setItems([{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }]);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to submit merge request.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 'var(--space-4)', alignItems: 'end' }}>
+        <FormField label="Dispatch Date">
+          <input type="date" className="form-input" value={date} onChange={e => setDate(e.target.value)} />
+        </FormField>
+        <FormField label="Select Target Delivery Challan">
+          <select className="form-select" value={selectedDc || ''} onChange={e => setSelectedDc(e.target.value)} disabled={loading}>
+            <option value="">{loading ? 'Loading...' : '-- Select Active Courier --'}</option>
+            {dispatches.map(dc => (
+              <option key={dc.id} value={dc.id}>DC #{dc.dcNo} - {dc.senderName} ({dc.requesterEmail}) - To: {dc.receiverName}</option>
+            ))}
+          </select>
+        </FormField>
+      </div>
+
+      {selectedDc && (
+        <form onSubmit={handleSubmit} style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-4)' }}>
+          <h4 style={{ margin: '0 0 var(--space-3)', color: 'var(--brand-amber)' }}>Your Items to Merge</h4>
+          <ItemsTable items={items} setItems={setItems} />
+          <div style={{ marginTop: 'var(--space-4)', display: 'flex', justifyContent: 'flex-end' }}>
+            <button type="submit" className="btn btn--primary" disabled={submitting}>
+              {submitting ? 'Submitting...' : 'Send Merge Request'}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
+
 /* --- CourierDispatchForm --- */
 function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
   const { employeeEmail } = useAuth();
@@ -1168,12 +1238,16 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
         <button type="button" style={tabStyle(activeTab === 'challan')} onClick={() => switchTab('challan')}>
           Delivery Challan
         </button>
+        <button type="button" style={tabStyle(activeTab === 'merge')} onClick={() => switchTab('merge')}>
+          Merge Request
+        </button>
         <button type="button" style={tabStyle(activeTab === 'label')} onClick={() => switchTab('label')}>
           Shipping Label
         </button>
       </div>
 
       {activeTab === 'label' && <ShippingLabelForm userEmail={employeeEmail} />}
+      {activeTab === 'merge' && <CourierMergeForm userEmail={employeeEmail} />}
 
       {activeTab === 'challan' && (<>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
@@ -1592,8 +1666,8 @@ function HelpdeskRequestView() {
     }
   }
 
-  // On the Shipping Label tab, the form manages its own submission — hide outer form chrome
-  const isLabelTab = categoryKey === 'courier_dispatch' && courierTab === 'label';
+  // On the Shipping Label and Merge tabs, the form manages its own submission — hide outer form chrome
+  const isLabelTab = categoryKey === 'courier_dispatch' && (courierTab === 'label' || courierTab === 'merge');
 
   return (
     <div style={{ padding: 'var(--space-6)', maxWidth: 800, margin: '0 auto' }}>

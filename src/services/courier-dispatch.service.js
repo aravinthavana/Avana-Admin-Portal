@@ -240,7 +240,14 @@ exports.updateTrackingInfo = async (id, data) => {
       <p><br>Thanks,<br>Avana Admin</p>
     `;
     try {
-      await sendEmail(dispatch.requesterEmail, 'Courier Dispatched - Tracking Details', emailContent);
+      const recipients = [dispatch.requesterEmail];
+      if (dispatch.mergedRequesters) {
+        recipients.push(...dispatch.mergedRequesters.split(',').map(e => e.trim()).filter(Boolean));
+      }
+      
+      for (const email of [...new Set(recipients)]) {
+        await sendEmail(email, 'Courier Dispatched - Tracking Details', emailContent);
+      }
     } catch (e) {
       console.error('Failed to send tracking email:', e);
     }
@@ -437,4 +444,181 @@ exports.renderDeliveryChallanHtml = (dispatch) => {
     </body>
     </html>
   `;
+};
+
+// ─── Courier Merge Logic ───────────────────────────────────────────────────────
+
+exports.getDispatchesByDate = async (date, excludeEmail) => {
+  return prisma.courierDispatch.findMany({
+    where: {
+      dcDate: date,
+      status: 'approved',
+      requesterEmail: { not: excludeEmail }
+    },
+    include: { items: true },
+    orderBy: { submittedAt: 'desc' }
+  });
+};
+
+exports.getMergeRequestById = async (id) => {
+  return prisma.courierMergeRequest.findUnique({
+    where: { id },
+    include: { targetDispatch: true }
+  });
+};
+
+exports.createMergeRequest = async (data) => {
+  const { targetDispatchId, requesterEmail, requesterName, items, host } = data;
+  
+  const target = await prisma.courierDispatch.findUnique({ where: { id: targetDispatchId } });
+  if (!target) throw new Error('Target Courier Dispatch not found');
+
+  const mr = await prisma.courierMergeRequest.create({
+    data: {
+      targetDispatchId,
+      requesterEmail,
+      requesterName,
+      itemsJson: JSON.stringify(items),
+      approvalToken: Date.now().toString(36) + Math.random().toString(36).substring(2, 7),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  });
+
+  // Send email to target.requesterEmail
+  const { sendEmail } = require('../utils/notifications');
+  const acceptLink = `${host}/api/courier-dispatch/merge/accept?id=${mr.id}`;
+  const rejectLink = `${host}/api/courier-dispatch/merge/reject-page?id=${mr.id}`;
+
+  const itemsHtml = items.map(it => \`<li>\${it.qty}x \${it.description} (Value: ₹\${it.value})</li>\`).join('');
+
+  const emailHtml = \`
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+      <div style="background:#ea580c; padding:20px; text-align:center;">
+        <h2 style="color:#fff; margin:0;">📦 Parcel Merge Request</h2>
+      </div>
+      <div style="padding:24px; background:#f9fafb;">
+        <p><strong>\${requesterEmail}</strong> has requested to merge their parcel items into your Delivery Challan (<strong>DC #\${target.dcNo}</strong>) scheduled for dispatch on <strong>\${target.dcDate}</strong>.</p>
+        <h3 style="font-size:0.95rem; margin-bottom:8px; color:#111827;">Merge Items details:</h3>
+        <ul style="background:white; padding:15px 30px; border:1px solid #e5e7eb; border-radius:6px;">
+          \${itemsHtml}
+        </ul>
+        <p style="margin-top:24px;">Please review and choose to Accept or Reject this merge request:</p>
+        <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+          <a href="\${acceptLink}" style="background:#10b981; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:0.9rem; margin-right: 10px;">Accept Merge</a>
+          <a href="\${rejectLink}" style="background:#ef4444; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:0.9rem;">Reject Merge</a>
+        </div>
+      </div>
+    </div>
+  \`;
+
+  await sendEmail(target.requesterEmail, \`Merge Request for DC #\${target.dcNo}\`, emailHtml);
+  return mr;
+};
+
+exports.acceptMergeRequest = async (id) => {
+  const mr = await prisma.courierMergeRequest.findUnique({ where: { id }, include: { targetDispatch: true } });
+  if (!mr || mr.status !== 'pending') return { success: false, error: 'Merge request is invalid or has already been processed.' };
+
+  const items = JSON.parse(mr.itemsJson);
+  const target = mr.targetDispatch;
+
+  let addedVal = 0;
+  for (const it of items) {
+    const qty = parseInt(it.qty, 10) || 1;
+    const rate = parseFloat(it.rate) || 0;
+    const val = parseFloat(it.value) || (qty * rate);
+    addedVal += val;
+    await prisma.courierDispatchItem.create({
+      data: {
+        dispatchId: target.id,
+        itemCode: it.itemCode || 'MERGED',
+        description: \`[Merged for \${mr.requesterName || mr.requesterEmail}] \${it.description || 'Item'}\`,
+        serialNo: it.serialNo || '',
+        qty,
+        rate,
+        value: val
+      }
+    });
+  }
+
+  // Update target dispatch
+  const currentMerged = target.mergedRequesters ? target.mergedRequesters.split(',') : [];
+  if (!currentMerged.includes(mr.requesterEmail)) {
+    currentMerged.push(mr.requesterEmail);
+  }
+
+  const updatedTarget = await prisma.courierDispatch.update({
+    where: { id: target.id },
+    data: {
+      totalAmount: target.totalAmount + addedVal,
+      mergedRequesters: currentMerged.join(','),
+      updatedAt: new Date().toISOString()
+    },
+    include: { items: true }
+  });
+
+  // Mark MR as approved
+  await prisma.courierMergeRequest.update({
+    where: { id },
+    data: { status: 'approved', updatedAt: new Date().toISOString() }
+  });
+
+  // Send emails with updated PDF
+  const { generateDeliveryChallanPDF } = require('../utils/courier_pdf_generator');
+  const { sendEmail } = require('../utils/notifications');
+  const pdfBuffer = await generateDeliveryChallanPDF(updatedTarget);
+
+  const attachments = [{
+    filename: \`delivery-challan-\${updatedTarget.dcNo}.pdf\`,
+    content: pdfBuffer,
+    contentType: 'application/pdf'
+  }];
+
+  // To Requester
+  const reqHtml = \`
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+      <h2 style="color: #059669;">✅ Merge Request Accepted</h2>
+      <p>We are pleased to inform you that your parcel merge request has been accepted by <strong>\${target.requesterEmail}</strong>.</p>
+      <p>Your items have been merged into Delivery Challan <strong>DC #\${target.dcNo}</strong>.</p>
+      <p>Please find the updated Delivery Challan attached.</p>
+    </div>
+  \`;
+  await sendEmail(mr.requesterEmail, \`Merge Request Accepted - DC #\${target.dcNo}\`, reqHtml, attachments);
+
+  // To Owner
+  const ownerHtml = \`
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+      <h2 style="color: #059669;">✅ Merge Successful</h2>
+      <p>A new parcel was successfully merged into your Delivery Challan (<strong>DC #\${target.dcNo}</strong>).</p>
+      <p>Please find the updated Delivery Challan attached. Please use this latest copy for dispatch.</p>
+    </div>
+  \`;
+  await sendEmail(target.requesterEmail, \`Merge Successful - DC #\${target.dcNo}\`, ownerHtml, attachments);
+
+  return { success: true, parentDcNo: target.dcNo };
+};
+
+exports.rejectMergeRequest = async (id, reason) => {
+  const mr = await prisma.courierMergeRequest.findUnique({ where: { id }, include: { targetDispatch: true } });
+  if (!mr || mr.status !== 'pending') return { success: false, error: 'Merge request is invalid or has already been processed.' };
+
+  await prisma.courierMergeRequest.update({
+    where: { id },
+    data: { status: 'rejected', rejectionReason: reason, updatedAt: new Date().toISOString() }
+  });
+
+  const { sendEmail } = require('../utils/notifications');
+  const html = \`
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+      <h2 style="color: #ef4444;">❌ Merge Request Rejected</h2>
+      <p>We regret to inform you that your merge request for Delivery Challan <strong>DC #\${mr.targetDispatch.dcNo}</strong> has been rejected by the original owner.</p>
+      <p><strong>Reason for rejection:</strong></p>
+      <blockquote style="background: #fef2f2; padding: 15px; border-left: 4px solid #ef4444; margin: 0;">\${reason}</blockquote>
+      <p style="margin-top:20px;">Please raise a separate courier request for your items.</p>
+    </div>
+  \`;
+  await sendEmail(mr.requesterEmail, \`Merge Request Rejected - DC #\${mr.targetDispatch.dcNo}\`, html);
+
+  return { success: true };
 };

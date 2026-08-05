@@ -165,3 +165,123 @@ exports.generateShippingLabel = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getDispatchesByDate = async (req, res, next) => {
+  try {
+    const date = req.query.date;
+    const requesterEmail = req.user?.email || '';
+    if (!date) return res.status(400).json({ error: 'Date is required.' });
+    
+    const list = await courierService.getDispatchesByDate(date, requesterEmail);
+    res.status(200).json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.createMergeRequest = async (req, res, next) => {
+  try {
+    const requesterEmail = req.user?.email || '';
+    const requesterName = requesterEmail.split('@')[0];
+    const { targetDispatchId, items } = req.body;
+    const host = req.protocol + '://' + req.get('host');
+
+    if (!targetDispatchId || !items || !items.length) {
+      return res.status(400).json({ error: 'targetDispatchId and items are required.' });
+    }
+
+    const mr = await courierService.createMergeRequest({
+      targetDispatchId,
+      requesterEmail,
+      requesterName,
+      items,
+      host
+    });
+
+    res.status(201).json({ message: 'Merge request submitted successfully.', mergeRequest: mr });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.acceptMergeRequest = async (req, res, next) => {
+  try {
+    const { id } = req.query; // approvalToken/id
+    if (!id) return res.status(400).send('Merge request ID is missing.');
+    
+    const result = await courierService.acceptMergeRequest(id);
+    if (!result.success) {
+      return res.status(400).send(`<h2 style="color:#ef4444;">${result.error}</h2>`);
+    }
+
+    res.status(200).send(`
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+        <h2 style="color:#10b981; margin-top:0;">✅ Merge Request Accepted</h2>
+        <p>The parcel items have been merged into Delivery Challan <strong>DC #${result.parentDcNo}</strong> successfully.</p>
+        <p>A confirmation email has been sent to the merge requester.</p>
+      </div>
+    `);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.serveRejectPage = async (req, res, next) => {
+  try {
+    const { id } = req.query;
+    if (!id) return res.status(400).send('Merge request ID is missing.');
+
+    const mr = await courierService.getMergeRequestById(id);
+    if (!mr || mr.status !== 'pending') {
+      return res.status(400).send(`<h2 style="color:#ef4444;">Merge request is invalid or has already been processed.</h2>`);
+    }
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Reject Merge Request</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
+          textarea { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; margin-top: 10px; margin-bottom: 20px; box-sizing: border-box; }
+          button { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <h3 style="margin-top:0; color:#ef4444;">Reject Merge Request</h3>
+        <p>Please enter the reason for rejecting the parcel merge request from <strong>${mr.requesterEmail}</strong>:</p>
+        <form action="/api/courier-dispatch/merge/reject" method="POST">
+          <input type="hidden" name="id" value="${mr.id}">
+          <textarea name="reason" rows="4" required placeholder="Type reason here..."></textarea><br>
+          <button type="submit">Submit Rejection</button>
+        </form>
+      </body>
+      </html>
+    `;
+    res.send(html);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.rejectMergeRequest = async (req, res, next) => {
+  try {
+    const { id, reason } = req.body;
+    if (!id || !reason) return res.status(400).send('Missing ID or reason.');
+
+    const result = await courierService.rejectMergeRequest(id, reason);
+    if (!result.success) {
+      return res.status(400).send(`<h3>${result.error}</h3>`);
+    }
+
+    res.send(`
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+        <h2 style="color:#f59e0b; margin-top:0;">Merge Request Rejected</h2>
+        <p>The merge request has been rejected.</p>
+        <p>An email notification containing your reason has been sent to the merge requester.</p>
+      </div>
+    `);
+  } catch (error) {
+    next(error);
+  }
+};

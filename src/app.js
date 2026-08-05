@@ -12,6 +12,7 @@ const app = express();
 // Standard middlewares
 app.use(cors());
 app.use(express.json({ limit: '2mb' })); // Body parser with 2MB limit (like legacy getRequestBody)
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Import Routes
@@ -26,9 +27,12 @@ const assetTrackerController = require('./controllers/asset-tracker.controller')
 app.get('/api/assets/acknowledgement/:id', assetTrackerController.getAckDetails);
 app.post('/api/assets/acknowledgement/:id', assetTrackerController.submitAck);
 
-// Delivery Challan Document Print Route
+// Delivery Challan & Courier Merge Public Routes
 const courierController = require('./controllers/courier-dispatch.controller');
 app.get('/api/courier-dispatches/dc-print/:id', courierController.printDeliveryChallan);
+app.get('/api/courier-dispatch/merge/accept', courierController.acceptMergeRequest);
+app.get('/api/courier-dispatch/merge/reject-page', courierController.serveRejectPage);
+app.post('/api/courier-dispatch/merge/reject', courierController.rejectMergeRequest);
 
 // Mount routes
 app.use('/api/bookings', bookingRoutes);

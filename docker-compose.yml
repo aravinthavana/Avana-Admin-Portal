@@ -5,7 +5,7 @@ services:
     container_name: ${CONTAINER_NAME:-booking-app}
     restart: unless-stopped
     ports:
-      - "${PORT:-8080}:8080"
+      - "${HOST_PORT:-8080}:8080"
     env_file:
       - .env
     environment:

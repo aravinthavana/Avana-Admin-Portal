@@ -1143,7 +1143,7 @@ function CourierMergeForm({ userEmail }) {
     if (date) {
       setLoading(true);
       employeeApi.getDispatchesByDate(date)
-        .then(res => setDispatches(res.data))
+        .then(res => setDispatches(res || []))
         .catch(err => toast.error('Failed to load dispatches'))
         .finally(() => setLoading(false));
     }

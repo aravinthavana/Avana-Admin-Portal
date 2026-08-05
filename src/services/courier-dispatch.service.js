@@ -490,29 +490,32 @@ exports.createMergeRequest = async (data) => {
   const acceptLink = `${host}/api/courier-dispatch/merge/accept?id=${mr.id}`;
   const rejectLink = `${host}/api/courier-dispatch/merge/reject-page?id=${mr.id}`;
 
-  const itemsHtml = items.map(it => \`<li>\${it.qty}x \${it.description} (Value: ₹\${it.value})</li>\`).join('');
+  const itemsHtml = items.map(it => `<li>${it.qty}x ${it.description} (Value: ₹${it.value})</li>`).join('');
 
-  const emailHtml = \`
+  const emailHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
       <div style="background:#ea580c; padding:20px; text-align:center;">
         <h2 style="color:#fff; margin:0;">📦 Parcel Merge Request</h2>
       </div>
       <div style="padding:24px; background:#f9fafb;">
-        <p><strong>\${requesterEmail}</strong> has requested to merge their parcel items into your Delivery Challan (<strong>DC #\${target.dcNo}</strong>) scheduled for dispatch on <strong>\${target.dcDate}</strong>.</p>
-        <h3 style="font-size:0.95rem; margin-bottom:8px; color:#111827;">Merge Items details:</h3>
-        <ul style="background:white; padding:15px 30px; border:1px solid #e5e7eb; border-radius:6px;">
-          \${itemsHtml}
-        </ul>
+        <p style="font-size:16px;">Hello <b>${target.senderName || 'Colleague'}</b>,</p>
+        <p style="font-size:16px;"><b>${requesterName}</b> (${requesterEmail}) has requested to merge their items into your active Delivery Challan (<b>DC #${target.dcNo}</b>).</p>
+        <div style="background:#fff; border: 1px solid #e5e7eb; padding:16px; border-radius:8px; margin: 16px 0;">
+          <h4 style="margin-top:0; color:#374151;">Items to Merge:</h4>
+          <ul style="margin-bottom:0; color:#4b5563;">
+            ${itemsHtml}
+          </ul>
+        </div>
         <p style="margin-top:24px;">Please review and choose to Accept or Reject this merge request:</p>
         <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-          <a href="\${acceptLink}" style="background:#10b981; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:0.9rem; margin-right: 10px;">Accept Merge</a>
-          <a href="\${rejectLink}" style="background:#ef4444; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:0.9rem;">Reject Merge</a>
+          <a href="${acceptLink}" style="background:#10b981; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:0.9rem; margin-right: 10px;">Accept Merge</a>
+          <a href="${rejectLink}" style="background:#ef4444; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:0.9rem;">Reject Merge</a>
         </div>
       </div>
     </div>
-  \`;
+  `;
 
-  await sendEmail(target.requesterEmail, \`Merge Request for DC #\${target.dcNo}\`, emailHtml);
+  await sendEmail(target.requesterEmail, `Merge Request for DC #${target.dcNo}`, emailHtml);
   return mr;
 };
 
@@ -533,7 +536,7 @@ exports.acceptMergeRequest = async (id) => {
       data: {
         dispatchId: target.id,
         itemCode: it.itemCode || 'MERGED',
-        description: \`[Merged for \${mr.requesterName || mr.requesterEmail}] \${it.description || 'Item'}\`,
+        description: `[Merged for ${mr.requesterName || mr.requesterEmail}] ${it.description || 'Item'}`,
         serialNo: it.serialNo || '',
         qty,
         rate,
@@ -570,7 +573,7 @@ exports.acceptMergeRequest = async (id) => {
   const pdfBuffer = await generateDeliveryChallanPDF(updatedTarget);
 
   const attachments = [{
-    filename: \`delivery-challan-\${updatedTarget.dcNo}.pdf\`,
+    filename: `delivery-challan-${updatedTarget.dcNo}.pdf`,
     content: pdfBuffer,
     contentType: 'application/pdf'
   }];
@@ -579,22 +582,22 @@ exports.acceptMergeRequest = async (id) => {
   const reqHtml = \`
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
       <h2 style="color: #059669;">✅ Merge Request Accepted</h2>
-      <p>We are pleased to inform you that your parcel merge request has been accepted by <strong>\${target.requesterEmail}</strong>.</p>
-      <p>Your items have been merged into Delivery Challan <strong>DC #\${target.dcNo}</strong>.</p>
+      <p>We are pleased to inform you that your parcel merge request has been accepted by <strong>${target.requesterEmail}</strong>.</p>
+      <p>Your items have been merged into Delivery Challan <strong>DC #${target.dcNo}</strong>.</p>
       <p>Please find the updated Delivery Challan attached.</p>
     </div>
   \`;
-  await sendEmail(mr.requesterEmail, \`Merge Request Accepted - DC #\${target.dcNo}\`, reqHtml, attachments);
+  await sendEmail(mr.requesterEmail, `Merge Request Accepted - DC #${target.dcNo}`, reqHtml, attachments);
 
   // To Owner
   const ownerHtml = \`
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
       <h2 style="color: #059669;">✅ Merge Successful</h2>
-      <p>A new parcel was successfully merged into your Delivery Challan (<strong>DC #\${target.dcNo}</strong>).</p>
+      <p>A new parcel was successfully merged into your Delivery Challan (<strong>DC #${target.dcNo}</strong>).</p>
       <p>Please find the updated Delivery Challan attached. Please use this latest copy for dispatch.</p>
     </div>
   \`;
-  await sendEmail(target.requesterEmail, \`Merge Successful - DC #\${target.dcNo}\`, ownerHtml, attachments);
+  await sendEmail(target.requesterEmail, `Merge Successful - DC #${target.dcNo}`, ownerHtml, attachments);
 
   return { success: true, parentDcNo: target.dcNo };
 };
@@ -612,13 +615,13 @@ exports.rejectMergeRequest = async (id, reason) => {
   const html = \`
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
       <h2 style="color: #ef4444;">❌ Merge Request Rejected</h2>
-      <p>We regret to inform you that your merge request for Delivery Challan <strong>DC #\${mr.targetDispatch.dcNo}</strong> has been rejected by the original owner.</p>
+      <p>We regret to inform you that your merge request for Delivery Challan <strong>DC #${mr.targetDispatch.dcNo}</strong> has been rejected by the original owner.</p>
       <p><strong>Reason for rejection:</strong></p>
-      <blockquote style="background: #fef2f2; padding: 15px; border-left: 4px solid #ef4444; margin: 0;">\${reason}</blockquote>
+      <blockquote style="background: #fef2f2; padding: 15px; border-left: 4px solid #ef4444; margin: 0;">${reason}</blockquote>
       <p style="margin-top:20px;">Please raise a separate courier request for your items.</p>
     </div>
   \`;
-  await sendEmail(mr.requesterEmail, \`Merge Request Rejected - DC #\${mr.targetDispatch.dcNo}\`, html);
+  await sendEmail(mr.requesterEmail, `Merge Request Rejected - DC #${mr.targetDispatch.dcNo}`, html);
 
   return { success: true };
 };

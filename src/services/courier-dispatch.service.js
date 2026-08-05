@@ -579,24 +579,24 @@ exports.acceptMergeRequest = async (id) => {
   }];
 
   // To Requester
-  const reqHtml = \`
+  const reqHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
       <h2 style="color: #059669;">✅ Merge Request Accepted</h2>
       <p>We are pleased to inform you that your parcel merge request has been accepted by <strong>${target.requesterEmail}</strong>.</p>
       <p>Your items have been merged into Delivery Challan <strong>DC #${target.dcNo}</strong>.</p>
       <p>Please find the updated Delivery Challan attached.</p>
     </div>
-  \`;
+  `;
   await sendEmail(mr.requesterEmail, `Merge Request Accepted - DC #${target.dcNo}`, reqHtml, attachments);
 
   // To Owner
-  const ownerHtml = \`
+  const ownerHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
       <h2 style="color: #059669;">✅ Merge Successful</h2>
       <p>A new parcel was successfully merged into your Delivery Challan (<strong>DC #${target.dcNo}</strong>).</p>
       <p>Please find the updated Delivery Challan attached. Please use this latest copy for dispatch.</p>
     </div>
-  \`;
+  `;
   await sendEmail(target.requesterEmail, `Merge Successful - DC #${target.dcNo}`, ownerHtml, attachments);
 
   return { success: true, parentDcNo: target.dcNo };
@@ -612,7 +612,7 @@ exports.rejectMergeRequest = async (id, reason) => {
   });
 
   const { sendEmail } = require('../utils/notifications');
-  const html = \`
+  const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
       <h2 style="color: #ef4444;">❌ Merge Request Rejected</h2>
       <p>We regret to inform you that your merge request for Delivery Challan <strong>DC #${mr.targetDispatch.dcNo}</strong> has been rejected by the original owner.</p>
@@ -620,7 +620,7 @@ exports.rejectMergeRequest = async (id, reason) => {
       <blockquote style="background: #fef2f2; padding: 15px; border-left: 4px solid #ef4444; margin: 0;">${reason}</blockquote>
       <p style="margin-top:20px;">Please raise a separate courier request for your items.</p>
     </div>
-  \`;
+  `;
   await sendEmail(mr.requesterEmail, `Merge Request Rejected - DC #${mr.targetDispatch.dcNo}`, html);
 
   return { success: true };

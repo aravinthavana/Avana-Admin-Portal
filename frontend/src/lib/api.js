@@ -60,10 +60,10 @@ export const employeeApi = {
   getDispatchesByDate: (date) =>
     request(`/employee/courier-dispatch/by-date?date=${date}`, {}, 'employee'),
 
-  createMergeRequest: (targetDispatchId, items) =>
+  createMergeRequest: (targetDispatchId, items, requesterEmail, requesterName) =>
     request('/employee/courier-dispatch/merge-request', {
       method: 'POST',
-      body: JSON.stringify({ targetDispatchId, items })
+      body: JSON.stringify({ targetDispatchId, items, requesterEmail, requesterName })
     }, 'employee'),
 
   getStationeryItems: () =>

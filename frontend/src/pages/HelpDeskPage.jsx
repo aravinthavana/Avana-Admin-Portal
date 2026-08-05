@@ -1201,7 +1201,7 @@ function CourierMergeForm({ userEmail }) {
 
     try {
       setSubmitting(true);
-      await employeeApi.createMergeRequest(selectedDc, validItems);
+      await employeeApi.createMergeRequest(selectedDc, validItems, employeeEmail, employeeName || employeeEmail.split('@')[0]);
       toast.success('Merge request submitted to the owner for approval.');
       setSelectedDc(null);
       setItems([{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }]);

@@ -1241,7 +1241,7 @@ function CourierMergeForm({ userEmail }) {
           ))}
         </div>
       ) : (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--brand-amber)' }}>
               Merging into DC #{dispatches.find(d => d.id === selectedDc)?.dcNo}
@@ -1249,10 +1249,10 @@ function CourierMergeForm({ userEmail }) {
             <button type="button" onClick={() => setSelectedDc(null)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Cancel</button>
           </div>
           <ItemsTable items={items} setItems={setItems} title="Items to Merge" />
-          <button type="submit" className="btn btn--primary" style={{ width: '100%', marginTop: 'var(--space-2)' }} disabled={submitting}>
+          <button type="button" onClick={handleSubmit} className="btn btn--primary" style={{ width: '100%', marginTop: 'var(--space-2)' }} disabled={submitting}>
             {submitting ? 'Submitting...' : 'Send Merge Request'}
           </button>
-        </form>
+        </div>
       )}
     </div>
   );

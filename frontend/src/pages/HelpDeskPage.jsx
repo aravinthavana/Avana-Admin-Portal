@@ -1176,7 +1176,7 @@ function ItemsTable({ items, setItems, title = 'Dispatched Items' }) {
 
 // --- Courier Merge Form ---
 function CourierMergeForm({ userEmail }) {
-  const { toast } = useToast();
+  const toast = useToast();
   const date = new Date().toISOString().slice(0, 10);
   const [dispatches, setDispatches] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1201,7 +1201,7 @@ function CourierMergeForm({ userEmail }) {
 
     try {
       setSubmitting(true);
-      await employeeApi.createMergeRequest(selectedDc, validItems, employeeEmail, employeeName || employeeEmail.split('@')[0]);
+      await employeeApi.createMergeRequest(selectedDc, validItems, userEmail, userEmail?.split('@')[0] || 'Employee');
       toast.success('Merge request submitted to the owner for approval.');
       setSelectedDc(null);
       setItems([{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }]);

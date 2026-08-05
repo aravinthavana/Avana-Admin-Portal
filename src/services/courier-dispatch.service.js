@@ -246,7 +246,7 @@ exports.updateTrackingInfo = async (id, data) => {
       }
       
       for (const email of [...new Set(recipients)]) {
-        await sendEmail(email, 'Courier Dispatched - Tracking Details', emailContent);
+        await sendEmail({ to: email, subject: 'Courier Dispatched - Tracking Details', htmlBody: emailContent });
       }
     } catch (e) {
       console.error('Failed to send tracking email:', e);
@@ -515,7 +515,17 @@ exports.createMergeRequest = async (data) => {
     </div>
   `;
 
-  await sendEmail(target.requesterEmail, `Merge Request for DC #${target.dcNo}`, emailHtml);
+  const recipients = [];
+  if (target.requesterEmail) recipients.push(target.requesterEmail.trim());
+  if (requesterEmail && !recipients.includes(requesterEmail.trim())) recipients.push(requesterEmail.trim());
+  const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
+  if (adminEmail && !recipients.includes(adminEmail.trim())) recipients.push(adminEmail.trim());
+
+  await sendEmail({
+    to: recipients.join(', '),
+    subject: `Merge Request for DC #${target.dcNo}`,
+    htmlBody: emailHtml
+  });
   return mr;
 };
 
@@ -587,7 +597,7 @@ exports.acceptMergeRequest = async (id) => {
       <p>Please find the updated Delivery Challan attached.</p>
     </div>
   `;
-  await sendEmail(mr.requesterEmail, `Merge Request Accepted - DC #${target.dcNo}`, reqHtml, attachments);
+  await sendEmail({ to: mr.requesterEmail, subject: `Merge Request Accepted - DC #${target.dcNo}`, htmlBody: reqHtml, attachments });
 
   // To Owner
   const ownerHtml = `
@@ -597,7 +607,7 @@ exports.acceptMergeRequest = async (id) => {
       <p>Please find the updated Delivery Challan attached. Please use this latest copy for dispatch.</p>
     </div>
   `;
-  await sendEmail(target.requesterEmail, `Merge Successful - DC #${target.dcNo}`, ownerHtml, attachments);
+  await sendEmail({ to: target.requesterEmail, subject: `Merge Successful - DC #${target.dcNo}`, htmlBody: ownerHtml, attachments });
 
   return { success: true, parentDcNo: target.dcNo };
 };
@@ -621,7 +631,6 @@ exports.rejectMergeRequest = async (id, reason) => {
       <p style="margin-top:20px;">Please raise a separate courier request for your items.</p>
     </div>
   `;
-  await sendEmail(mr.requesterEmail, `Merge Request Rejected - DC #${mr.targetDispatch.dcNo}`, html);
-
+  await sendEmail({ to: mr.requesterEmail, subject: `Merge Request Rejected - DC #${mr.targetDispatch.dcNo}`, htmlBody: html });
   return { success: true };
 };

@@ -47,8 +47,10 @@ exports.sendEmail = async ({ to, subject, htmlBody, attachments = [] }) => {
 
     const finalAttachments = [...attachments];
     try {
-      const logoPath = path.join(__dirname, '../../frontend/public/Logo new.png');
-      if (fs.existsSync(logoPath)) {
+      const primaryLogo = path.join(__dirname, '../assets/logo.png');
+      const fallbackLogo = path.join(__dirname, '../../frontend/public/Logo new.png');
+      const logoPath = fs.existsSync(primaryLogo) ? primaryLogo : (fs.existsSync(fallbackLogo) ? fallbackLogo : null);
+      if (logoPath) {
         finalAttachments.push({
           filename: 'avana-logo.png',
           path: logoPath,

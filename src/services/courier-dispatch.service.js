@@ -153,22 +153,13 @@ exports.createDispatch = async (data, requesterEmail, host) => {
 
   // Send Emails
   try {
-    let dcPath = '';
-    let labelPath = '';
-
     try {
       const dcBytes = await pdfGenerator.generateDCCopyPDF(created);
       const labelBytes = await pdfGenerator.generateAddressLabelPDF(created);
-      
-      dcPath = path.join(__dirname, `../temp_dc_${created.id}.pdf`);
-      labelPath = path.join(__dirname, `../temp_label_${created.id}.pdf`);
-      
-      fs.writeFileSync(dcPath, Buffer.from(dcBytes));
-      fs.writeFileSync(labelPath, Buffer.from(labelBytes));
 
       const attachments = [
-        { filename: `DC_Copy_${created.dcNo}.pdf`, path: dcPath },
-        { filename: `Address_Label_${created.dcNo}.pdf`, path: labelPath }
+        { filename: `DC_Copy_${created.dcNo}.pdf`, content: Buffer.from(dcBytes), contentType: 'application/pdf' },
+        { filename: `Address_Label_${created.dcNo}.pdf`, content: Buffer.from(labelBytes), contentType: 'application/pdf' }
       ];
 
       if (requesterEmail) {
@@ -189,11 +180,6 @@ exports.createDispatch = async (data, requesterEmail, host) => {
 
     } catch (pdfErr) {
       console.error('Failed to generate or send Courier PDFs:', pdfErr);
-    } finally {
-      setTimeout(() => {
-        try { if (dcPath && fs.existsSync(dcPath)) fs.unlinkSync(dcPath); } catch (e) {}
-        try { if (labelPath && fs.existsSync(labelPath)) fs.unlinkSync(labelPath); } catch (e) {}
-      }, 5000);
     }
   } catch (err) {
     console.error('Failed to send Courier Dispatch emails:', err);
@@ -578,9 +564,9 @@ exports.acceptMergeRequest = async (id) => {
   });
 
   // Send emails with updated PDF
-  const { generateDeliveryChallanPDF } = require('../utils/courier_pdf_generator');
+  const { generateDCCopyPDF } = require('../utils/courier_pdf_generator');
   const { sendEmail } = require('../utils/notifications');
-  const pdfBuffer = await generateDeliveryChallanPDF(updatedTarget);
+  const pdfBuffer = await generateDCCopyPDF(updatedTarget);
 
   const attachments = [{
     filename: `delivery-challan-${updatedTarget.dcNo}.pdf`,

@@ -100,7 +100,16 @@ export function openLegacyPrintReport({ title, subtitle, summary = [], headers =
         </div>
       </div>
       <script>
-        window.onload = function() { window.print(); };
+        function triggerPrint() {
+          window.focus();
+          window.print();
+        }
+        if (document.readyState === 'complete') {
+          setTimeout(triggerPrint, 200);
+        } else {
+          window.addEventListener('load', function() { setTimeout(triggerPrint, 200); });
+          setTimeout(triggerPrint, 600);
+        }
       <\/script>
     </body>
     </html>

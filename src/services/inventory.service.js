@@ -168,12 +168,25 @@ exports.calculateAuditForMonth = (stock, sortedLogs, month, overrides) => {
   return audit;
 };
 
-exports.getStationeryCatalog = () => {
+exports.getStationeryCatalog = async () => {
+  let catalog = {};
   try {
-    const p = path.join(__dirname, '../../stationery_catalog.json');
-    if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
-    return {};
-  } catch(e) { return {}; }
+    const p1 = path.join(__dirname, '../../stationery_catalog.json');
+    const p2 = path.join(__dirname, '../assets/stationery_catalog.json');
+    const p = fs.existsSync(p1) ? p1 : (fs.existsSync(p2) ? p2 : null);
+    if (p) catalog = JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch(e) {}
+
+  try {
+    const dbItems = await prisma.inventoryItem.findMany({ where: { category: { in: ['stationery', 'printing'] } } });
+    dbItems.forEach(i => {
+      if (!catalog[i.name]) {
+        catalog[i.name] = i.category === 'printing' ? 'printing' : 'stationery';
+      }
+    });
+  } catch(e) {}
+
+  return catalog;
 };
 
 exports.addStationeryCatalogItem = (itemClean, itemType) => {

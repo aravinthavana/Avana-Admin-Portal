@@ -21,6 +21,7 @@ RUN npx prisma generate
 
 # Copy backend source
 COPY src ./src
+COPY stationery_catalog.json ./
 
 # Copy built frontend from frontend stage
 COPY --from=frontend /app/frontend/dist ./frontend/dist/

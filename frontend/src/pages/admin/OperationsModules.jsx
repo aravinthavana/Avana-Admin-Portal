@@ -220,11 +220,50 @@ export function AssetTrackerPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const handleDownloadPDF = () => {
+    const totalCount = filtered.length;
+    const ackCount = filtered.filter(h => h.status === 'Acknowledged').length;
+    const pendingCount = filtered.filter(h => h.status === 'Pending Acknowledgement').length;
+
+    openLegacyPrintReport({
+      title: 'Stationery & Asset Tracking Report',
+      subtitle: 'Employee Hardware & Stationery Asset Handovers',
+      summary: [
+        { label: 'Total Handovers', value: `${totalCount} Records` },
+        { label: 'Acknowledged', value: `${ackCount} Records`, color: '#16a34a' },
+        { label: 'Pending Ack', value: `${pendingCount} Records`, color: '#d97706' },
+      ],
+      headers: [
+        { title: '#' },
+        { title: 'Employee Name' },
+        { title: 'Email' },
+        { title: 'Department' },
+        { title: 'Handover Date' },
+        { title: 'Items' },
+        { title: 'Status' },
+      ],
+      rows: filtered.map((h, idx) => [
+        idx + 1,
+        h.name || '—',
+        h.email || '—',
+        h.department || '—',
+        formatDate(h.handoverDate),
+        (h.items || []).map(i => `${i.qty || 1}x ${i.itemName || i.particular}`).join(', ') || '—',
+        h.status || 'Pending',
+      ])
+    });
+  };
+
   return (
     <div>
       <PageHeader
         title="💻 Asset Tracker & Employee Handovers"
         subtitle="Track corporate hardware & furniture assigned to employees with digital acknowledgements"
+        action={
+          <button type="button" className="btn btn--secondary" onClick={handleDownloadPDF}>
+            📄 Download PDF Report
+          </button>
+        }
       />
 
       {error && <Alert type="error" onClose={() => setError(null)}>{error}</Alert>}

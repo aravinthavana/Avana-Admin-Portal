@@ -1,8 +1,8 @@
 const inventoryService = require('../services/inventory.service');
 
-exports.getStationeryCatalog = (req, res, next) => {
+exports.getStationeryCatalog = async (req, res, next) => {
   try {
-    const catalog = inventoryService.getStationeryCatalog();
+    const catalog = await inventoryService.getStationeryCatalog();
     const stationery = [];
     const printing = [];
     for (const [name, type] of Object.entries(catalog || {})) {

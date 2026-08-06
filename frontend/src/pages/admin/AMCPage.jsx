@@ -277,6 +277,47 @@ export function AMCPage() {
             </button>
           </div>
         }
+  const handleDownloadSingleAMC = (c) => {
+    const visitsRows = (c.visits || []).map(v => [
+      `Visit #${v.visit_no || v.visitNo || 1}`,
+      v.scheduled_date || v.scheduledDate || '—',
+      v.last_service_date || v.actualDate || '—',
+      v.service_person || '—',
+      v.status || 'Pending',
+      v.remarks || '—'
+    ]);
+
+    openLegacyPrintReport({
+      title: `AMC Contract: ${c.amc_name || c.equipment_name || 'Details'}`,
+      subtitle: `Doc No: ${c.doc_no || '—'} | Category: ${c.category || '—'}`,
+      summary: [
+        { label: 'Contract Name', value: c.amc_name || c.equipment_name || '—' },
+        { label: 'Units / Location', value: c.units_location || '—' },
+        { label: 'Pricing / Cost', value: c.pricing ? `₹${Number(c.pricing).toLocaleString('en-IN')}` : '—' },
+        { label: 'Status', value: c.status || 'Active', color: c.status === 'Active' ? '#16a34a' : '#d97706' },
+      ],
+      headers: [
+        { title: 'Visit #' },
+        { title: 'Scheduled Date' },
+        { title: 'Completed Date' },
+        { title: 'Service Person' },
+        { title: 'Status' },
+        { title: 'Remarks' },
+      ],
+      rows: visitsRows.length > 0 ? visitsRows : [['No service visits logged', '—', '—', '—', '—', '—']]
+    });
+  };
+
+  return (
+    <div>
+      <PageHeader
+        title="📋 AMC Contracts & Service Log"
+        subtitle="Manage equipment & facility Annual Maintenance Contracts and track service visit logs"
+        action={
+          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>
+            📄 Download PDF Report
+          </button>
+        }
       />
 
       {error && <Alert type="error">{error}</Alert>}
@@ -310,6 +351,9 @@ export function AMCPage() {
                         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                           <button type="button" className="btn btn--sm btn--outline" onClick={() => setViewModal(c)}>
                             🔍 View Details
+                          </button>
+                          <button type="button" className="btn btn--sm btn--secondary" onClick={() => handleDownloadSingleAMC(c)}>
+                            📄 Download
                           </button>
                           <button type="button" className="btn btn--sm btn--danger" onClick={() => handleDeleteContract(c.id)}>
                             🗑️

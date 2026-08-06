@@ -116,13 +116,13 @@ export function openLegacyPrintReport({ title, subtitle, docNo, summary = [], he
     </head>
     <body>
       <div class="page">
-        ${docNo ? `<div style="text-align: right; font-size: 0.75rem; font-weight: bold; color: #475569; margin-bottom: -1rem; padding-right: 0.5rem; z-index: 10; position: relative;">Doc No: ${docNo}</div>` : ''}
         <div class="header">
           <div class="header-left">
             <h1>${title}</h1>
             <p>${subtitle || ''} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
           </div>
-          <div class="logo">
+          <div class="logo" style="text-align: right;">
+            ${docNo ? `<div style="font-size: 0.75rem; font-weight: bold; color: #475569; margin-bottom: 0.3rem;">Doc No: ${docNo}</div>` : ''}
             <img src="${logoUrl}" alt="Avana Logo">
           </div>
         </div>

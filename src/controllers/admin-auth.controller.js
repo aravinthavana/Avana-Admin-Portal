@@ -54,15 +54,24 @@ function hashPassword(password) {
   return `${salt}:${hash}`;
 }
 
-function updateEnvHash(newStored) {
-  const envPath = path.join(__dirname, '../../.env');
-  let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
-  if (envContent.includes('ADMIN_PASSWORD_HASH=')) {
-    envContent = envContent.replace(/ADMIN_PASSWORD_HASH=.*/, `ADMIN_PASSWORD_HASH=${newStored}`);
-  } else {
-    envContent += `\nADMIN_PASSWORD_HASH=${newStored}`;
+async function getAdminPasswordHash() {
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin';
+  try {
+    const cred = await prisma.employeeCredential.findUnique({ where: { email: adminEmail } });
+    if (cred && cred.passwordHash) return cred.passwordHash;
+  } catch (e) {
+    console.error('Failed to read admin creds from DB', e);
   }
-  fs.writeFileSync(envPath, envContent);
+  return process.env.ADMIN_PASSWORD_HASH || '';
+}
+
+async function setAdminPasswordHash(newStored) {
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin';
+  await prisma.employeeCredential.upsert({
+    where: { email: adminEmail },
+    update: { passwordHash: newStored },
+    create: { email: adminEmail, passwordHash: newStored }
+  });
   process.env.ADMIN_PASSWORD_HASH = newStored;
 }
 
@@ -74,9 +83,8 @@ exports.resetPassword = async (req, res, next) => {
     if (email !== process.env.ADMIN_EMAIL) {
       return res.status(400).json({ error: 'Invalid admin email.' });
     }
-    const tempPassword = crypto.randomBytes(8).toString('hex');
-    const newStored = hashPassword(tempPassword);
-    updateEnvHash(newStored);
+    const tempPassword = crypto.randomBytes(6).toString('hex');
+    await setAdminPasswordHash(hashPassword(tempPassword));
 
     const { sendEmail } = require('../utils/notifications');
     await sendEmail({
@@ -93,7 +101,7 @@ exports.resetPassword = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const { password } = req.body;
-    const currentHash = process.env.ADMIN_PASSWORD_HASH || '';
+    const currentHash = await getAdminPasswordHash();
     const isMatch = verifyPassword(password, currentHash);
 
     if (!isMatch) {
@@ -135,11 +143,11 @@ exports.logout = async (req, res, next) => {
 exports.changePassword = async (req, res, next) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const currentHash = process.env.ADMIN_PASSWORD_HASH || '';
+    const currentHash = await getAdminPasswordHash();
     if (!verifyPassword(oldPassword, currentHash)) {
       return res.status(401).json({ error: 'Invalid old password.' });
     }
-    updateEnvHash(hashPassword(newPassword));
+    await setAdminPasswordHash(hashPassword(newPassword));
     res.status(200).json({ message: 'Password changed successfully.' });
   } catch (error) {
     next(error);

@@ -628,7 +628,9 @@ async function generateShippingLabelPDF({ from, to, isFragile }) {
     });
 
     // Embed fragile image if available
-    const fragilePngPath = path.join(__dirname, '../../frontend/public/fragile.png');
+    const primaryFragile = path.join(__dirname, '../assets/fragile.png');
+    const legacyFragile = path.join(__dirname, '../../frontend/public/fragile.png');
+    const fragilePngPath = fs.existsSync(primaryFragile) ? primaryFragile : legacyFragile;
 
     let imageEmbedded = false;
     if (fs.existsSync(fragilePngPath)) {

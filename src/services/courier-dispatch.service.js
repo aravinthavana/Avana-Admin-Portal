@@ -503,9 +503,6 @@ exports.createMergeRequest = async (data) => {
 
   const recipients = [];
   if (target.requesterEmail) recipients.push(target.requesterEmail.trim());
-  if (requesterEmail && !recipients.includes(requesterEmail.trim())) recipients.push(requesterEmail.trim());
-  const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
-  if (adminEmail && !recipients.includes(adminEmail.trim())) recipients.push(adminEmail.trim());
 
   await sendEmail({
     to: recipients.join(', '),

@@ -149,41 +149,52 @@ export function UtilityPaymentsPage({ api }) {
         {loading ? <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
           : records.length === 0 ? <EmptyState icon="💳" title="No bills found" description="No utility records found" />
           : (
-            <div className="table-wrapper">
-              <table className="table" aria-label="Utility payments">
-                <thead>
-                  <tr>
-                    <th scope="col">Type</th>
-                    <th scope="col">Provider Name</th>
-                    <th scope="col">Account No</th>
-                    <th scope="col">Due Date</th>
-                    <th scope="col">Amount</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {records.map(r => (
-                    <tr key={r.id}>
-                      <td><span className="badge badge--info">{r.utility_type}</span></td>
-                      <td style={{ fontWeight: 600 }}>{r.provider_name}</td>
-                      <td>{r.account_number}</td>
-                      <td>{formatDate(r.due_date)}</td>
-                      <td>₹{Number(r.amount).toLocaleString()}</td>
-                      <td><Badge status={r.status === 'Paid' ? 'success' : (r.status === 'Overdue' ? 'danger' : 'warning')} label={r.status || 'Unpaid'} /></td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                          <button type="button" className="btn btn--sm btn--secondary" onClick={() => openEdit(r)}>✏️ Edit</button>
-                          {r.status !== 'Paid' && (
-                            <a href={getPaytmLink(r.utility_type)} target="_blank" rel="noopener noreferrer" className="btn btn--sm btn--primary">💸 Pay Now</a>
-                          )}
-                          <button type="button" className="btn btn--sm btn--danger" onClick={() => setConfirmId(r.id)}>🗑️</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div style={{ padding: 'var(--space-4)' }}>
+              {tabs.map(tab => {
+                const tabRecords = records.filter(r => r.utility_type === tab);
+                if (tabRecords.length === 0) return null;
+                return (
+                  <div key={tab} style={{ marginBottom: 'var(--space-8)' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-primary-dark)', marginBottom: 'var(--space-3)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
+                      {tab}
+                    </h3>
+                    <div className="table-wrapper" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderRadius: '8px' }}>
+                      <table className="table" aria-label={`${tab} payments`}>
+                        <thead>
+                          <tr>
+                            <th scope="col">Provider Name</th>
+                            <th scope="col">Account No</th>
+                            <th scope="col">Due Date</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {tabRecords.map(r => (
+                            <tr key={r.id}>
+                              <td style={{ fontWeight: 600 }}>{r.provider_name}</td>
+                              <td>{r.account_number}</td>
+                              <td>{formatDate(r.due_date)}</td>
+                              <td>₹{Number(r.amount).toLocaleString()}</td>
+                              <td><Badge status={r.status === 'Paid' ? 'success' : (r.status === 'Overdue' ? 'danger' : 'warning')} label={r.status || 'Unpaid'} /></td>
+                              <td>
+                                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                                  <button type="button" className="btn btn--sm btn--secondary" onClick={() => openEdit(r)}>✏️ Edit</button>
+                                  {r.status !== 'Paid' && (
+                                    <a href={getPaytmLink(r.utility_type)} target="_blank" rel="noopener noreferrer" className="btn btn--sm btn--primary">💸 Pay Now</a>
+                                  )}
+                                  <button type="button" className="btn btn--sm btn--danger" onClick={() => setConfirmId(r.id)}>🗑️</button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )
         }

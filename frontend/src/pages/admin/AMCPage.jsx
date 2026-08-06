@@ -308,9 +308,14 @@ export function AMCPage() {
         title="📋 AMC Contracts & Service Log"
         subtitle="Manage equipment & facility Annual Maintenance Contracts and track service visit logs"
         action={
-          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>
-            📄 Download PDF Report
-          </button>
+          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+            <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>
+              📄 Download PDF Report
+            </button>
+            <button type="button" className="btn btn--primary" onClick={() => setShowForm(true)}>
+              + Add Contract
+            </button>
+          </div>
         }
       />
 

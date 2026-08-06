@@ -1,5 +1,4 @@
-import React from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { AvanaLogo } from '../components/ui';
@@ -48,6 +47,130 @@ const SIDEBAR_SECTIONS = [
   },
 ];
 
+// ── Header Navigation & Breadcrumbs ─────────────────────────────────────────
+function HeaderNavigation() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const PATH_NAMES = {
+    'helpdesk-admin': 'Admin Portal',
+    'conference': 'Conference Room',
+    'stationery': 'Stationery',
+    'admin-support': 'Admin Support',
+    'maintenance': 'Maintenance',
+    'housekeeping': 'Housekeeping',
+    'office-asset': 'Office Asset',
+    'print-scan': 'Printing & Scanning',
+    'logins': 'Security Logs',
+    'stationery-stock': 'Stationery Stock',
+    'stationery-audit': 'Stationery Audit',
+    'housekeeping-stock': 'Housekeeping Stock',
+    'housekeeping-audit': 'Housekeeping Audit',
+    'asset-tracker': 'Stationery Tracker',
+    'other-stock': 'Other Stock',
+    'amc': 'AMC Contracts',
+    'utility-payments': 'Utility Payments',
+    'tax-payments': 'Tax Payments',
+    'courier': 'Courier & Dispatch',
+    'cash-handling': 'Cash Handling',
+    'travel': 'Travel Expenses',
+    'bill-warranty': 'Bill & Warranty',
+    'reminders': 'Reminders',
+    'settings': 'Settings',
+    'booking': 'Room Booking',
+    'helpdesk': 'Helpdesk'
+  };
+
+  const pathSnippets = location.pathname.split('/').filter(i => i);
+
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+      {/* Back (❮) & Forward (❯) Buttons */}
+      <div style={{ display: 'inline-flex', gap: '0.25rem', alignItems: 'center' }}>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          title="Go Back"
+          aria-label="Back"
+          style={{
+            background: '#ffffff',
+            border: '1px solid #cbd5e1',
+            borderRadius: '6px',
+            width: '32px',
+            height: '32px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontWeight: 800,
+            fontSize: '0.85rem',
+            color: '#0f172a',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseOver={e => { e.currentTarget.style.borderColor = '#c29100'; e.currentTarget.style.background = '#fef8ee'; }}
+          onMouseOut={e => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = '#ffffff'; }}
+        >
+          ❮
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate(1)}
+          title="Go Forward"
+          aria-label="Forward"
+          style={{
+            background: '#ffffff',
+            border: '1px solid #cbd5e1',
+            borderRadius: '6px',
+            width: '32px',
+            height: '32px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontWeight: 800,
+            fontSize: '0.85rem',
+            color: '#0f172a',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseOver={e => { e.currentTarget.style.borderColor = '#c29100'; e.currentTarget.style.background = '#fef8ee'; }}
+          onMouseOut={e => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = '#ffffff'; }}
+        >
+          ❯
+        </button>
+      </div>
+
+      {/* Breadcrumb Trail */}
+      <nav aria-label="Breadcrumb" style={{ display: 'inline-flex', alignItems: 'center', fontSize: '0.82rem', fontWeight: 600 }}>
+        <ol style={{ listStyle: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', margin: 0, padding: 0 }}>
+          <li style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <Link to={location.pathname.startsWith('/helpdesk-admin') ? '/helpdesk-admin' : '/'} style={{ color: '#64748b', textDecoration: 'none' }}>
+              🏠 Home
+            </Link>
+          </li>
+          {pathSnippets.map((snippet, index) => {
+            const url = `/${pathSnippets.slice(0, index + 1).join('/')}`;
+            const isLast = index === pathSnippets.length - 1;
+            const label = PATH_NAMES[snippet] || (snippet.charAt(0).toUpperCase() + snippet.slice(1));
+
+            return (
+              <li key={url} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <span style={{ color: '#94a3b8', fontSize: '0.7rem' }}>/</span>
+                {isLast ? (
+                  <span style={{ color: '#b45309', fontWeight: 700 }}>{label}</span>
+                ) : (
+                  <Link to={url} style={{ color: '#64748b', textDecoration: 'none' }}>{label}</Link>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+    </div>
+  );
+}
+
 // ── Employee Layout ────────────────────────────────────────────────────────
 export function EmployeeLayout() {
   const { employeeEmail, logoutEmployee } = useAuth();
@@ -80,8 +203,8 @@ export function EmployeeLayout() {
           zIndex: 50,
         }}
       >
-        {/* Left: Logo + Title */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+        {/* Left: Logo + Title + Navigation & Breadcrumbs */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', flexWrap: 'wrap' }}>
           <AvanaLogo size="md" style={{ filter: 'none' }} />
           <div>
             <div style={{ fontWeight: 800, fontSize: '1.35rem', color: '#0f172a', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
@@ -91,6 +214,7 @@ export function EmployeeLayout() {
               Select a category below to submit your request
             </div>
           </div>
+          <HeaderNavigation />
         </div>
 
         {/* Right: Nav links + User badge */}
@@ -408,8 +532,8 @@ export function AdminLayout() {
             ☰
           </button>
 
-          {/* Logo (mobile) + Header Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+          {/* Logo (mobile) + Header Title + Navigation & Breadcrumbs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <AvanaLogo size="sm" />
             <div>
               <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#0f172a', lineHeight: 1.2 }}>
@@ -419,6 +543,7 @@ export function AdminLayout() {
                 Track work completion status, manage requests, and export reports
               </div>
             </div>
+            <HeaderNavigation />
           </div>
 
           {/* Right side controls */}

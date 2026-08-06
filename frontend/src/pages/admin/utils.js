@@ -22,7 +22,7 @@ export function getStatusBadge(status) {
   return 'pending';
 }
 
-export function openLegacyPrintReport({ title, subtitle, summary = [], headers = [], rows = [] }) {
+export function openLegacyPrintReport({ title, subtitle, docNo, summary = [], headers = [], rows = [], sections = null }) {
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
     alert('Please allow popups to open the PDF report.');
@@ -31,34 +31,57 @@ export function openLegacyPrintReport({ title, subtitle, summary = [], headers =
 
   const logoUrl = `${window.location.origin}/Logo%20new.png`;
 
-  const summaryHtml = summary.length > 0 ? `
-    <div style="display: flex; gap: 1rem; margin-bottom: 1.2rem;">
-      ${summary.map(s => `
-        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.6rem 1rem; flex: 1; text-align: center;">
-          <div style="font-size: 0.7rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.04em;">${s.label}</div>
-          <div style="font-size: 1.15rem; font-weight: 800; color: ${s.color || '#0f172a'}; margin-top: 0.15rem;">${s.value}</div>
-        </div>
-      `).join('')}
-    </div>
-  ` : '';
+  const sectionsData = sections || [{ sectionTitle: '', subtitle: '', summary, headers, rows }];
 
-  const tableHeaderHtml = `
-    <thead>
-      <tr style="background: #C59100; color: white; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.04em;">
-        ${headers.map(h => `<th style="padding: 0.6rem 0.6rem; text-align: ${h.align || 'left'}; font-weight: 700;">${h.title}</th>`).join('')}
-      </tr>
-    </thead>
-  `;
+  const contentHtml = sectionsData.map((sec, sIdx) => {
+    const secTitleHtml = sec.sectionTitle ? `<h2 style="font-size: 1.1rem; color: var(--color-primary-dark); margin-bottom: 0.5rem; margin-top: ${sIdx > 0 ? '2rem' : '0'}; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3rem;">${sec.sectionTitle}</h2>` : '';
+    const secSubtitleHtml = sec.subtitle ? `<p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">${sec.subtitle}</p>` : '';
+    
+    const summaryHtml = (sec.summary && sec.summary.length > 0) ? `
+      <div style="display: flex; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap;">
+        ${sec.summary.map(s => `
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.6rem 1rem; flex: 1; min-width: 120px; text-align: center;">
+            <div style="font-size: 0.7rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.04em;">${s.label}</div>
+            <div style="font-size: 1.0rem; font-weight: 800; color: ${s.color || '#0f172a'}; margin-top: 0.15rem;">${s.value}</div>
+          </div>
+        `).join('')}
+      </div>
+    ` : '';
 
-  const tableBodyHtml = `
-    <tbody>
-      ${rows.map((row, idx) => `
-        <tr style="border-bottom: 1px solid #e2e8f0; background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; font-size: 0.82rem;">
-          ${row.map((cell, cIdx) => `<td style="padding: 0.55rem 0.6rem; text-align: ${headers[cIdx]?.align || 'left'};">${cell ?? ''}</td>`).join('')}
+    const tableHeaderHtml = (sec.headers && sec.headers.length > 0) ? `
+      <thead>
+        <tr style="background: #C59100; color: white; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.04em;">
+          ${sec.headers.map(h => `<th style="padding: 0.6rem 0.6rem; text-align: ${h.align || 'left'}; font-weight: 700;">${h.title}</th>`).join('')}
         </tr>
-      `).join('')}
-    </tbody>
-  `;
+      </thead>
+    ` : '';
+
+    const tableBodyHtml = (sec.rows && sec.rows.length > 0) ? `
+      <tbody>
+        ${sec.rows.map((row, idx) => `
+          <tr style="border-bottom: 1px solid #e2e8f0; background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; font-size: 0.82rem;">
+            ${row.map((cell, cIdx) => `<td style="padding: 0.55rem 0.6rem; text-align: ${sec.headers[cIdx]?.align || 'left'};">${cell ?? ''}</td>`).join('')}
+          </tr>
+        `).join('')}
+      </tbody>
+    ` : '';
+
+    const tableHtml = (sec.headers && sec.headers.length > 0) ? `
+      <table>
+        ${tableHeaderHtml}
+        ${tableBodyHtml}
+      </table>
+    ` : '';
+
+    return `
+      <div style="page-break-inside: avoid; margin-bottom: 2rem;">
+        ${secTitleHtml}
+        ${secSubtitleHtml}
+        ${summaryHtml}
+        ${tableHtml}
+      </div>
+    `;
+  }).join('');
 
   printWindow.document.write(`
     <!DOCTYPE html>
@@ -81,6 +104,7 @@ export function openLegacyPrintReport({ title, subtitle, summary = [], headers =
     </head>
     <body>
       <div class="page">
+        ${docNo ? `<div style="text-align: right; font-size: 0.75rem; font-weight: bold; color: #475569; margin-bottom: -1rem; padding-right: 0.5rem; z-index: 10; position: relative;">Doc No: ${docNo}</div>` : ''}
         <div class="header">
           <div class="header-left">
             <h1>${title}</h1>
@@ -90,11 +114,7 @@ export function openLegacyPrintReport({ title, subtitle, summary = [], headers =
             <img src="${logoUrl}" alt="Avana Logo">
           </div>
         </div>
-        ${summaryHtml}
-        <table>
-          ${tableHeaderHtml}
-          ${tableBodyHtml}
-        </table>
+        ${contentHtml}
         <div class="footer">
           Avana Office Admin Portal • Computer Generated Report
         </div>

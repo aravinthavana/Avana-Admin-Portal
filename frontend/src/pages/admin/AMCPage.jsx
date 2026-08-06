@@ -238,29 +238,48 @@ export function AMCPage() {
   }
 
   const handleLegacyPDF = () => {
+    const sections = contracts.map(c => {
+      const visitsRows = (c.visits || []).map((v, i) => [
+        `Visit #${v.visit_no || v.visitNo || i + 1}`,
+        v.scheduled_date || v.scheduledDate || '—',
+        v.last_service_date || v.actualDate || '—',
+        v.service_person || '—',
+        v.status || 'Pending',
+        v.remarks || '—'
+      ]);
+
+      return {
+        sectionTitle: `AMC Contract: ${c.amc_name || c.equipment_name || 'Details'}`,
+        subtitle: `Doc No: ${c.doc_no || '—'} | Category: ${c.category || '—'}`,
+        summary: [
+          { label: 'Contract Name', value: c.amc_name || c.equipment_name || '—' },
+          { label: 'Units / Location', value: c.units_location || '—' },
+          { label: 'Vendor Name', value: c.vendor_name || '—' },
+          { label: 'Contact Person', value: c.vendor_contact || c.contact_person || '—' },
+          { label: 'Vendor Phone', value: c.vendor_phone || '—' },
+          { label: 'Vendor Email', value: c.vendor_email || '—' },
+          { label: 'Contract Period', value: `${c.start_date || '—'} to ${c.end_date || '—'}` },
+          { label: 'Maintenance Freq', value: c.frequency || '—' },
+          { label: 'Pricing (INR)', value: c.pricing ? `₹${Number(c.pricing).toLocaleString('en-IN')}` : '—' },
+          { label: 'Coverage / Specs', value: c.coverage_specs || '—' },
+          { label: 'Status', value: c.status || 'Active', color: (c.status || 'Active') === 'Active' ? '#16a34a' : '#d97706' },
+        ],
+        headers: [
+          { title: 'Visit #' },
+          { title: 'Scheduled Date' },
+          { title: 'Completed Date' },
+          { title: 'Service Person' },
+          { title: 'Status' },
+          { title: 'Remarks' },
+        ],
+        rows: visitsRows.length > 0 ? visitsRows : [['No service visits logged', '—', '—', '—', '—', '—']]
+      };
+    });
+
     openLegacyPrintReport({
       title: 'AMC Contracts & Service Log Report',
-      subtitle: 'Annual Maintenance Contracts',
-      summary: [
-        { label: 'Total AMC Contracts', value: `${contracts.length} Contracts` },
-        { label: 'Active Contracts', value: `${contracts.filter(c => (c.status || '').toLowerCase() !== 'expired').length} Active`, color: '#16a34a' },
-      ],
-      headers: [
-        { title: 'Equipment / AMC' },
-        { title: 'Category' },
-        { title: 'Vendor & Contact' },
-        { title: 'Contract Dates' },
-        { title: 'Pricing (INR)' },
-        { title: 'Status' },
-      ],
-      rows: contracts.map(c => [
-        c.equipment_name || c.amc_name || '—',
-        c.category || 'AC',
-        `${c.vendor_name || '—'}<br/><span style="font-size:0.75rem;color:#64748b">${c.vendor_phone || ''}</span>`,
-        `${c.start_date || ''} to ${c.end_date || ''}`,
-        `Rs ${(parseFloat(c.pricing) || 0).toLocaleString('en-IN')}`,
-        c.status || 'Active',
-      ])
+      docNo: 'AMD-QSP05-04',
+      sections
     });
   };
 

@@ -89,6 +89,7 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
     openLegacyPrintReport({
       title: `${title} Inventory Stock Report`,
       subtitle: 'Current Inventory Levels',
+      docNo: title.toLowerCase().includes('stationery') ? 'AMD-QSP05-02' : null,
       summary: [
         { label: 'Total Catalog Items', value: `${itemsList.length} Items` },
         { label: 'Low Stock Warnings (<5)', value: `${lowStockCount} Items`, color: lowStockCount > 0 ? '#dc2626' : '#16a34a' },

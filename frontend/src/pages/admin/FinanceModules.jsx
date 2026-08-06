@@ -108,6 +108,7 @@ export function UtilityPaymentsPage({ api }) {
     openLegacyPrintReport({
       title: `Utility Payments Report`,
       subtitle: `All Utility Records`,
+      docNo: 'AMD-QSP05-03',
       summary: [
         { label: 'Total Entries', value: `${records.length} Records` },
         { label: 'Total Amount', value: `Rs ${totalSum.toLocaleString('en-IN')}` },

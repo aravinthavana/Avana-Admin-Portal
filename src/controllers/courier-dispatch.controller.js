@@ -181,9 +181,10 @@ exports.getDispatchesByDate = async (req, res, next) => {
 
 exports.createMergeRequest = async (req, res, next) => {
   try {
-    const requesterEmail = req.user?.email || '';
-    const requesterName = requesterEmail.split('@')[0];
-    const { targetDispatchId, items } = req.body;
+    // Employee routes have no JWT auth, so requesterEmail/Name come from frontend body
+    const { targetDispatchId, items, requesterEmail: bodyEmail, requesterName: bodyName } = req.body;
+    const requesterEmail = bodyEmail || req.user?.email || '';
+    const requesterName = bodyName || (requesterEmail ? requesterEmail.split('@')[0] : 'Employee');
     const host = req.protocol + '://' + req.get('host');
 
     if (!targetDispatchId || !items || !items.length) {

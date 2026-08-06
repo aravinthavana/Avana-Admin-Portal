@@ -48,6 +48,17 @@ export function openLegacyPrintReport({ title, subtitle, docNo, summary = [], he
       </div>
     ` : '';
 
+    const detailsHtml = (sec.details && sec.details.length > 0) ? `
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.5rem; background: #f8fafc; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+        ${sec.details.map(d => `
+          <div style="font-size: 0.85rem;">
+            <span style="color: #64748b; font-weight: 600; display: inline-block; width: 130px;">${d.label}:</span>
+            <span style="color: #0f172a;">${d.value}</span>
+          </div>
+        `).join('')}
+      </div>
+    ` : '';
+
     const tableHeaderHtml = (sec.headers && sec.headers.length > 0) ? `
       <thead>
         <tr style="background: #C59100; color: white; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.04em;">
@@ -74,10 +85,11 @@ export function openLegacyPrintReport({ title, subtitle, docNo, summary = [], he
     ` : '';
 
     return `
-      <div style="page-break-inside: avoid; margin-bottom: 2rem;">
+      <div style="margin-bottom: 3rem; page-break-after: ${sectionsData.length > 1 && sIdx < sectionsData.length - 1 ? 'always' : 'auto'};">
         ${secTitleHtml}
         ${secSubtitleHtml}
         ${summaryHtml}
+        ${detailsHtml}
         ${tableHtml}
       </div>
     `;

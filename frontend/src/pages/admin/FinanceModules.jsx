@@ -22,7 +22,8 @@ export function UtilityPaymentsPage({ api }) {
   const [confirmId, setConfirmId] = useState(null);
   const [activeTab, setActiveTab] = useState('Mobile Bill');
 
-  const tabs = ['Mobile Bill', 'Landline', 'Broadband', 'Electricity'];
+  const defaultTabs = ['Mobile Bill', 'Landline', 'Broadband', 'Electricity'];
+  const tabs = Array.from(new Set([...defaultTabs, ...records.map(r => r.utility_type).filter(Boolean)]));
 
   const fetchRecords = useCallback(async () => {
     setLoading(true);
@@ -33,7 +34,7 @@ export function UtilityPaymentsPage({ api }) {
 
   useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
-  function openNew() { setEditId(null); setForm({ utility_type: activeTab }); setShowForm(true); }
+  function openNew() { setEditId(null); setForm({ utility_type: tabs[0], status: 'Unpaid' }); setShowForm(true); }
   function openEdit(r) { setEditId(r.id); setForm({ ...r }); setShowForm(true); }
 
   async function handleSave(e) {

@@ -18,6 +18,7 @@ export function AMCPage() {
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [viewModal, setViewModal] = useState(null); // stores the contract object to view details
+  const [editId, setEditId] = useState(null);
   
   const [form, setForm] = useState({
     doc_no: '', amc_name: '', category: 'AC', no_of_visits: '', units_location: '',
@@ -39,6 +40,22 @@ export function AMCPage() {
 
   useEffect(() => { fetchContracts(); }, [fetchContracts]);
 
+  function openNew() {
+    setEditId(null);
+    setForm({
+      doc_no: '', amc_name: '', category: 'AC', no_of_visits: '', units_location: '',
+      pricing: '', frequency: 'Monthly', start_date: '', end_date: '', last_service: '',
+      next_service: '', vendor_contact: '', vendor_phone: '', coverage_specs: '', status: 'Active'
+    });
+    setShowForm(true);
+  }
+
+  function openEdit(c) {
+    setEditId(c.id);
+    setForm({ ...c });
+    setShowForm(true);
+  }
+
   async function handleSaveContract(e) {
     e.preventDefault();
     if (!form.amc_name || !form.category || !form.no_of_visits || !form.units_location || !form.pricing || !form.start_date || !form.end_date) {
@@ -47,14 +64,9 @@ export function AMCPage() {
     }
     setSaving(true);
     try {
-      await amcApi.save(form);
+      await amcApi.save({ ...form, id: editId || undefined });
       toast.success('Contract saved!');
       setShowForm(false);
-      setForm({
-        doc_no: '', amc_name: '', category: 'AC', no_of_visits: '', units_location: '',
-        pricing: '', frequency: 'Monthly', start_date: '', end_date: '', last_service: '',
-        next_service: '', vendor_contact: '', vendor_phone: '', coverage_specs: '', status: 'Active'
-      });
       fetchContracts();
     } catch (err) { toast.error(err.message); }
     finally { setSaving(false); }
@@ -251,7 +263,7 @@ export function AMCPage() {
       return {
         sectionTitle: `AMC Contract: ${c.amc_name || c.equipment_name || 'Details'}`,
         subtitle: `Doc No: ${c.doc_no || '—'} | Category: ${c.category || '—'}`,
-        summary: [
+        details: [
           { label: 'Contract Name', value: c.amc_name || c.equipment_name || '—' },
           { label: 'Units / Location', value: c.units_location || '—' },
           { label: 'Vendor Name', value: c.vendor_name || '—' },
@@ -296,7 +308,7 @@ export function AMCPage() {
     openLegacyPrintReport({
       title: `AMC Contract: ${c.amc_name || c.equipment_name || 'Details'}`,
       subtitle: `Doc No: ${c.doc_no || '—'} | Category: ${c.category || '—'}`,
-      summary: [
+      details: [
         { label: 'Contract Name', value: c.amc_name || c.equipment_name || '—' },
         { label: 'Units / Location', value: c.units_location || '—' },
         { label: 'Vendor Name', value: c.vendor_name || '—' },
@@ -331,7 +343,7 @@ export function AMCPage() {
             <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>
               📄 Download PDF Report
             </button>
-            <button type="button" className="btn btn--primary" onClick={() => setShowForm(true)}>
+            <button type="button" className="btn btn--primary" onClick={openNew}>
               + Add Contract
             </button>
           </div>
@@ -369,6 +381,9 @@ export function AMCPage() {
                         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                           <button type="button" className="btn btn--sm btn--outline" onClick={() => setViewModal(c)}>
                             🔍 View Details
+                          </button>
+                          <button type="button" className="btn btn--sm btn--secondary" onClick={() => openEdit(c)}>
+                            ✏️ Edit
                           </button>
                           <button type="button" className="btn btn--sm btn--secondary" onClick={() => handleDownloadSingleAMC(c)}>
                             📄 Download

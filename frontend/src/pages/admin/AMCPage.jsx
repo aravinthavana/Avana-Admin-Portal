@@ -265,8 +265,8 @@ export function AMCPage() {
   };
 
   const handleDownloadSingleAMC = (c) => {
-    const visitsRows = (c.visits || []).map(v => [
-      `Visit #${v.visit_no || v.visitNo || 1}`,
+    const visitsRows = (c.visits || []).map((v, i) => [
+      `Visit #${v.visit_no || v.visitNo || i + 1}`,
       v.scheduled_date || v.scheduledDate || '—',
       v.last_service_date || v.actualDate || '—',
       v.service_person || '—',
@@ -280,8 +280,15 @@ export function AMCPage() {
       summary: [
         { label: 'Contract Name', value: c.amc_name || c.equipment_name || '—' },
         { label: 'Units / Location', value: c.units_location || '—' },
-        { label: 'Pricing / Cost', value: c.pricing ? `₹${Number(c.pricing).toLocaleString('en-IN')}` : '—' },
-        { label: 'Status', value: c.status || 'Active', color: c.status === 'Active' ? '#16a34a' : '#d97706' },
+        { label: 'Vendor Name', value: c.vendor_name || '—' },
+        { label: 'Contact Person', value: c.vendor_contact || c.contact_person || '—' },
+        { label: 'Vendor Phone', value: c.vendor_phone || '—' },
+        { label: 'Vendor Email', value: c.vendor_email || '—' },
+        { label: 'Contract Period', value: `${c.start_date || '—'} to ${c.end_date || '—'}` },
+        { label: 'Maintenance Freq', value: c.frequency || '—' },
+        { label: 'Pricing (INR)', value: c.pricing ? `₹${Number(c.pricing).toLocaleString('en-IN')}` : '—' },
+        { label: 'Coverage / Specs', value: c.coverage_specs || '—' },
+        { label: 'Status', value: c.status || 'Active', color: (c.status || 'Active') === 'Active' ? '#16a34a' : '#d97706' },
       ],
       headers: [
         { title: 'Visit #' },

@@ -102,19 +102,20 @@ export function UtilityPaymentsPage({ api }) {
   }
 
   const handleLegacyPDF = () => {
-    const totalSum = records.filter(r => r.utility_type === activeTab).reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
-    const paidSum = records.filter(r => r.utility_type === activeTab && r.status === 'Paid').reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
+    const totalSum = records.reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
+    const paidSum = records.filter(r => r.status === 'Paid').reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
 
     openLegacyPrintReport({
-      title: `${activeTab} Statement Report`,
-      subtitle: `All ${activeTab} Records`,
+      title: `Utility Payments Report`,
+      subtitle: `All Utility Records`,
       summary: [
-        { label: 'Total Entries', value: `${records.filter(r => r.utility_type === activeTab).length} Records` },
+        { label: 'Total Entries', value: `${records.length} Records` },
         { label: 'Total Amount', value: `Rs ${totalSum.toLocaleString('en-IN')}` },
         { label: 'Total Paid', value: `Rs ${paidSum.toLocaleString('en-IN')}`, color: '#16a34a' },
       ],
       headers: [
         { title: '#' },
+        { title: 'Type' },
         { title: 'Provider' },
         { title: 'Account Number' },
         { title: 'Billing Cycle' },
@@ -122,8 +123,9 @@ export function UtilityPaymentsPage({ api }) {
         { title: 'Amount', align: 'right' },
         { title: 'Status' },
       ],
-      rows: records.filter(r => r.utility_type === activeTab).map((r, idx) => [
+      rows: records.map((r, idx) => [
         idx + 1,
+        r.utility_type || '—',
         r.provider_name || '—',
         r.account_number || '—',
         r.billing_cycle || '—',

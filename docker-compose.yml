@@ -19,7 +19,6 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-      - /app/node_modules/.prisma
     deploy:
       resources:
         limits:

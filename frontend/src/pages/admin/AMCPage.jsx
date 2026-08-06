@@ -264,19 +264,6 @@ export function AMCPage() {
     });
   };
 
-  return (
-    <div>
-      <PageHeader
-        title="📋 AMC Contracts"
-        subtitle="Manage Annual Maintenance Contracts & Service Visits"
-        action={
-          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-            <button type="button" className="btn btn--secondary btn--sm" onClick={handleLegacyPDF}>📄 Download PDF</button>
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowForm(true)}>
-              + Add Contract
-            </button>
-          </div>
-        }
   const handleDownloadSingleAMC = (c) => {
     const visitsRows = (c.visits || []).map(v => [
       `Visit #${v.visit_no || v.visitNo || 1}`,

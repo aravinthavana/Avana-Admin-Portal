@@ -1181,6 +1181,7 @@ function CourierMergeForm({ userEmail }) {
   const [dispatches, setDispatches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedDc, setSelectedDc] = useState(null);
+  const [viewDc, setViewDc] = useState(null);
   const [items, setItems] = useState([{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -1229,14 +1230,25 @@ function CourierMergeForm({ userEmail }) {
                 <strong>To:</strong> {dc.receiverName}
               </div>
               <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                <strong>Sender:</strong> {dc.senderName}
+                <strong>From:</strong> {dc.senderName}
               </div>
-              <button type="button" onClick={() => setSelectedDc(dc.id)} style={{
-                background: '#ea580c', color: 'white', border: 'none', borderRadius: '6px', padding: '0.45rem',
-                fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.3rem', marginTop: '0.2rem'
-              }}>
-                🔗 Merge Request
-              </button>
+              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                <strong>Transporter:</strong> {dc.transporterName || 'N/A'}
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.2rem' }}>
+                <button type="button" onClick={() => setViewDc(dc)} style={{
+                  background: '#f8fafc', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.45rem',
+                  fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', flex: 1
+                }}>
+                  👁️ View Details
+                </button>
+                <button type="button" onClick={() => setSelectedDc(dc.id)} style={{
+                  background: '#ea580c', color: 'white', border: 'none', borderRadius: '6px', padding: '0.45rem',
+                  fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', flex: 1
+                }}>
+                  🔗 Merge
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -1252,6 +1264,29 @@ function CourierMergeForm({ userEmail }) {
           <button type="button" onClick={handleSubmit} className="btn btn--primary" style={{ width: '100%', marginTop: 'var(--space-2)' }} disabled={submitting}>
             {submitting ? 'Submitting...' : 'Send Merge Request'}
           </button>
+        </div>
+      )}
+      {viewDc && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ background: 'white', borderRadius: '12px', padding: '1.5rem', maxWidth: '400px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1e293b' }}>DC #{viewDc.dcNo} Details</h3>
+              <button onClick={() => setViewDc(null)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
+            </div>
+            <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div><strong>Date:</strong> {viewDc.dcDate}</div>
+              <div><strong>Sender:</strong> {viewDc.senderName} ({viewDc.senderPhone || 'No Phone'})</div>
+              <div><strong>Sender Email:</strong> {viewDc.requesterEmail || 'N/A'}</div>
+              <div><strong>Receiver:</strong> {viewDc.receiverName} ({viewDc.receiverPhone || 'No Phone'})</div>
+              <div><strong>To Address:</strong> {viewDc.toAddress}</div>
+              <div><strong>Transporter:</strong> {viewDc.transporterName || 'N/A'}</div>
+              <div><strong>No. of Boxes:</strong> {viewDc.noOfBoxes}</div>
+              <div><strong>Items Count:</strong> {viewDc.items?.length || 0}</div>
+            </div>
+            <button onClick={() => { setSelectedDc(viewDc.id); setViewDc(null); }} className="btn btn--primary" style={{ marginTop: '0.5rem', width: '100%' }}>
+              Merge into this DC
+            </button>
+          </div>
         </div>
       )}
     </div>

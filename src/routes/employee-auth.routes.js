@@ -28,6 +28,7 @@ router.get('/stationery-items', inventoryController.getStationeryCatalog);
 const courierController = require('../controllers/courier-dispatch.controller');
 router.get('/courier-dispatch/next-dc', courierController.getNextDcNumber);
 router.get('/courier-dispatch/by-date', courierController.getDispatchesByDate);
+router.get('/courier-dispatch/all', courierController.getAllDispatches);
 router.post('/courier-dispatch/merge-request', courierController.createMergeRequest);
 router.post('/courier-dispatch', courierController.createDispatch);
 router.post('/shipping-label', courierController.generateShippingLabel);

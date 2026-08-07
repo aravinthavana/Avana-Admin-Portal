@@ -72,6 +72,9 @@ export const employeeApi = {
   createCourierDispatch: (data) =>
     request('/employee/courier-dispatch', { method: 'POST', body: JSON.stringify(data) }, 'employee'),
 
+  getAllCourierDispatches: () =>
+    request('/employee/courier-dispatch/all', {}, 'employee'),
+
   // Address Book
   getAddressBook: () =>
     request('/employee/address-book', {}, 'employee'),

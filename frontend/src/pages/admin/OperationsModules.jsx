@@ -1172,7 +1172,7 @@ export function CourierDispatchPage() {
                         #{d.dcNo}
                       </span>
                     </td>
-                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.88rem' }}>{d.dcDate}</td>
+                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.88rem', fontWeight: 600, color: 'var(--brand-amber)' }}>{formatDate(d.dcDate)}</td>
                     <td>
                       <div style={{ fontWeight: 600 }}>{d.senderName || 'Admin'}</div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{d.requesterEmail || d.senderPhone}</div>
@@ -1219,6 +1219,40 @@ export function CourierDispatchPage() {
                         >
                           🔍 View DC
                         </button>
+                        {(d.dcDate || '').slice(0, 10) === new Date().toISOString().slice(0, 10) && (
+                          <button
+                            className="btn btn--sm btn--primary"
+                            title="Recall and Refill into New DC Form"
+                            style={{ background: '#d97706', borderColor: '#b45309' }}
+                            onClick={() => {
+                              setAddForm({
+                                dcNo: d.dcNo || '',
+                                dcDate: d.dcDate || new Date().toISOString().slice(0,10),
+                                remarksType: d.remarksType || 'Service',
+                                remarksOther: d.remarksOther || '',
+                                courierBilling: d.courierBilling || 'Avana Medical Devices Pvt Ltd',
+                                signatoryCompany: d.signatoryCompany || 'Avana Medical Devices Pvt. Ltd',
+                                senderName: d.senderName || 'Admin',
+                                senderPhone: d.senderPhone || '',
+                                fromAddressSelection: 'other',
+                                fromAddressText: d.fromAddressText || '',
+                                receiverName: d.receiverName || '',
+                                receiverPhone: d.receiverPhone || '',
+                                toAddressSelection: 'other',
+                                toAddress: d.toAddress || '',
+                                transporterName: d.transporterName || '',
+                                docketNo: d.docketNo || '',
+                                transporterAmount: d.transporterAmount || '',
+                                items: d.items && d.items.length > 0 ? d.items : [{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }],
+                                declaration: !!d.declaration
+                              });
+                              setModalOpen(true);
+                              toast.info(`🔄 Recalled DC #${d.dcNo}! All form fields populated.`);
+                            }}
+                          >
+                            🔄 Refill
+                          </button>
+                        )}
                         <button
                           className="btn btn--sm btn--outline"
                           title="Send tracking details to requester"

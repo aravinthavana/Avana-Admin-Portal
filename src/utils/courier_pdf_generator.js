@@ -152,16 +152,31 @@ async function generateDCCopyPDF(record) {
     // Logo embed failed silently
   }
 
+function formatDateDMY(dateStr) {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch {
+    return dateStr;
+  }
+}
+
   // Info rows on the right
   const isOthersRemarks = (record.remarksType || '').toLowerCase() === 'others';
   const remarksDisplay = (isOthersRemarks && record.remarksOther) ? record.remarksOther : (record.remarksType || '—');
+  const transporterDisplay = record.transporterName || record.transporter || '—';
 
   const rows = [
     ['Delivery Challan No:', record.dcNo],
-    ['Delivery Challan Date:', record.dcDate],
+    ['Delivery Challan Date:', formatDateDMY(record.dcDate)],
     ['Remarks:', remarksDisplay],
-    ['Transporter name:', record.transporterName || '—'],
-    ['No. of boxes:', String(record.noOfBoxes || 1)],
+    ['Transporter name:', transporterDisplay],
+    ['No. of boxes:', String(record.noOfBoxes || (record.boxes?.length) || 1)],
     ['Courier Billing to:', record.courierBilling || '—'],
   ];
   const rowH = topH / rows.length;

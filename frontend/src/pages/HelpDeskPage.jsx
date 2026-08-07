@@ -1317,6 +1317,204 @@ function CourierMergeForm({ userEmail }) {
   );
 }
 
+/* --- AllDispatchesHistory Component --- */
+function AllDispatchesHistory({ onRefill }) {
+  const toast = useToast();
+  const [dispatches, setDispatches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [viewDc, setViewDc] = useState(null);
+  const [search, setSearch] = useState('');
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await employeeApi.getAllCourierDispatches();
+      setDispatches(data || []);
+    } catch {
+      toast.error('Failed to fetch dispatches list.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  function formatDateDMY(dStr) {
+    if (!dStr) return '—';
+    const parts = dStr.slice(0, 10).split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return dStr;
+  }
+
+  const filtered = dispatches.filter(d => {
+    const q = search.toLowerCase();
+    return (
+      (d.dcNo || '').toLowerCase().includes(q) ||
+      (d.senderName || '').toLowerCase().includes(q) ||
+      (d.receiverName || '').toLowerCase().includes(q) ||
+      (d.toAddress || '').toLowerCase().includes(q) ||
+      (d.transporterName || '').toLowerCase().includes(q)
+    );
+  });
+
+  return (
+    <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
+            📋 All Courier Dispatches & Delivery Challans
+          </h3>
+          <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+            View all DCs submitted by employees. Submissions created today can be <strong>Recalled & Refilled</strong>.
+          </p>
+        </div>
+        <input
+          type="text"
+          className="form-input"
+          placeholder="🔍 Search DC No, Employee, Receiver, City..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ maxWidth: 300 }}
+        />
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '2rem' }}><Spinner /></div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b', fontSize: '0.9rem' }}>
+          No Delivery Challans found.
+        </div>
+      ) : (
+        <div className="table-wrapper" style={{ maxHeight: '550px', overflowY: 'auto' }}>
+          <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+            <thead>
+              <tr style={{ background: '#f8fafc', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                <th>DC #</th>
+                <th>Date (DD/MM/YYYY)</th>
+                <th>Submitted By / Sender</th>
+                <th>Receiver</th>
+                <th>Destination</th>
+                <th>Transporter</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(d => {
+                const dcDateStr = (d.dcDate || '').slice(0, 10);
+                const isSubmittedToday = dcDateStr === todayStr;
+
+                return (
+                  <tr key={d.id}>
+                    <td style={{ fontWeight: 800, color: '#0f172a' }}>#{d.dcNo}</td>
+                    <td style={{ whiteSpace: 'nowrap', fontWeight: 600, color: '#92400e' }}>
+                      {formatDateDMY(d.dcDate)}
+                    </td>
+                    <td>
+                      <div style={{ fontWeight: 700 }}>{d.senderName || '—'}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{d.requesterEmail || ''}</div>
+                    </td>
+                    <td>
+                      <div style={{ fontWeight: 700 }}>{d.receiverName || '—'}</div>
+                      {d.receiverPhone && <div style={{ fontSize: '0.75rem', color: '#64748b' }}>📞 {d.receiverPhone}</div>}
+                    </td>
+                    <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.toAddress}>
+                      {d.toAddress || '—'}
+                    </td>
+                    <td style={{ fontWeight: 600 }}>{d.transporterName || '—'}</td>
+                    <td>
+                      <span style={{
+                        padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700,
+                        background: d.status === 'Dispatched' ? '#dcfce7' : d.status === 'Approved' ? '#fef3c7' : '#e2e8f0',
+                        color: d.status === 'Dispatched' ? '#166534' : d.status === 'Approved' ? '#92400e' : '#475569',
+                      }}>
+                        {d.status || 'Submitted'}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
+                        <button
+                          type="button"
+                          className="btn btn--sm btn--outline"
+                          onClick={() => setViewDc(d)}
+                          title="View Details"
+                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                        >
+                          👁️ View
+                        </button>
+                        {isSubmittedToday ? (
+                          <button
+                            type="button"
+                            className="btn btn--sm btn--primary"
+                            onClick={() => onRefill(d)}
+                            title="Recall data and refill form"
+                            style={{ background: '#d97706', borderColor: '#b45309', color: '#ffffff', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700 }}
+                          >
+                            🔄 Recall & Refill
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', color: '#94a3b8', padding: '4px 6px' }}>Past Date</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {viewDc && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div style={{ background: 'white', borderRadius: '12px', padding: '1.5rem', maxWidth: '480px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a', fontWeight: 800 }}>
+                📋 Delivery Challan #{viewDc.dcNo}
+              </h3>
+              <button onClick={() => setViewDc(null)} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#64748b' }}>×</button>
+            </div>
+            <div style={{ fontSize: '0.85rem', color: '#334155', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div><strong>Date (DD/MM/YYYY):</strong> <span style={{ color: '#b45309', fontWeight: 700 }}>{formatDateDMY(viewDc.dcDate)}</span></div>
+              <div><strong>Sender / Employee:</strong> {viewDc.senderName} ({viewDc.senderPhone || 'No Phone'})</div>
+              <div><strong>Requester Email:</strong> {viewDc.requesterEmail || 'N/A'}</div>
+              <div><strong>Receiver Name:</strong> {viewDc.receiverName} ({viewDc.receiverPhone || 'No Phone'})</div>
+              <div><strong>Destination Address:</strong> {viewDc.toAddress}</div>
+              <div><strong>Transporter Name:</strong> {viewDc.transporterName || '—'}</div>
+              <div><strong>Transporter Fee:</strong> ₹{viewDc.transporterAmount || 0}</div>
+              <div><strong>Courier Billing:</strong> {viewDc.courierBilling || '—'}</div>
+              <div><strong>Signatory Entity:</strong> {viewDc.signatoryCompany || '—'}</div>
+              <div><strong>Items Count:</strong> {viewDc.items?.length || 0} items</div>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+              {((viewDc.dcDate || '').slice(0, 10) === todayStr) && (
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  style={{ flex: 1, background: '#d97706', borderColor: '#b45309' }}
+                  onClick={() => { setViewDc(null); onRefill(viewDc); }}
+                >
+                  🔄 Recall & Refill Form
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn btn--outline"
+                style={{ flex: 1 }}
+                onClick={() => setViewDc(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* --- CourierDispatchForm --- */
 function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
   const { employeeEmail } = useAuth();
@@ -1327,6 +1525,50 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
   function switchTab(tab) {
     setActiveTab(tab);
     if (onTabChange) onTabChange(tab);
+  }
+
+  function handleRecallAndRefill(dc) {
+    const today = new Date().toISOString().slice(0, 10);
+    const refilledItems = dc.items && dc.items.length > 0
+      ? dc.items.map(it => ({
+          itemCode: it.itemCode || '',
+          description: it.description || '',
+          serialNo: it.serialNo || '',
+          qty: it.qty || 1,
+          rate: it.rate || 0,
+          value: it.value || 0
+        }))
+      : [{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }];
+
+    const refilledBoxes = Array.isArray(dc.boxes) && dc.boxes.length > 0
+      ? dc.boxes
+      : [{ weight: dc.weight || '', dim: dc.dimensions || '' }];
+
+    setForm(f => ({
+      ...f,
+      dcNo: dc.dcNo || f.dcNo,
+      dcDate: dc.dcDate || today,
+      remarksType: dc.remarksType || 'Service',
+      remarksOther: dc.remarksOther || '',
+      transporterSelect: ['Dexpress', 'DTDC', 'BlueDart', 'Professional Courier'].includes(dc.transporterName) ? dc.transporterName : (dc.transporterName ? 'Other' : ''),
+      transporterName: dc.transporterName || '',
+      transporterAmount: dc.transporterAmount || '',
+      courierBilling: dc.courierBilling || 'Avana Medical Devices Pvt. Ltd.',
+      signatoryCompany: dc.signatoryCompany || 'Avana Medical Devices Pvt. Ltd.',
+      senderName: dc.senderName || '',
+      senderPhone: dc.senderPhone || '',
+      fromAddressText: dc.fromAddressText || '',
+      receiverName: dc.receiverName || '',
+      receiverPhone: dc.receiverPhone || '',
+      toAddress: dc.toAddress || '',
+      declaration: !!dc.declaration,
+      items: refilledItems,
+      boxes: refilledBoxes
+    }));
+
+    setItems(refilledItems);
+    setBoxes(refilledBoxes);
+    switchTab('challan');
   }
 
   useEffect(() => {
@@ -1352,16 +1594,21 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--space-4)' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
         <button type="button" style={tabStyle(activeTab === 'challan')} onClick={() => switchTab('challan')}>
-          Delivery Challan
+          Delivery Challan Form
         </button>
         <button type="button" style={tabStyle(activeTab === 'label')} onClick={() => switchTab('label')}>
           Shipping Label
         </button>
+        <button type="button" style={tabStyle(activeTab === 'all-dcs')} onClick={() => switchTab('all-dcs')}>
+          📋 All DCs & Recall
+        </button>
       </div>
 
       {activeTab === 'label' && <ShippingLabelForm userEmail={employeeEmail} />}
+
+      {activeTab === 'all-dcs' && <AllDispatchesHistory onRefill={handleRecallAndRefill} />}
 
       {activeTab === 'challan' && (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-6)', alignItems: 'flex-start' }}>
@@ -1378,10 +1625,9 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
-          <FormField label="Remarks" required htmlFor="cd-remarks">
-            <select id="cd-remarks" className="form-select" value={form.remarksType || ''}
+          <FormField label="Shipment Category / Remarks" required htmlFor="cd-remarks">
+            <select id="cd-remarks" className="form-select" value={form.remarksType || 'Service'}
               onChange={e => setForm(f => ({ ...f, remarksType: e.target.value }))}>
-              <option value="">Select Remarks</option>
               <option value="Stationery">Stationery</option>
               <option value="Glass item">Glass item</option>
               <option value="Service">Service</option>
@@ -1395,9 +1641,19 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
           </FormField>
           <FormField label="Transporter Name" required htmlFor="cd-transporter">
             <select id="cd-transporter" className="form-select" value={form.transporterSelect || ''}
-              onChange={e => setForm(f => ({ ...f, transporterSelect: e.target.value }))}>
+              onChange={e => {
+                const val = e.target.value;
+                setForm(f => ({
+                  ...f,
+                  transporterSelect: val,
+                  transporterName: val === 'Other' ? (f.transporterName || '') : val
+                }));
+              }}>
               <option value="">Select Transporter</option>
               <option value="Dexpress">Dexpress</option>
+              <option value="DTDC">DTDC</option>
+              <option value="BlueDart">BlueDart</option>
+              <option value="Professional Courier">Professional Courier</option>
               <option value="Other">Other (Specify)</option>
             </select>
             {form.transporterSelect === 'Other' && (

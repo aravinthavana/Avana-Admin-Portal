@@ -249,9 +249,8 @@ export function HelpdeskTable({ categoryFilter }) {
                 <SkeletonRows cols={8} rows={5} />
               ) : (
                 filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((r, idx) => {
-                  const itemsData = parseItemsData(r.items);
-                  const itemsList = itemsData ? itemsData.list : [];
-                  const meta = itemsData ? itemsData.meta : null;
+                  const itemsList = parseItems(r.items);
+                  const meta = parseItemsData(r.items);
                   
                   let shortId = r.id ? r.id.substring(0,4).toUpperCase() : '0000';
                   const dateStr = (r.createdAt || r.created_at || '').split('T')[0];
@@ -492,9 +491,8 @@ export function HelpdeskTable({ categoryFilter }) {
       >
         {activeDetailRequest && (() => {
           const r = activeDetailRequest;
-          const itemsData = parseItemsData(r.items);
-          const itemsList = itemsData ? itemsData.list : [];
-          const meta = itemsData ? itemsData.meta : null;
+          const itemsList = parseItems(r.items);
+          const meta = parseItemsData(r.items);
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>

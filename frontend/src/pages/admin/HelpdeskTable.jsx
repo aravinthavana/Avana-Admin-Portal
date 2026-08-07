@@ -131,7 +131,19 @@ export function HelpdeskTable({ categoryFilter }) {
     try {
       const parsed = typeof items === 'string' ? JSON.parse(items) : items;
       if (Array.isArray(parsed)) return parsed;
+      return [];
     } catch { return []; }
+  }
+
+  function parseItemsData(items) {
+    if (!items) return null;
+    try {
+      const parsed = typeof items === 'string' ? JSON.parse(items) : items;
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+        return parsed;
+      }
+      return null;
+    } catch { return null; }
   }
 
   const label = categoryFilter ? CATEGORY_LABELS[categoryFilter] || categoryFilter : 'All';
@@ -237,7 +249,9 @@ export function HelpdeskTable({ categoryFilter }) {
                 <SkeletonRows cols={8} rows={5} />
               ) : (
                 filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((r, idx) => {
-                  const items = parseItems(r.items);
+                  const itemsData = parseItemsData(r.items);
+                  const itemsList = itemsData ? itemsData.list : [];
+                  const meta = itemsData ? itemsData.meta : null;
                   
                   let shortId = r.id ? r.id.substring(0,4).toUpperCase() : '0000';
                   const dateStr = (r.createdAt || r.created_at || '').split('T')[0];
@@ -276,11 +290,13 @@ export function HelpdeskTable({ categoryFilter }) {
                           display: '-webkit-box', WebkitLineClamp: 3,
                           WebkitBoxOrient: 'vertical', overflow: 'hidden',
                         }}>
+                          {meta && meta.request_type ? <strong>[{meta.request_type}] </strong> : ''}
                           {r.description || r.issue || r.exact_query || r.exact_issue || '—'}
+                          {meta && meta.remarks ? <div style={{marginTop: 4}}><em>Remarks: {meta.remarks}</em></div> : null}
                         </div>
-                        {items.length > 0 && (
+                        {itemsList.length > 0 && (
                           <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
-                            Items: {items.map(i => `${i.item || i.name}(${i.qty || i.quantity || 1})`).join(', ')}
+                            Items: {itemsList.map(i => `${i.item || i.name}(${i.qty || i.quantity || 1})`).join(', ')}
                           </div>
                         )}
                         {r.remarks && (
@@ -476,7 +492,9 @@ export function HelpdeskTable({ categoryFilter }) {
       >
         {activeDetailRequest && (() => {
           const r = activeDetailRequest;
-          const items = parseItems(r.items);
+          const itemsData = parseItemsData(r.items);
+          const itemsList = itemsData ? itemsData.list : [];
+          const meta = itemsData ? itemsData.meta : null;
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
@@ -521,14 +539,20 @@ export function HelpdeskTable({ categoryFilter }) {
                 <span>{r.location || r.floor || '—'}</span>
               </div>
 
-              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
-                <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Exact Issue / Details</strong>
-                <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: '1.4', fontSize: '0.9rem' }}>
-                  {r.description || r.issue || r.exact_query || r.exact_issue || '—'}
+              <div style={{ background: '#f8fafc', padding: 'var(--space-3)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
+                <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 6 }}>Request Details</strong>
+                <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5, color: 'var(--color-text-primary)' }}>
+                  {meta && meta.request_type ? <strong>[{meta.request_type}] </strong> : ''}
+                  {r.description || r.issue || r.exact_query || r.exact_issue || 'No details provided'}
                 </p>
+                {meta && meta.remarks && (
+                  <p style={{ margin: '8px 0 0', fontSize: '0.9rem', lineHeight: 1.5, color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+                    Remarks: {meta.remarks}
+                  </p>
+                )}
               </div>
 
-              {items.length > 0 && (
+              {itemsList.length > 0 && (
                 <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
                   <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Requested Items</strong>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
@@ -539,10 +563,13 @@ export function HelpdeskTable({ categoryFilter }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {items.map((it, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                          <td style={{ padding: '6px 8px' }}>{it.item || it.name}</td>
-                          <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600 }}>{it.qty || it.quantity || 1}</td>
+                      {itemsList.map((i, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                          <td style={{ padding: '6px 8px' }}>
+                            {i.item || i.name || 'Item'}
+                            {i.remarks && <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', display: 'block' }}>{i.remarks}</span>}
+                          </td>
+                          <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600 }}>{i.qty || i.quantity || 1}</td>
                         </tr>
                       ))}
                     </tbody>

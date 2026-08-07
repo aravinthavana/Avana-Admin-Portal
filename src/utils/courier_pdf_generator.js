@@ -344,10 +344,17 @@ async function generateDCCopyPDF(record) {
 
   // Prepare list of box details (row by row)
   let boxList = [];
-  if (Array.isArray(record.boxes) && record.boxes.length > 0) {
-    boxList = record.boxes.map((b, idx) => ({
+  let parsedBoxes = null;
+  if (Array.isArray(record.boxes)) {
+    parsedBoxes = record.boxes;
+  } else if (typeof record.dimensions === 'string' && record.dimensions.trim().startsWith('[')) {
+    try { parsedBoxes = JSON.parse(record.dimensions); } catch (e) {}
+  }
+
+  if (Array.isArray(parsedBoxes) && parsedBoxes.length > 0) {
+    boxList = parsedBoxes.map((b, idx) => ({
       boxNo: b.boxNo || `Box ${idx + 1}`,
-      dimensions: b.dimensions || '',
+      dimensions: b.dim || b.dimensions || '',
       weight: b.weight || ''
     }));
   } else {

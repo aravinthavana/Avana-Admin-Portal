@@ -937,6 +937,36 @@ export function CourierDispatchPage() {
     });
   };
 
+  const handleDownloadSingleDC = (d) => {
+    openLegacyPrintReport({
+      title: 'DELIVERY CHALLAN',
+      subtitle: `DC No: ${d.dcNo || '—'} | Date: ${d.dcDate || '—'}`,
+      details: [
+        { label: 'Sender Name', value: d.senderName || '—' },
+        { label: 'Consignee Name', value: d.receiverName || '—' },
+        { label: 'Delivery Address', value: d.toAddress || '—' },
+        { label: 'Transporter', value: d.transporterName || '—' },
+        { label: 'Docket No', value: d.docketNo || '—' },
+      ],
+      headers: [
+        { title: 'S.No.' },
+        { title: 'Item Description' },
+        { title: 'Item Code/Serial No' },
+        { title: 'Quantity' },
+        { title: 'Rate', align: 'right' },
+        { title: 'Value', align: 'right' }
+      ],
+      rows: (d.items || []).map((it, i) => [
+        i + 1,
+        it.description || '—',
+        it.itemCode || it.serialNo || '—',
+        it.qty || 1,
+        it.rate ? `₹${it.rate.toLocaleString()}` : '—',
+        it.value ? `₹${it.value.toLocaleString()}` : '—'
+      ])
+    });
+  };
+
   return (
     <div>
       <PageHeader
@@ -996,7 +1026,7 @@ export function CourierDispatchPage() {
                     </td>
                     <td style={{ whiteSpace: 'nowrap', fontSize: '0.88rem' }}>{d.dcDate}</td>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{d.senderName || 'N/A'}</div>
+                      <div style={{ fontWeight: 600 }}>{d.senderName || 'Admin'}</div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{d.requesterEmail || d.senderPhone}</div>
                       {d.mergedRequesters && (
                         <div style={{ fontSize: '0.75rem', color: 'var(--brand-amber)', marginTop: 4 }}>
@@ -1034,6 +1064,13 @@ export function CourierDispatchPage() {
                     </td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                        <button
+                          className="btn btn--sm btn--outline"
+                          title="View Delivery Challan PDF"
+                          onClick={() => handleDownloadSingleDC(d)}
+                        >
+                          🔍 View DC
+                        </button>
                         <button
                           className="btn btn--sm btn--outline"
                           title="Send tracking details to requester"

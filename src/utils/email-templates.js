@@ -386,8 +386,12 @@ const templates = {
   // 9. Helpdesk Request Submission — to Employee
   helpdeskSubmission(request) {
     let detailsText = '';
-    if (Array.isArray(request.items) && request.items.length) {
-      detailsText = request.items.map(it => `<strong>${it.item}</strong> (Qty: ${it.quantity})`).join(', ');
+    let itemsArr = request.items;
+    if (typeof itemsArr === 'string') {
+      try { itemsArr = JSON.parse(itemsArr); } catch(e) {}
+    }
+    if (Array.isArray(itemsArr) && itemsArr.length) {
+      detailsText = itemsArr.map(it => `<strong>${it.item || it.name || 'Item'}</strong> (Qty: ${it.quantity || it.qty || 1})`).join(', ');
     } else if (request.item) {
       detailsText = `${request.stationery_type || 'Item'}: <strong>${request.item}</strong> (Qty: ${request.quantity || 1})`;
     } else {
@@ -407,7 +411,7 @@ const templates = {
         <table style="${TABLE_WRAP}">
           ${tableRow('Service Request No', `<strong style="color:#4f46e5;">#${request.id}</strong>`)}
           ${tableRow('Category', catTitle, true)}
-          ${tableRow('Sub-Type / Priority', request.subcategory || 'N/A')}
+          ${tableRow('Sub-Type / Priority', request.subcategory || request.item_type || 'N/A')}
           ${tableRow('Floor', request.floor || request.location || 'N/A', true)}
           ${tableRow('Details / Issue', detailsText)}
           ${tableRow('Remarks', request.remarks || 'None', true)}
@@ -425,8 +429,12 @@ const templates = {
   // 9.5 Helpdesk Request Alert — to Admin
   helpdeskAdminAlert(request, host) {
     let detailsText = '';
-    if (Array.isArray(request.items) && request.items.length) {
-      detailsText = request.items.map(it => `<strong>${it.item}</strong> (Qty: ${it.quantity})`).join(', ');
+    let itemsArr = request.items;
+    if (typeof itemsArr === 'string') {
+      try { itemsArr = JSON.parse(itemsArr); } catch(e) {}
+    }
+    if (Array.isArray(itemsArr) && itemsArr.length) {
+      detailsText = itemsArr.map(it => `<strong>${it.item || it.name || 'Item'}</strong> (Qty: ${it.quantity || it.qty || 1})`).join(', ');
     } else if (request.item) {
       detailsText = `${request.stationery_type || 'Item'}: <strong>${request.item}</strong> (Qty: ${request.quantity || 1})`;
     } else {
@@ -446,12 +454,12 @@ const templates = {
         <table style="${TABLE_WRAP}">
           ${tableRow('Request ID', `<strong style="color:#dc2626;">#${request.id}</strong>`)}
           ${tableRow('Category', catTitle, true)}
-          ${tableRow('Sub-Type', request.subcategory || 'N/A')}
+          ${tableRow('Sub-Type', request.subcategory || request.item_type || 'N/A')}
           ${tableRow('Location/Floor', request.floor || request.location || 'N/A', true)}
           ${tableRow('Details', detailsText)}
           ${tableRow('Remarks', request.remarks || 'None', true)}
           ${tableRow('Submitted By', request.requester_name || request.name || 'N/A')}
-          ${tableRow('Contact', `${request.requester_email || 'N/A'} / ${request.requester_phone || 'N/A'}`, true)}
+          ${tableRow('Contact', `${request.email || 'N/A'} / ${request.phone || 'N/A'}`, true)}
         </table>
         ${actionButton('Open Admin Dashboard', `${host || APP_URL}/helpdesk-admin`, '#dc2626')}
       `,

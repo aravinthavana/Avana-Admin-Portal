@@ -159,7 +159,7 @@ export function HelpdeskTable({ categoryFilter }) {
         formatDateTime(req.created_at || req.createdAt),
         CATEGORY_LABELS[req.category] || req.category || 'General',
         `${req.requester_name || req.requesterName || 'Employee'}<br/><span style="font-size:0.75rem;color:#64748b">${req.requester_email || req.requesterEmail || ''}</span>`,
-        req.floor_no || req.floorNo || 'N/A',
+        req.floor_no || req.floorNo || req.location || req.floor || 'N/A',
         req.exact_query || req.description || req.details || '—',
         req.status || 'Pending',
       ])

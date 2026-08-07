@@ -307,29 +307,46 @@ export function AMCPage() {
 
     openLegacyPrintReport({
       title: `AMC Contract: ${c.amc_name || c.equipment_name || 'Details'}`,
-      subtitle: `Doc No: ${c.doc_no || '—'} | Category: ${c.category || '—'}`,
-      details: [
-        { label: 'Contract Name', value: c.amc_name || c.equipment_name || '—' },
-        { label: 'Units / Location', value: c.units_location || '—' },
-        { label: 'Vendor Name', value: c.vendor_name || '—' },
-        { label: 'Contact Person', value: c.vendor_contact || c.contact_person || '—' },
-        { label: 'Vendor Phone', value: c.vendor_phone || '—' },
-        { label: 'Vendor Email', value: c.vendor_email || '—' },
-        { label: 'Contract Period', value: `${c.start_date || '—'} to ${c.end_date || '—'}` },
-        { label: 'Maintenance Freq', value: c.frequency || '—' },
-        { label: 'Pricing (INR)', value: c.pricing ? `₹${Number(c.pricing).toLocaleString('en-IN')}` : '—' },
-        { label: 'Coverage / Specs', value: c.coverage_specs || '—' },
-        { label: 'Status', value: c.status || 'Active', color: (c.status || 'Active') === 'Active' ? '#16a34a' : '#d97706' },
-      ],
-      headers: [
-        { title: 'Visit #' },
-        { title: 'Scheduled Date' },
-        { title: 'Completed Date' },
-        { title: 'Service Person' },
-        { title: 'Status' },
-        { title: 'Remarks' },
-      ],
-      rows: visitsRows.length > 0 ? visitsRows : [['No service visits logged', '—', '—', '—', '—', '—']]
+      subtitle: 'Contract Specifications and Service Log',
+      docNo: 'AMD-QSP05-04',
+      sections: [{
+        customHtml: `
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid #e2e8f0;">
+              <h4 style="color: #0f172a; margin-bottom: 0.75rem; font-size: 0.95rem;">📄 Contract Specifications</h4>
+              <div style="font-size: 0.88rem; line-height: 1.8;">
+                <div><strong>Doc No:</strong> ${c.doc_no || '-'}</div>
+                <div><strong>Units / Location:</strong> ${c.units_location || '-'}</div>
+                <div><strong>Pricing / Cost Paid:</strong> ${c.pricing ? \`₹\${Number(c.pricing).toLocaleString()}\` : '-'}</div>
+                <div><strong>Frequency:</strong> ${c.frequency || '-'}</div>
+                <div><strong>Start Date:</strong> ${c.start_date || '-'}</div>
+                <div><strong>End Date:</strong> ${c.end_date || '-'}</div>
+                <div><strong>Next Overall Service:</strong> ${c.next_service || 'N/A'}</div>
+              </div>
+            </div>
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid #e2e8f0;">
+              <h4 style="color: #0f172a; margin-bottom: 0.75rem; font-size: 0.95rem;">📞 Vendor & Contact Info</h4>
+              <div style="font-size: 0.88rem; line-height: 1.8;">
+                <div><strong>Vendor Contact:</strong> ${c.vendor_contact || '-'}</div>
+                <div><strong>Contact Phone:</strong> ${c.vendor_phone || '-'}</div>
+              </div>
+              <h4 style="color: #0f172a; margin: 1rem 0 0.5rem; font-size: 0.95rem;">Coverage Scope:</h4>
+              <div style="font-size: 0.85rem; color: #475569; background: #fff; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 4px; min-height: 60px;">
+                ${c.coverage_specs || 'No coverage details provided.'}
+              </div>
+            </div>
+          </div>
+        `,
+        headers: [
+          { title: 'Visit #' },
+          { title: 'Scheduled Date' },
+          { title: 'Completed Date' },
+          { title: 'Service Person' },
+          { title: 'Status' },
+          { title: 'Remarks' },
+        ],
+        rows: visitsRows.length > 0 ? visitsRows : [['No service visits logged', '—', '—', '—', '—', '—']]
+      }]
     });
   };
 

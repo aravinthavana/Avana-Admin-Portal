@@ -23,7 +23,12 @@ function CategoryWrapper() {
   }
   
   const validCategories = ['conference', 'stationery', 'admin-support', 'maintenance', 'housekeeping', 'office-asset', 'print-scan'];
-  const categoryFilter = validCategories.includes(path) ? path : null;
+  const categoryMap = {
+    'admin-support': 'admin_support',
+    'office-asset': 'office_asset',
+    'print-scan': 'print_scan'
+  };
+  const categoryFilter = validCategories.includes(path) ? (categoryMap[path] || path) : null;
   
   return <HelpdeskTable categoryFilter={categoryFilter} />;
 }

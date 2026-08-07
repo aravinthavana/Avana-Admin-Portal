@@ -58,12 +58,21 @@ exports.createRequest = async (req, res, next) => {
       name: requester_name, 
       email: requester_email || '', 
       phone: requester_phone, 
-      location: location_dept || '',
-      description: issue_desc || '',
+      location: location_dept || req.body.floor || req.body.location || '',
+      description: issue_desc || req.body.description || req.body.request_type || req.body.support_type || req.body.service_type || req.body.issue_type || '',
       ...otherData,
       status: 'pending',
       createdAt: new Date().toISOString()
     };
+    
+    // Pack extra form fields (remarks, request_type, etc.) into items if not already items
+    if (!newRequest.items && (req.body.remarks || req.body.request_type || req.body.support_type || req.body.service_type || req.body.issue_type)) {
+      newRequest.items = JSON.stringify({
+        remarks: req.body.remarks,
+        request_type: req.body.request_type || req.body.support_type || req.body.service_type || req.body.issue_type,
+        floor: req.body.floor
+      });
+    }
 
     if (await helpdeskService.saveRequest(newRequest)) {
       const host = req.headers.origin || (req.headers.host ? `${req.protocol}://${req.headers.host}` : 'http://localhost:5173');

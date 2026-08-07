@@ -21,6 +21,7 @@ export function UtilityPaymentsPage({ api }) {
   const [saving, setSaving] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
   const [activeTab, setActiveTab] = useState('Mobile Bill');
+  const [filterMonth, setFilterMonth] = useState(''); // e.g., '2026-07'
 
   const defaultTabs = ['Mobile Bill', 'Landline', 'Broadband', 'Electricity'];
   const tabs = Array.from(new Set([...defaultTabs, ...records.map(r => r.utility_type).filter(Boolean)]));
@@ -102,16 +103,21 @@ export function UtilityPaymentsPage({ api }) {
     );
   }
 
+  const filteredRecords = useMemo(() => {
+    if (!filterMonth) return records;
+    return records.filter(r => (r.due_date || r.payment_date || '').startsWith(filterMonth));
+  }, [records, filterMonth]);
+
   const handleLegacyPDF = () => {
-    const totalSum = records.reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
-    const paidSum = records.filter(r => r.status === 'Paid').reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
+    const totalSum = filteredRecords.reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
+    const paidSum = filteredRecords.filter(r => r.status === 'Paid').reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
 
     openLegacyPrintReport({
       title: `Utility Payments Report`,
-      subtitle: `All Utility Records`,
+      subtitle: filterMonth ? `Records for ${filterMonth}` : `All Utility Records`,
       docNo: 'AMD-QSP05-03',
       summary: [
-        { label: 'Total Entries', value: `${records.length} Records` },
+        { label: 'Total Entries', value: `${filteredRecords.length} Records` },
         { label: 'Total Amount', value: `Rs ${totalSum.toLocaleString('en-IN')}` },
         { label: 'Total Paid', value: `Rs ${paidSum.toLocaleString('en-IN')}`, color: '#16a34a' },
       ],
@@ -125,7 +131,7 @@ export function UtilityPaymentsPage({ api }) {
         { title: 'Amount', align: 'right' },
         { title: 'Status' },
       ],
-      rows: records.map((r, idx) => [
+      rows: filteredRecords.map((r, idx) => [
         idx + 1,
         r.utility_type || '—',
         r.provider_name || '—',
@@ -147,13 +153,25 @@ export function UtilityPaymentsPage({ api }) {
         </div>
       } />
 
+      <div className="card" style={{ marginBottom: 'var(--space-5)', padding: 'var(--space-4) var(--space-5)' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'center' }}>
+          <FormField label="Filter by Month" htmlFor="util-month-filter">
+            <input id="util-month-filter" type="month" className="form-input" value={filterMonth}
+              onChange={e => setFilterMonth(e.target.value)} style={{ width: 180 }} />
+          </FormField>
+          {filterMonth && (
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setFilterMonth('')} style={{ alignSelf: 'flex-end', marginBottom: 'var(--space-1)' }}>Clear Filter</button>
+          )}
+        </div>
+      </div>
+
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
-          : records.length === 0 ? <EmptyState icon="💳" title="No bills found" description="No utility records found" />
+          : filteredRecords.length === 0 ? <EmptyState icon="💳" title="No bills found" description={filterMonth ? "No utility records found for this month" : "No utility records found"} />
           : (
             <div style={{ padding: 'var(--space-4)' }}>
               {tabs.map(tab => {
-                const tabRecords = records.filter(r => r.utility_type === tab);
+                const tabRecords = filteredRecords.filter(r => r.utility_type === tab);
                 if (tabRecords.length === 0) return null;
                 return (
                   <div key={tab} style={{ marginBottom: 'var(--space-8)' }}>

@@ -89,6 +89,7 @@ export function openLegacyPrintReport({ title, subtitle, docNo, summary = [], he
         ${secTitleHtml}
         ${secSubtitleHtml}
         ${summaryHtml}
+        ${sec.customHtml || ''}
         ${detailsHtml}
         ${tableHtml}
       </div>

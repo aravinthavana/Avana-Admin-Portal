@@ -1319,6 +1319,7 @@ function CourierMergeForm({ userEmail }) {
 
 /* --- AllDispatchesHistory Component --- */
 function AllDispatchesHistory({ onRefill }) {
+  const { employeeEmail } = useAuth();
   const toast = useToast();
   const [dispatches, setDispatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1349,6 +1350,10 @@ function AllDispatchesHistory({ onRefill }) {
   }
 
   const filtered = dispatches.filter(d => {
+    // Restrict to the logged-in employee's email
+    const isMine = !employeeEmail || (d.requesterEmail && d.requesterEmail.toLowerCase() === employeeEmail.toLowerCase());
+    if (!isMine) return false;
+
     const q = search.toLowerCase();
     return (
       (d.dcNo || '').toLowerCase().includes(q) ||
@@ -1364,16 +1369,16 @@ function AllDispatchesHistory({ onRefill }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
-            📋 All Courier Dispatches & Delivery Challans
+            📋 My Delivery Challans & History
           </h3>
           <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-            View all DCs submitted by employees. Submissions created today can be <strong>Recalled & Refilled</strong>.
+            View Delivery Challans submitted by you. Submissions created today can be <strong>Recalled & Refilled</strong>.
           </p>
         </div>
         <input
           type="text"
           className="form-input"
-          placeholder="🔍 Search DC No, Employee, Receiver, City..."
+          placeholder="🔍 Search DC No, Receiver, City..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ maxWidth: 300 }}
@@ -1384,7 +1389,7 @@ function AllDispatchesHistory({ onRefill }) {
         <div style={{ textAlign: 'center', padding: '2rem' }}><Spinner /></div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b', fontSize: '0.9rem' }}>
-          No Delivery Challans found.
+          No Delivery Challans found for your account ({employeeEmail}).
         </div>
       ) : (
         <div className="table-wrapper" style={{ maxHeight: '550px', overflowY: 'auto' }}>
@@ -1602,7 +1607,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
           Shipping Label
         </button>
         <button type="button" style={tabStyle(activeTab === 'all-dcs')} onClick={() => switchTab('all-dcs')}>
-          📋 All DCs & Recall
+          📋 My DCs & Recall
         </button>
       </div>
 

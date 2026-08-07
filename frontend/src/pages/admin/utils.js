@@ -121,9 +121,9 @@ export function openLegacyPrintReport({ title, subtitle, docNo, summary = [], he
           <div class="header-left">
             <h1>${title}</h1>
             <p>${subtitle || ''} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+            ${docNo ? `<p style="font-weight: bold; color: #475569; margin-top: 0.3rem;">Doc No: ${docNo}</p>` : ''}
           </div>
           <div class="logo" style="text-align: right;">
-            ${docNo ? `<div style="font-size: 0.75rem; font-weight: bold; color: #475569; margin-bottom: 0.3rem;">Doc No: ${docNo}</div>` : ''}
             <img src="${logoUrl}" alt="Avana Logo">
           </div>
         </div>

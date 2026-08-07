@@ -54,7 +54,11 @@ function HeaderNavigation() {
   const location = useLocation();
 
   const PATH_NAMES = {
-    'helpdesk-admin': 'Admin Portal',
+    'helpdesk-admin': 'Admin Dashboard',
+    'requests': 'Request Categories',
+    'security': 'Security & Logs',
+    'inventory': 'Inventory & Operations',
+    'all-tickets': 'All Requests',
     'conference': 'Conference Room',
     'stationery': 'Stationery',
     'admin-support': 'Admin Support',
@@ -269,9 +273,6 @@ export function AdminLayout() {
   const { logoutAdmin } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
-  const [expandedSection, setExpandedSection] = React.useState(0);
 
   const handleLogout = async () => {
     await logoutAdmin();
@@ -279,301 +280,85 @@ export function AdminLayout() {
     navigate('/');
   };
 
-  const currentSidebarWidth = sidebarCollapsed ? '70px' : '260px';
-
   return (
-    <div className="layout layout--admin" style={{ '--current-sidebar-width': currentSidebarWidth }}>
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Sidebar — Solid Black with White Text */}
-      <aside 
-        className={`sidebar${sidebarOpen ? ' sidebar--open' : ''}`} 
-        aria-label="Admin navigation" 
-        style={{ 
-          background: '#000000', 
-          color: '#ffffff'
-        }}
-      >
-        {/* Sidebar Header */}
-        <div className="sidebar__header" style={{
-          background: '#000000',
-          borderBottom: '2px solid #c29100',
-          padding: sidebarCollapsed && !sidebarOpen ? '1.2rem 0' : '1.2rem 1.5rem',
+    <div className="layout layout--admin" style={{ background: 'linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%)', minHeight: '100vh' }}>
+      {/* Top header bar — matching employee layout aesthetic */}
+      <header
+        role="banner"
+        style={{
+          background: 'linear-gradient(135deg, #ffffff 0%, #fcfbfa 100%)',
+          borderBottom: '3px solid #c29100',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+          padding: '1rem 2rem',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: sidebarCollapsed && !sidebarOpen ? 'center' : 'space-between',
-        }}>
-          {(!sidebarCollapsed || sidebarOpen) ? (
-            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#ffffff', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-              Admin <span style={{ color: '#c29100' }}>Portal</span>
-            </div>
-          ) : (
-            <div style={{ fontWeight: 800, color: '#c29100', fontSize: '1.2rem' }}>A</div>
-          )}
-          <button
-            type="button"
-            className="sidebar__close btn btn--ghost btn--sm"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close sidebar"
-            style={{ color: '#ffffff', fontSize: '1.2rem', display: sidebarOpen ? 'block' : 'none' }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Nav Sections */}
-        <nav className="sidebar__nav" aria-label="Admin sections" style={{ overflowY: 'auto', overflowX: 'hidden', flex: 1, padding: '0.75rem 0', background: '#000000' }}>
-          {SIDEBAR_SECTIONS.map((section, si) => {
-            const isExpanded = expandedSection === si;
-            const sectionIcon = section.label.split(' ')[0];
-            const sectionText = section.label.substring(section.label.indexOf(' ') + 1);
-
-            return (
-              <div key={si} style={{ marginBottom: '0.5rem' }}>
-                {/* Section Header */}
-                <div 
-                  onClick={() => {
-                    setExpandedSection(isExpanded ? null : si);
-                    if (sidebarCollapsed && !sidebarOpen) setSidebarCollapsed(false);
-                  }}
-                  style={{
-                    fontWeight: 700,
-                    fontSize: (sidebarCollapsed && !sidebarOpen) ? '1.2rem' : '0.8rem',
-                    color: 'rgba(255, 255, 255, 0.9)',
-                    padding: (sidebarCollapsed && !sidebarOpen) ? '0.8rem 0' : '0.8rem 1.2rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: (sidebarCollapsed && !sidebarOpen) ? 'center' : 'space-between',
-                    background: isExpanded ? 'rgba(255,255,255,0.05)' : 'transparent',
-                    transition: 'background 0.2s',
-                  }}
-                  title={sectionText}
-                >
-                  {(sidebarCollapsed && !sidebarOpen) ? (
-                    <span>{sectionIcon}</span>
-                  ) : (
-                    <>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                        <span>{sectionIcon}</span>
-                        <span>{sectionText}</span>
-                      </div>
-                      <span style={{ 
-                        fontSize: '0.6rem', 
-                        transition: 'transform 0.3s', 
-                        transform: isExpanded ? 'rotate(180deg)' : 'none',
-                        color: 'rgba(255,255,255,0.5)'
-                      }}>▼</span>
-                    </>
-                  )}
-                </div>
-
-                {/* Nav Items — Pure White Text */}
-                {(!sidebarCollapsed || sidebarOpen) && (
-                  <div style={{
-                    maxHeight: isExpanded ? '1000px' : '0px',
-                    overflow: 'hidden',
-                    transition: 'max-height 0.3s ease-in-out',
-                  }}>
-                    <div style={{ padding: '0.25rem 0' }}>
-                      {section.items.map((item) => {
-                        const itemIcon = item.label.split(' ')[0];
-                        const itemText = item.label.substring(item.label.indexOf(' ') + 1);
-
-                        return (
-                          <NavLink
-                            key={item.to}
-                            to={item.to}
-                            end={item.end || false}
-                            onClick={() => setSidebarOpen(false)}
-                            className={({ isActive }) =>
-                              `sidebar__nav-item${isActive ? ' sidebar__nav-item--active' : ''}`
-                            }
-                            style={({ isActive }) => ({
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.6rem',
-                              padding: '0.6rem 1rem',
-                              margin: '0.1rem 0.6rem',
-                              borderRadius: 8,
-                              fontFamily: 'inherit',
-                              fontSize: '0.86rem',
-                              fontWeight: isActive ? 700 : 500,
-                              textDecoration: 'none',
-                              cursor: 'pointer',
-                              transition: 'all 0.15s ease',
-                              background: isActive ? (item.color || '#c29100') : 'rgba(255, 255, 255, 0.05)',
-                              color: '#ffffff',
-                              border: `1px solid ${isActive ? (item.color || '#c29100') : 'rgba(255, 255, 255, 0.15)'}`,
-                              boxShadow: isActive ? `0 2px 8px ${item.color || '#c29100'}55` : 'none',
-                            })}
-                          >
-                            <span>{itemIcon}</span>
-                            <span>{itemText}</span>
-                          </NavLink>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Section Divider */}
-                {si < SIDEBAR_SECTIONS.length - 1 && (!sidebarCollapsed || sidebarOpen) && (
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.12)', margin: '0.5rem 0.6rem' }} />
-                )}
-              </div>
-            );
-          })}
-        </nav>
-
-        {/* Sidebar Footer */}
-        <div className="sidebar__footer" style={{
-          borderTop: '1px solid rgba(255,255,255,0.15)',
-          padding: (sidebarCollapsed && !sidebarOpen) ? '0.85rem 0' : '0.85rem 1rem',
-          background: '#000000',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.5rem',
-          alignItems: 'center'
-        }}>
-          {/* Toggle Collapse Button */}
-          <button
-            type="button"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'rgba(255,255,255,0.5)',
-              cursor: 'pointer',
-              padding: '0.4rem',
-              display: sidebarOpen ? 'none' : 'block'
-            }}
-            title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            {sidebarCollapsed ? '❯❯' : '❮❮ Collapse'}
-          </button>
-
-          <button
-            type="button"
-            style={{
-              background: 'rgba(239,68,68,0.2)',
-              border: '1px solid rgba(239,68,68,0.5)',
-              color: '#fca5a5',
-              padding: (sidebarCollapsed && !sidebarOpen) ? '0.6rem 0' : '0.6rem 1rem',
-              borderRadius: 8,
-              fontFamily: 'inherit',
-              fontSize: '0.85rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              width: (sidebarCollapsed && !sidebarOpen) ? '80%' : '100%',
-              textAlign: 'center',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.4rem',
-            }}
-            onClick={handleLogout}
-            title="Log Out"
-          >
-            {(sidebarCollapsed && !sidebarOpen) ? '🚪' : '🚪 Log Out'}
-          </button>
-        </div>
-      </aside>
-
-      {/* Main area */}
-      <div 
-        className="layout__content" 
-        style={{ 
-          background: 'linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%)', 
-          backgroundAttachment: 'fixed'
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
         }}
       >
-        {/* Top header bar — matching login page aesthetic */}
-        <header
-          role="banner"
-          style={{
-            background: 'linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%)',
-            borderBottom: '3px solid #c29100',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            padding: '0.85rem 1.5rem',
-            position: 'sticky',
-            top: 0,
-            zIndex: 40,
-          }}
-        >
-          {/* Mobile hamburger */}
+        {/* Left: Logo + Title + Navigation & Breadcrumbs */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', flexWrap: 'wrap' }}>
+          <AvanaLogo size="md" style={{ filter: 'none' }} />
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
+              Admin <span style={{ color: '#c29100' }}>Portal</span>
+            </div>
+            <div style={{ fontSize: '0.82rem', color: '#b45309', marginTop: 2, fontWeight: 600 }}>
+              System Administration, Requests & Inventory Operations
+            </div>
+          </div>
+          <HeaderNavigation />
+        </div>
+
+        {/* Right side controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Link
+            to="/helpdesk-admin"
+            style={{
+              background: '#fef8ee',
+              border: '1px solid #fcd34d',
+              color: '#92400e',
+              padding: '0.45rem 0.9rem',
+              borderRadius: 8,
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            }}
+          >
+            🏠 Admin Dashboard
+          </Link>
           <button
             type="button"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Open navigation menu"
-            aria-expanded={sidebarOpen}
+            onClick={handleLogout}
             style={{
-              display: 'none',
-              background: '#ffffff',
-              border: '1px solid #cbd5e1',
-              color: '#0f172a',
-              borderRadius: 6,
-              padding: '0.3rem 0.5rem',
+              background: '#fef2f2',
+              color: '#dc2626',
+              border: '1px solid #fca5a5',
+              padding: '0.45rem 0.9rem',
+              borderRadius: 8,
+              fontFamily: 'inherit',
+              fontSize: '0.82rem',
+              fontWeight: 700,
               cursor: 'pointer',
-              fontSize: '1.1rem',
-              lineHeight: 1,
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
             }}
-            className="admin-hamburger"
           >
-            ☰
+            🚪 Log Out
           </button>
+        </div>
+      </header>
 
-          {/* Logo (mobile) + Header Title + Navigation & Breadcrumbs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <AvanaLogo size="sm" />
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#0f172a', lineHeight: 1.2 }}>
-                Help Desk — Admin View
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#b45309', marginTop: 1, fontWeight: 600 }}>
-                Track work completion status, manage requests, and export reports
-              </div>
-            </div>
-            <HeaderNavigation />
-          </div>
-
-          {/* Right side controls */}
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <button
-              type="button"
-              onClick={handleLogout}
-              style={{
-                background: '#ffffff',
-                border: '1px solid #cbd5e1',
-                color: '#dc2626',
-                padding: '0.4rem 0.85rem',
-                borderRadius: 8,
-                fontFamily: 'inherit',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              }}
-            >
-              Log Out
-            </button>
-          </div>
-        </header>
-
-        <main className="layout__main" id="main-content" tabIndex={-1}>
-          <Outlet />
-        </main>
-      </div>
+      <main className="layout__main" id="main-content" tabIndex={-1} style={{ padding: 0 }}>
+        <Outlet />
+      </main>
     </div>
   );
 }

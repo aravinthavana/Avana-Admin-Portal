@@ -281,7 +281,7 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="layout layout--admin" style={{ background: 'linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%)', minHeight: '100vh' }}>
+    <div className="layout layout--admin" style={{ display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%)', minHeight: '100vh' }}>
       {/* Top header bar — matching employee layout aesthetic */}
       <header
         role="banner"

@@ -79,6 +79,9 @@ export const employeeApi = {
   saveAddress: (data) =>
     request('/employee/address-book', { method: 'POST', body: JSON.stringify(data) }, 'employee'),
 
+  updateAddress: (id, data) =>
+    request(`/employee/address-book/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, 'employee'),
+
   deleteAddress: (id) =>
     request(`/employee/address-book/${id}`, { method: 'DELETE' }, 'employee'),
 
@@ -123,6 +126,7 @@ export const adminApi = {
 export const globalAddressApi = {
   getAll: () => request('/admin/global-addresses', {}, 'admin'),
   save: (data) => request('/admin/global-addresses', { method: 'POST', body: JSON.stringify(data) }, 'admin'),
+  update: (id, data) => request(`/admin/global-addresses/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, 'admin'),
   delete: (id) => request(`/admin/global-addresses/${id}`, { method: 'DELETE' }, 'admin'),
 };
 

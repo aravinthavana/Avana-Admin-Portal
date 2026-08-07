@@ -200,6 +200,17 @@ exports.saveGlobalAddress = async (req, res, next) => {
   }
 };
 
+exports.updateGlobalAddress = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, phone, address, label } = req.body;
+    const updated = await addressBookService.updateAddress('GLOBAL', id, { name, phone, address, label });
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.deleteGlobalAddress = async (req, res, next) => {
   try {
     const result = await addressBookService.deleteAddress('GLOBAL', req.params.id);

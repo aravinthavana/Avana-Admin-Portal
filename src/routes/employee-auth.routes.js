@@ -36,6 +36,7 @@ router.post('/shipping-label', courierController.generateShippingLabel);
 const addressBookController = require('../controllers/address-book.controller');
 router.get('/address-book', addressBookController.getAddresses);
 router.post('/address-book', addressBookController.saveAddress);
+router.patch('/address-book/:id', addressBookController.updateAddress);
 router.delete('/address-book/:id', addressBookController.deleteAddress);
 
 module.exports = router;

@@ -44,6 +44,26 @@ exports.saveAddress = async (userEmail, { name, phone, address, label }) => {
 };
 
 /**
+ * Update an existing address book entry.
+ */
+exports.updateAddress = async (userEmail, id, { name, phone, address, label }) => {
+  const entry = await prisma.addressBook.findUnique({ where: { id } });
+  if (!entry) throw new Error('Address not found.');
+  if (entry.userEmail !== userEmail) throw new Error('Unauthorized.');
+  if (!name || !address) throw new Error('Name and address are required.');
+  
+  return prisma.addressBook.update({
+    where: { id },
+    data: {
+      name: name.trim(),
+      phone: phone?.trim() || null,
+      address: address.trim(),
+      label: label?.trim() || null,
+    },
+  });
+};
+
+/**
  * Delete an address book entry by ID.
  * Ensures the entry belongs to the requesting user.
  */

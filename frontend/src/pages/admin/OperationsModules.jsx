@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import {
-  helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi,
+  helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi, globalAddressApi,
   assetTrackerApi, courierApi, pettyCashApi, travelApi, billWarrantyApi, otherStockApi, remindersApi,
 } from '../../lib/api';
 import {
@@ -570,6 +570,146 @@ export function AssetTrackerPage() {
   );
 }
 
+/* ─── Global Address Settings Component ───────────────────── */
+function GlobalAddressSettings() {
+  const toast = useToast();
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ id: null, name: '', phone: '', address: '', label: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
+  const fetchAddresses = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await globalAddressApi.getAll();
+      setAddresses(data || []);
+    } catch (err) {
+      toast.error('Failed to load global addresses');
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => { fetchAddresses(); }, [fetchAddresses]);
+
+  async function handleSave(e) {
+    e.preventDefault();
+    if (!form.name || !form.address) { toast.warning('Name and Address are required'); return; }
+    setSubmitting(true);
+    try {
+      if (editingId) {
+        await globalAddressApi.update(editingId, form);
+        toast.success('Global address updated!');
+      } else {
+        await globalAddressApi.save(form);
+        toast.success('Global address added!');
+      }
+      setForm({ id: null, name: '', phone: '', address: '', label: '' });
+      setEditingId(null);
+      fetchAddresses();
+    } catch (err) {
+      toast.error(err.message || 'Failed to save address');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function handleEdit(addr) {
+    setEditingId(addr.id);
+    setForm({ id: addr.id, name: addr.name, phone: addr.phone || '', address: addr.address, label: addr.label || '' });
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null);
+    setForm({ id: null, name: '', phone: '', address: '', label: '' });
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm('Delete this global address?')) return;
+    try {
+      await globalAddressApi.delete(id);
+      toast.success('Global address deleted');
+      setAddresses(prev => prev.filter(a => a.id !== id));
+      if (editingId === id) handleCancelEdit();
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete');
+    }
+  }
+
+  return (
+    <div className="card" style={{ maxWidth: '100%', marginBottom: 'var(--space-8)' }}>
+      <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1.1rem' }}>
+        🏢 Global Address Book (Company Defaults)
+      </h3>
+      <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: 'var(--space-5)' }}>
+        Addresses added here will be available to all employees in the Courier Dispatch form under "Company Addresses".
+      </p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: 'var(--space-6)', alignItems: 'start' }}>
+        {/* Add/Edit Form */}
+        <div style={{ padding: 'var(--space-4)', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', position: 'sticky', top: 'var(--space-4)' }}>
+          <h4 style={{ fontSize: '0.9rem', marginBottom: 'var(--space-4)' }}>{editingId ? 'Edit Address' : 'Add New Address'}</h4>
+          <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            <FormField label="Label (e.g. Head Office)" htmlFor="ga-label">
+              <input id="ga-label" type="text" className="form-input" value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))} />
+            </FormField>
+            <FormField label="Company Name" required htmlFor="ga-name">
+              <input id="ga-name" type="text" className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+            </FormField>
+            <FormField label="Phone (Optional)" htmlFor="ga-phone">
+              <input id="ga-phone" type="text" className="form-input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+            </FormField>
+            <FormField label="Full Address" required htmlFor="ga-addr">
+              <textarea id="ga-addr" className="form-textarea" rows="3" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
+            </FormField>
+            <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
+              <button type="submit" className="btn btn--primary" disabled={submitting} style={{ flex: 1 }}>
+                {submitting ? 'Saving...' : (editingId ? 'Update Address' : 'Add Address')}
+              </button>
+              {editingId && (
+                <button type="button" className="btn btn--outline" onClick={handleCancelEdit}>
+                  Cancel
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+
+        {/* List */}
+        <div>
+          <h4 style={{ fontSize: '0.9rem', marginBottom: 'var(--space-4)' }}>Current Global Addresses</h4>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: 'var(--space-5)' }}><Spinner /></div>
+          ) : addresses.length === 0 ? (
+            <EmptyState icon="📒" title="No global addresses" description="Add a default company address to get started." />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {addresses.map(a => (
+                <div key={a.id} style={{
+                  padding: 'var(--space-3)', border: editingId === a.id ? '2px solid var(--brand-amber)' : '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: 'var(--color-surface)'
+                }}>
+                  <div>
+                    {a.label && <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-amber)', textTransform: 'uppercase' }}>{a.label}</div>}
+                    <div style={{ fontWeight: 600 }}>{a.name}</div>
+                    {a.phone && <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{a.phone}</div>}
+                    <div style={{ fontSize: '0.85rem', whiteSpace: 'pre-wrap', marginTop: 4 }}>{a.address}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                    <button type="button" className="btn btn--sm btn--outline" onClick={() => handleEdit(a)}>Edit</button>
+                    <button type="button" className="btn btn--sm btn--danger" onClick={() => handleDelete(a.id)}>Del</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Courier Dispatches Component ────────────────────────── */
 export function CourierDispatchPage() {
   const toast = useToast();
@@ -585,11 +725,17 @@ export function CourierDispatchPage() {
   const [deleteId, setDeleteId] = useState(null);
   const [selectedDispatch, setSelectedDispatch] = useState(null);
 
-  // Address Options
+  const [globalAddresses, setGlobalAddresses] = useState([]);
+
+  useEffect(() => {
+    globalAddressApi.getAll().then(data => setGlobalAddresses(data || [])).catch(() => {});
+  }, []);
+
   const ADDRESS_OPTIONS = [
-    { label: 'Avana Medical Devices Pvt Ltd - Bangalore', value: 'Avana Medical Devices Pvt Ltd.,\nNo.52, 3rd Floor, Agastya Arcade, 80 feet Road, New BEL Rd, Devasandra Layout, Bengaluru – 560094, Karnataka, India.' },
-    { label: 'Avana Medical Devices Pvt Ltd - Mumbai', value: 'Avana Medical Devices Pvt Ltd.,\nThe Summit Business Bay (Omkar) Office No. 606, 6th Floor, Andheri Kurla Road, Chakala, Andheri East, Mumbai – 400093, India.' },
-    { label: 'Avana Medical Devices Pvt Ltd - Delhi', value: 'Avana Medical Devices Pvt Ltd.,\nB6, Qutab Institutional Area\nNew Delhi, Delhi – 110016' },
+    ...globalAddresses.map(a => ({
+      label: a.label ? `${a.name} - ${a.label}` : a.name,
+      value: a.address
+    })),
     { label: 'Other (Manually Editable)', value: 'other' }
   ];
 
@@ -602,8 +748,8 @@ export function CourierDispatchPage() {
     signatoryCompany: 'Avana Medical Devices Pvt. Ltd',
     senderName: 'Admin',
     senderPhone: '',
-    fromAddressSelection: 'Avana Medical Devices Pvt Ltd - Bangalore',
-    fromAddressText: 'Avana Medical Devices Pvt Ltd.,\nNo.52, 3rd Floor, Agastya Arcade, 80 feet Road, New BEL Rd, Devasandra Layout, Bengaluru – 560094, Karnataka, India.',
+    fromAddressSelection: 'other',
+    fromAddressText: '',
     receiverName: '',
     receiverPhone: '',
     toAddressSelection: 'other',
@@ -976,6 +1122,8 @@ export function CourierDispatchPage() {
           <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
         }
       />
+
+      <GlobalAddressSettings />
 
       {error && <Alert type="error" onClose={() => setError(null)}>{error}</Alert>}
 

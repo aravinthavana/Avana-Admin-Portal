@@ -19,6 +19,7 @@ router.get('/logins', adminAuthController.getLogins);
 // Global Address Book
 router.get('/global-addresses', adminAuthController.getGlobalAddresses);
 router.post('/global-addresses', adminAuthController.saveGlobalAddress);
+router.patch('/global-addresses/:id', adminAuthController.updateGlobalAddress);
 router.delete('/global-addresses/:id', adminAuthController.deleteGlobalAddress);
 
 // Bookings

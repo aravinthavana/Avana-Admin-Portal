@@ -783,6 +783,10 @@ function AddressDirectoryModal({ isOpen, onClose, onSelect, userEmail }) {
     (a.label || '').toLowerCase().includes(q)
   );
 
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [saving, setSaving] = useState(false);
+
   async function handleDelete(id) {
     setDeleting(id);
     try {
@@ -796,7 +800,46 @@ function AddressDirectoryModal({ isOpen, onClose, onSelect, userEmail }) {
     }
   }
 
-  function renderEntry(a, canDelete) {
+  function startEdit(a) {
+    setEditingId(a.id);
+    setEditForm({ name: a.name, phone: a.phone || '', address: a.address, label: a.label || '' });
+  }
+
+  async function handleUpdate(id) {
+    setSaving(true);
+    try {
+      await employeeApi.updateAddress(id, editForm);
+      toast.success('Address updated.');
+      setAddresses(prev => prev.map(a => a.id === id ? { ...a, ...editForm } : a));
+      setEditingId(null);
+    } catch {
+      toast.error('Failed to update address.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function renderEntry(a, canEdit) {
+    if (editingId === a.id) {
+      return (
+        <div key={a.id} style={{
+          background: 'var(--color-surface)',
+          border: '1px solid var(--brand-amber)',
+          borderRadius: 'var(--radius-md)', padding: 'var(--space-3)',
+          display: 'flex', flexDirection: 'column', gap: 'var(--space-2)',
+        }}>
+          <input type="text" className="form-input" placeholder="Label (e.g. Home)" value={editForm.label} onChange={e => setEditForm(f => ({ ...f, label: e.target.value }))} />
+          <input type="text" className="form-input" placeholder="Name / Company" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} />
+          <input type="text" className="form-input" placeholder="Phone" value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
+          <textarea className="form-textarea" placeholder="Full Address" value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} rows="2" />
+          <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end', marginTop: 'var(--space-2)' }}>
+            <button type="button" className="btn btn--sm btn--outline" onClick={() => setEditingId(null)}>Cancel</button>
+            <button type="button" className="btn btn--sm btn--primary" disabled={saving} onClick={() => handleUpdate(a.id)}>{saving ? 'Saving...' : 'Save'}</button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div key={a.id} style={{
         background: a.isCommon ? 'var(--color-surface-2)' : 'var(--color-surface)',
@@ -816,10 +859,13 @@ function AddressDirectoryModal({ isOpen, onClose, onSelect, userEmail }) {
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-2)', flexShrink: 0, flexDirection: 'column' }}>
           <button type="button" className="btn btn--sm btn--primary" onClick={() => { onSelect(a); onClose(); }}>Select</button>
-          {canDelete && (
-            <button type="button" className="btn btn--sm btn--danger" onClick={() => handleDelete(a.id)} disabled={deleting === a.id} aria-label={`Delete ${a.name}`}>
-              {deleting === a.id ? '…' : 'Del'}
-            </button>
+          {canEdit && (
+            <>
+              <button type="button" className="btn btn--sm btn--outline" onClick={() => startEdit(a)}>Edit</button>
+              <button type="button" className="btn btn--sm btn--danger" onClick={() => handleDelete(a.id)} disabled={deleting === a.id} aria-label={`Delete ${a.name}`}>
+                {deleting === a.id ? '…' : 'Del'}
+              </button>
+            </>
           )}
         </div>
       </div>

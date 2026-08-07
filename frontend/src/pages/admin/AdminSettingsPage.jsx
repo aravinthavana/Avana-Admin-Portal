@@ -72,116 +72,7 @@ export function LoginAuditPage() {
 /* ─── Admin Settings ──────────────────────────────────────── */
 
 
-function GlobalAddressSettings() {
-  const toast = useToast();
-  const [addresses, setAddresses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: '', phone: '', address: '', label: '' });
-  const [submitting, setSubmitting] = useState(false);
 
-  const fetchAddresses = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await globalAddressApi.getAll();
-      setAddresses(data || []);
-    } catch (err) {
-      toast.error('Failed to load global addresses');
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  useEffect(() => { fetchAddresses(); }, [fetchAddresses]);
-
-  async function handleAdd(e) {
-    e.preventDefault();
-    if (!form.name || !form.address) { toast.warning('Name and Address are required'); return; }
-    setSubmitting(true);
-    try {
-      await globalAddressApi.save(form);
-      toast.success('Global address added!');
-      setForm({ name: '', phone: '', address: '', label: '' });
-      fetchAddresses();
-    } catch (err) {
-      toast.error(err.message || 'Failed to add address');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handleDelete(id) {
-    if (!window.confirm('Delete this global address?')) return;
-    try {
-      await globalAddressApi.delete(id);
-      toast.success('Global address deleted');
-      setAddresses(prev => prev.filter(a => a.id !== id));
-    } catch (err) {
-      toast.error(err.message || 'Failed to delete');
-    }
-  }
-
-  return (
-    <div className="card" style={{ maxWidth: 800, marginTop: 'var(--space-6)' }}>
-      <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1.1rem' }}>
-        🏢 Global Address Book (Company Defaults)
-      </h3>
-      <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: 'var(--space-5)' }}>
-        Addresses added here will be available to all employees in the Courier Dispatch form under "Company Addresses".
-      </p>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 'var(--space-6)' }}>
-        {/* Add Form */}
-        <div style={{ padding: 'var(--space-4)', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', height: 'fit-content' }}>
-          <h4 style={{ fontSize: '0.9rem', marginBottom: 'var(--space-4)' }}>Add New Address</h4>
-          <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <FormField label="Label (e.g. Head Office)" htmlFor="ga-label">
-              <input id="ga-label" type="text" className="form-input" value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))} />
-            </FormField>
-            <FormField label="Company Name" required htmlFor="ga-name">
-              <input id="ga-name" type="text" className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-            </FormField>
-            <FormField label="Phone (Optional)" htmlFor="ga-phone">
-              <input id="ga-phone" type="text" className="form-input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
-            </FormField>
-            <FormField label="Full Address" required htmlFor="ga-addr">
-              <textarea id="ga-addr" className="form-textarea" rows="3" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
-            </FormField>
-            <button type="submit" className="btn btn--primary" disabled={submitting} style={{ marginTop: 'var(--space-2)' }}>
-              {submitting ? 'Adding...' : 'Add Address'}
-            </button>
-          </form>
-        </div>
-
-        {/* List */}
-        <div>
-          <h4 style={{ fontSize: '0.9rem', marginBottom: 'var(--space-4)' }}>Current Global Addresses</h4>
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: 'var(--space-5)' }}><Spinner /></div>
-          ) : addresses.length === 0 ? (
-            <EmptyState icon="📒" title="No global addresses" description="Add a default company address to get started." />
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              {addresses.map(a => (
-                <div key={a.id} style={{
-                  padding: 'var(--space-3)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)',
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'
-                }}>
-                  <div>
-                    {a.label && <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-amber)', textTransform: 'uppercase' }}>{a.label}</div>}
-                    <div style={{ fontWeight: 600 }}>{a.name}</div>
-                    {a.phone && <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{a.phone}</div>}
-                    <div style={{ fontSize: '0.85rem', whiteSpace: 'pre-wrap', marginTop: 4 }}>{a.address}</div>
-                  </div>
-                  <button type="button" className="btn btn--sm btn--danger" onClick={() => handleDelete(a.id)}>Del</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function AdminSettings() {
   const toast = useToast();
@@ -238,8 +129,6 @@ export function AdminSettings() {
           </div>
         </form>
       </div>
-
-      <GlobalAddressSettings />
     </div>
   );
 }

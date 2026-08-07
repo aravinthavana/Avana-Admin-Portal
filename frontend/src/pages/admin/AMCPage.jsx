@@ -317,7 +317,7 @@ export function AMCPage() {
               <div style="font-size: 0.88rem; line-height: 1.8;">
                 <div><strong>Doc No:</strong> ${c.doc_no || '-'}</div>
                 <div><strong>Units / Location:</strong> ${c.units_location || '-'}</div>
-                <div><strong>Pricing / Cost Paid:</strong> ${c.pricing ? \`₹\${Number(c.pricing).toLocaleString()}\` : '-'}</div>
+                <div><strong>Pricing / Cost Paid:</strong> ${c.pricing ? '₹' + Number(c.pricing).toLocaleString() : '-'}</div>
                 <div><strong>Frequency:</strong> ${c.frequency || '-'}</div>
                 <div><strong>Start Date:</strong> ${c.start_date || '-'}</div>
                 <div><strong>End Date:</strong> ${c.end_date || '-'}</div>

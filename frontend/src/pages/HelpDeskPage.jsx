@@ -1391,16 +1391,6 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
-          <FormField label="No. of Boxes" required htmlFor="cd-boxes-count">
-            <input id="cd-boxes-count" type="number" className="form-input" min="1" value={boxes.length}
-              onChange={e => {
-                const count = Math.max(1, parseInt(e.target.value, 10) || 1);
-                let newBoxes = [...boxes];
-                if (count > boxes.length) { while (newBoxes.length < count) newBoxes.push({ weight: '', dim: '' }); }
-                else { newBoxes = newBoxes.slice(0, count); }
-                updateBoxes(newBoxes);
-              }} required />
-          </FormField>
           <FormField label="Courier Billing" required htmlFor="cd-billing">
             <select id="cd-billing" className="form-select" value={form.courierBilling || ''}
               onChange={e => setForm(f => ({ ...f, courierBilling: e.target.value }))}>
@@ -1475,9 +1465,15 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
                   onChange={e => { const arr = [...boxes]; arr[idx].dim = e.target.value; updateBoxes(arr); }} style={{ flex: 1 }} />
                 <input type="text" className="form-input" placeholder="Weight (optional)" value={bx.weight || ''}
                   onChange={e => { const arr = [...boxes]; arr[idx].weight = e.target.value; updateBoxes(arr); }} style={{ flex: 1 }} />
+                {boxes.length > 1 && (
+                  <button type="button" onClick={() => updateBoxes(boxes.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.4rem', fontSize: '1.2rem', lineHeight: 1 }}>&times;</button>
+                )}
               </div>
             ))}
           </div>
+          <button type="button" className="btn btn--secondary" style={{ marginTop: 'var(--space-3)' }} onClick={() => updateBoxes([...boxes, { weight: '', dim: '' }])}>
+            + Add Box
+          </button>
         </div>
 
         <div style={{ marginTop: 'var(--space-2)', padding: 'var(--space-2)', background: 'var(--color-surface-alt)', border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
@@ -1741,7 +1737,15 @@ function HelpdeskRequestView() {
       />
 
       <div className="card">
-        <form onSubmit={handleSubmit} noValidate>
+        <form 
+          onSubmit={handleSubmit} 
+          onKeyDown={e => {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+              e.preventDefault();
+            }
+          }} 
+          noValidate
+        >
           {/* Requester info — hidden on shipping label tab */}
           {!isLabelTab && (
             <div style={{

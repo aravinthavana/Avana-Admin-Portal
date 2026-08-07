@@ -110,10 +110,10 @@ export const adminApi = {
   logout: () =>
     request('/admin/logout', { method: 'DELETE' }, 'admin'),
 
-  changePassword: (currentPassword, newPassword) =>
+  changePassword: (oldPassword, newPassword) =>
     request('/admin/change-password', {
       method: 'POST',
-      body: JSON.stringify({ currentPassword, newPassword }),
+      body: JSON.stringify({ oldPassword, newPassword }),
     }, 'admin'),
 
   getLogins: () =>

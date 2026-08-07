@@ -70,9 +70,7 @@ export function LoginAuditPage() {
 }
 
 /* ─── Admin Settings ──────────────────────────────────────── */
-    </div>
-  );
-}
+
 
 function GlobalAddressSettings() {
   const toast = useToast();

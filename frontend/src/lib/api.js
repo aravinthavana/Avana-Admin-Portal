@@ -120,6 +120,12 @@ export const adminApi = {
     request('/admin/logins', {}, 'admin'),
 };
 
+export const globalAddressApi = {
+  getAll: () => request('/admin/global-addresses', {}, 'admin'),
+  save: (data) => request('/admin/global-addresses', { method: 'POST', body: JSON.stringify(data) }, 'admin'),
+  delete: (id) => request(`/admin/global-addresses/${id}`, { method: 'DELETE' }, 'admin'),
+};
+
 // ─── Bookings ────────────────────────────────────────────────
 export const bookingsApi = {
   submit: (data) =>

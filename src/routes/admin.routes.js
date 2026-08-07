@@ -16,6 +16,11 @@ router.use(adminAuthController.requireAdmin);
 router.post('/change-password', adminAuthController.changePassword);
 router.get('/logins', adminAuthController.getLogins);
 
+// Global Address Book
+router.get('/global-addresses', adminAuthController.getGlobalAddresses);
+router.post('/global-addresses', adminAuthController.saveGlobalAddress);
+router.delete('/global-addresses/:id', adminAuthController.deleteGlobalAddress);
+
 // Bookings
 const bookingsController = require('../controllers/bookings.controller');
 router.get('/bookings', bookingsController.getAdminBookings);

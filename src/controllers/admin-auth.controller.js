@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const prisma = require('../config/db');
+const addressBookService = require('../services/address-book.service');
 
 // ─── Session helpers ──────────────────────────────────────────
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -178,4 +179,33 @@ exports.requireAdmin = async (req, res, next) => {
     return res.status(401).json({ error: 'Unauthorized. Admin token required.' });
   }
   next();
+};
+
+// ─── Global Address Book ─────────────────────────────────────
+exports.getGlobalAddresses = async (req, res, next) => {
+  try {
+    const addresses = await addressBookService.getGlobalAddresses();
+    res.json(addresses);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.saveGlobalAddress = async (req, res, next) => {
+  try {
+    const saved = await addressBookService.saveAddress('GLOBAL', req.body);
+    res.status(201).json(saved);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteGlobalAddress = async (req, res, next) => {
+  try {
+    const result = await addressBookService.deleteAddress('GLOBAL', req.params.id);
+    if (!result) return res.status(404).json({ error: 'Global address not found.' });
+    res.json({ message: 'Global address deleted.' });
+  } catch (err) {
+    next(err);
+  }
 };

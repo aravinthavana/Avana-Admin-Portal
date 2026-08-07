@@ -740,33 +740,6 @@ function AdminSupportForm({ form, setForm, errors }) {
 
 
 /* --- Address Directory Modal --- */
-/* ─── Common Company Addresses (shown for all users) ─────── */
-const COMMON_ADDRESSES = [
-  {
-    id: 'common-1',
-    label: 'Avana Medical',
-    name: 'Avana Medical Devices Pvt Ltd.,',
-    phone: '',
-    address: 'No.91, Sundar Nagar 4th Avenue, Nandambakkam,\nChennai – 600032, Tamil Nadu, India.\nGST: 33AAHCA6669B1ZT',
-    isCommon: true,
-  },
-  {
-    id: 'common-2',
-    label: 'Avana Surgical',
-    name: 'Avana Surgical Systems Pvt Ltd.,',
-    phone: '',
-    address: 'No.91, Sundar Nagar 4th Avenue, Nandambakkam,\nChennai – 600032, Tamil Nadu, India.\nGST: 33AAQCA5951K1ZA',
-    isCommon: true,
-  },
-  {
-    id: 'common-3',
-    label: 'Avana Technology',
-    name: 'Avana Technology Services Pvt Ltd.,',
-    phone: '',
-    address: 'No.91, Sundar Nagar 4th Avenue, Nandambakkam,\nChennai – 600032, Tamil Nadu, India.\nGST: 33ABACA8707A1Z9',
-    isCommon: true,
-  },
-];
 
 function AddressDirectoryModal({ isOpen, onClose, onSelect, userEmail }) {
   const toast = useToast();
@@ -792,13 +765,18 @@ function AddressDirectoryModal({ isOpen, onClose, onSelect, userEmail }) {
   }, [isOpen, fetchAddresses]);
 
   const q = search.toLowerCase();
-  const filteredCommon = COMMON_ADDRESSES.filter(a =>
+  
+  const commonAddrs = addresses.filter(a => a.userEmail === 'GLOBAL').map(a => ({ ...a, isCommon: true }));
+  const personalAddrs = addresses.filter(a => a.userEmail !== 'GLOBAL');
+
+  const filteredCommon = commonAddrs.filter(a =>
     !search ||
     a.name.toLowerCase().includes(q) ||
     (a.address || '').toLowerCase().includes(q) ||
     (a.label || '').toLowerCase().includes(q)
   );
-  const filteredPersonal = addresses.filter(a =>
+  
+  const filteredPersonal = personalAddrs.filter(a =>
     !search ||
     a.name.toLowerCase().includes(q) ||
     (a.address || '').toLowerCase().includes(q) ||

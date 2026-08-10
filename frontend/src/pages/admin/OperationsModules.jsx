@@ -1002,7 +1002,7 @@ export function CourierDispatchPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
               <FormField label="Courier Vendor">
-                <input type="text" className="form-input" placeholder="Dexpress / DTDC / BlueDart" value={addForm.transporterName} onChange={e => setAddForm(f => ({ ...f, transporterName: e.target.value }))} />
+                <input type="text" className="form-input" placeholder="Dxpress / DTDC / BlueDart" value={addForm.transporterName} onChange={e => setAddForm(f => ({ ...f, transporterName: e.target.value }))} />
               </FormField>
               <FormField label="Docket / Waybill No">
                 <input type="text" className="form-input" placeholder="Tracking Number" value={addForm.docketNo} onChange={e => setAddForm(f => ({ ...f, docketNo: e.target.value }))} />
@@ -1040,6 +1040,13 @@ export function CourierDispatchPage() {
                 <option value="Other">Other</option>
               </select>
             </FormField>
+            
+            {trackingForm.transporterName === 'Other' && (
+              <FormField label="Custom Tracking Link" required>
+                <input type="text" className="form-input" required value={trackingForm.customTrackingLink || ''} onChange={e => setTrackingForm(f => ({ ...f, customTrackingLink: e.target.value }))} placeholder="https://..." />
+              </FormField>
+            )}
+
             <FormField label="Docket / Tracking / Waybill Number" required>
               <input type="text" className="form-input" required value={trackingForm.docketNo} onChange={e => setTrackingForm(f => ({ ...f, docketNo: e.target.value }))} placeholder="WAYBILL12345" />
             </FormField>
@@ -1256,7 +1263,19 @@ export function CourierDispatchPage() {
                         <button
                           className="btn btn--sm btn--outline"
                           title="Send tracking details to requester"
-                          onClick={() => { setSelectedDispatch(d); setTrackingForm({ transporterName: d.transporterName || 'Dxpress', docketNo: d.docketNo || '', transporterAmount: d.transporterAmount || '', status: d.status || 'Assigned' }); setTrackingModalOpen(true); }}
+                          onClick={() => {
+                            setSelectedDispatch(d);
+                            const tName = d.transporterName || 'Dxpress';
+                            const isKnown = ['Dxpress', 'Bluedart', 'Professional Courier', 'DTDC', 'Delhivery'].includes(tName);
+                            setTrackingForm({ 
+                              transporterName: isKnown ? tName : 'Other', 
+                              customTrackingLink: !isKnown && tName !== 'Dxpress' ? '' : '', 
+                              docketNo: d.docketNo || '', 
+                              transporterAmount: d.transporterAmount || '', 
+                              status: d.status || 'Assigned' 
+                            });
+                            setTrackingModalOpen(true);
+                          }}
                         >
                           🚀 Send Tracking
                         </button>

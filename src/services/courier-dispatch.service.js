@@ -189,7 +189,7 @@ exports.createDispatch = async (data, requesterEmail, host) => {
 };
 
 exports.updateTrackingInfo = async (id, data) => {
-  const { transporterName, docketNo, transporterAmount, status, remarksOther } = data;
+  const { transporterName, docketNo, transporterAmount, status, remarksOther, customTrackingLink } = data;
   const dispatch = await prisma.courierDispatch.findUnique({ where: { id } });
   if (!dispatch) throw new Error('Dispatch not found');
 
@@ -211,10 +211,26 @@ exports.updateTrackingInfo = async (id, data) => {
   if (transporterName && docketNo && dispatch.status !== 'Dispatched' && newStatus === 'Dispatched') {
     let trackingLink = '';
     const tn = transporterName.toLowerCase();
-    if (tn.includes('bluedart')) trackingLink = `https://www.bluedart.com/web/guest/trackdart`;
-    else if (tn.includes('delhivery')) trackingLink = `https://www.delhivery.com/tracking`;
-    else if (tn.includes('dxpress')) trackingLink = `https://www.dxpress.in/tracking`;
-    else trackingLink = `Track via ${transporterName} website`;
+    
+    if (tn === 'other' && customTrackingLink) {
+        trackingLink = customTrackingLink;
+    } else if (tn.includes('bluedart')) {
+        trackingLink = `https://www.bluedart.com/tracking`;
+    } else if (tn.includes('delhivery')) {
+        trackingLink = `https://www.delhivery.com/tracking`;
+    } else if (tn.includes('dxpress')) {
+        trackingLink = `https://dxpresslogistics.org/tracking/`;
+    } else if (tn.includes('professional')) {
+        trackingLink = `https://www.tpcindia.com/`;
+    } else if (tn.includes('dtdc')) {
+        trackingLink = `https://www.dtdc.com/track-your-shipment/`;
+    } else {
+        trackingLink = `Track via ${transporterName} website`;
+    }
+
+    const trackingLinkHtml = trackingLink.startsWith('http') 
+        ? `<a href="${trackingLink}" target="_blank">${trackingLink}</a>`
+        : trackingLink;
 
     const emailContent = `
       <h3>Courier Dispatch Tracking Details</h3>
@@ -222,8 +238,21 @@ exports.updateTrackingInfo = async (id, data) => {
       <p>Your courier request has been dispatched.</p>
       <p><strong>Courier Partner:</strong> ${transporterName}</p>
       <p><strong>Tracking / Docket No:</strong> ${docketNo}</p>
-      <p><strong>Tracking Link:</strong> ${trackingLink}</p>
-      <p><br>Thanks,<br>Avana Admin</p>
+      <p><strong>Tracking Link:</strong> ${trackingLinkHtml}</p>
+      <br>
+      <p>
+        Thanks & Regards,<br>
+        <strong>Karthick S</strong><br>
+        Admin & Travel Desk<br>
+        Mob: +91 8925531209
+      </p>
+      <p>
+        <strong>Avana Medical Devices Pvt Ltd.,</strong><br>
+        No.91, Sundar Nagar 4th Avenue, Nandambakkam,<br>
+        Chennai – 600032, Tamil Nadu, India.<br>
+        Ph: +91 44 2233 1061/1062/1063<br>
+        Website: <a href="http://www.avanamedical.com">www.avanamedical.com</a>
+      </p>
     `;
     try {
       const recipients = [dispatch.requesterEmail];

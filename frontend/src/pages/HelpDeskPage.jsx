@@ -1616,7 +1616,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
       dcDate: dc.dcDate || today,
       remarksType: dc.remarksType || 'Service',
       remarksOther: dc.remarksOther || '',
-      transporterSelect: ['Dexpress', 'DTDC', 'BlueDart', 'Professional Courier'].includes(dc.transporterName) ? dc.transporterName : (dc.transporterName ? 'Other' : ''),
+      transporterSelect: ['Dxpress', 'Bluedart', 'Professional Courier', 'DTDC', 'Delhivery'].includes(dc.transporterName) ? dc.transporterName : (dc.transporterName ? 'Other' : ''),
       transporterName: dc.transporterName || '',
       transporterAmount: dc.transporterAmount || '',
       courierBilling: dc.courierBilling || 'Avana Medical Devices Pvt. Ltd.',
@@ -1753,10 +1753,11 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
                 }));
               }}>
               <option value="">Select Transporter</option>
-              <option value="Dexpress">Dexpress</option>
-              <option value="DTDC">DTDC</option>
-              <option value="BlueDart">BlueDart</option>
+              <option value="Dxpress">Dxpress</option>
+              <option value="Bluedart">Bluedart</option>
               <option value="Professional Courier">Professional Courier</option>
+              <option value="DTDC">DTDC</option>
+              <option value="Delhivery">Delhivery</option>
               <option value="Other">Other (Specify)</option>
             </select>
             {form.transporterSelect === 'Other' && (

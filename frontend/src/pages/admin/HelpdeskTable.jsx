@@ -52,6 +52,7 @@ export function HelpdeskTable({ categoryFilter }) {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [catFilter, setCatFilter] = useState('all');
+  const [nameFilter, setNameFilter] = useState('');
   const [page, setPage] = useState(1);
   const [confirmId, setConfirmId] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
@@ -96,9 +97,15 @@ export function HelpdeskTable({ categoryFilter }) {
       const d = (r.createdAt || r.created_at || '').split('T')[0];
       if (fromDate && d < fromDate) return false;
       if (toDate && d > toDate) return false;
+      // Name filter
+      if (nameFilter) {
+        const query = nameFilter.toLowerCase();
+        const rName = (r.name || r.requester_name || r.full_name || '').toLowerCase();
+        if (!rName.includes(query)) return false;
+      }
       return true;
     });
-  }, [requests, categoryFilter, catFilter, fromDate, toDate]);
+  }, [requests, categoryFilter, catFilter, fromDate, toDate, nameFilter]);
 
   async function handleStatus(id, status, category, rejectionReason, approvalRemarks) {
     try {
@@ -166,15 +173,20 @@ export function HelpdeskTable({ categoryFilter }) {
         { title: 'Details' },
         { title: 'Status' },
       ],
-      rows: filtered.map((req, idx) => [
-        idx + 1,
-        formatDateTime(req.created_at || req.createdAt),
-        CATEGORY_LABELS[req.category] || req.category || 'General',
-        `${req.requester_name || req.requesterName || 'Employee'}<br/><span style="font-size:0.75rem;color:#64748b">${req.requester_email || req.requesterEmail || ''}</span>`,
-        req.floor_no || req.floorNo || req.location || req.floor || 'N/A',
-        req.exact_query || req.description || req.details || '—',
-        req.status || 'Pending',
-      ])
+      rows: filtered.map((req, idx) => {
+        const parsed = parseItems(req.items);
+        const itemStr = parsed.length > 0 ? `<br/><strong>Items:</strong> ${parsed.map(i => `${i.item || i.name}(${i.qty || i.quantity || 1})`).join(', ')}` : '';
+        const details = req.exact_query || req.description || req.details || '—';
+        return [
+          idx + 1,
+          formatDateTime(req.created_at || req.createdAt),
+          CATEGORY_LABELS[req.category] || req.category || 'General',
+          `${req.requester_name || req.requesterName || 'Employee'}<br/><span style="font-size:0.75rem;color:#64748b">${req.requester_email || req.requesterEmail || ''}</span>`,
+          req.floor_no || req.floorNo || req.location || req.floor || 'N/A',
+          `${details}${itemStr}`,
+          req.status || 'Pending',
+        ];
+      })
     });
   };
 
@@ -197,6 +209,10 @@ export function HelpdeskTable({ categoryFilter }) {
       {/* Filters */}
       <div className="card" style={{ marginBottom: 'var(--space-5)', padding: 'var(--space-4) var(--space-5)' }}>
         <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <FormField label="Search Name" htmlFor="hda-search">
+            <input id="hda-search" type="text" className="form-input" placeholder="Requester name..." value={nameFilter}
+              onChange={e => setNameFilter(e.target.value)} style={{ width: 160 }} />
+          </FormField>
           <FormField label="From Date" htmlFor="hda-from">
             <input id="hda-from" type="date" className="form-input" value={fromDate}
               onChange={e => setFromDate(e.target.value)} style={{ width: 160 }} />
@@ -217,7 +233,7 @@ export function HelpdeskTable({ categoryFilter }) {
             </FormField>
           )}
           <button type="button" className="btn btn--ghost btn--sm"
-            onClick={() => { setFromDate(''); setToDate(''); setCatFilter('all'); }}
+            onClick={() => { setFromDate(''); setToDate(''); setCatFilter('all'); setNameFilter(''); }}
             style={{ alignSelf: 'flex-end', marginTop: 'var(--space-2)' }}>
             Clear
           </button>

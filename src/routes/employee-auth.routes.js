@@ -31,6 +31,8 @@ router.get('/courier-dispatch/by-date', courierController.getDispatchesByDate);
 router.get('/courier-dispatch/all', courierController.getAllDispatches);
 router.post('/courier-dispatch/merge-request', courierController.createMergeRequest);
 router.post('/courier-dispatch', courierController.createDispatch);
+router.put('/courier-dispatch/:id', courierController.updateDispatchEmployee);
+router.delete('/courier-dispatch/:id', courierController.deleteDispatchEmployee);
 router.post('/shipping-label', courierController.generateShippingLabel);
 
 // Address Book (per-user)

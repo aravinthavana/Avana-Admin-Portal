@@ -71,6 +71,10 @@ export const employeeApi = {
 
   createCourierDispatch: (data) =>
     request('/employee/courier-dispatch', { method: 'POST', body: JSON.stringify(data) }, 'employee'),
+  updateCourierDispatch: (id, data) =>
+    request(`/employee/courier-dispatch/${id}`, { method: 'PUT', body: JSON.stringify(data) }, 'employee'),
+  deleteCourierDispatch: (id) =>
+    request(`/employee/courier-dispatch/${id}`, { method: 'DELETE' }, 'employee'),
 
   getAllCourierDispatches: () =>
     request('/employee/courier-dispatch/all', {}, 'employee'),

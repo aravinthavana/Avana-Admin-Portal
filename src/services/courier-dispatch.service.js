@@ -84,7 +84,7 @@ exports.getNextDcNumber = getNextDcNumber;
 exports.getAllDispatches = async () => {
   await ensureLegacyDispatchesMigrated();
   return prisma.courierDispatch.findMany({
-    include: { items: true },
+    include: { items: true, mergeRequests: true },
     orderBy: { submittedAt: 'desc' }
   });
 };
@@ -280,11 +280,134 @@ exports.mergeParcel = async (parentDispatchId, requesterEmail, items, remarks) =
 
 exports.deleteDispatch = async (id) => {
   try {
+    const dispatch = await prisma.courierDispatch.findUnique({ where: { id } });
+    if (!dispatch) return false;
+
+    // Check for merge requests
+    const mergeRequests = await prisma.courierMergeRequest.findMany({ where: { targetDispatchId: id } });
+    if (mergeRequests.length > 0) {
+      const { sendEmail } = require('../utils/notifications');
+      for (const mr of mergeRequests) {
+        await sendEmail({
+          to: mr.requesterEmail,
+          subject: `Merge Request Cancelled - DC #${dispatch.dcNo} Recalled`,
+          htmlBody: `
+            <h3>Merge Request Cancelled</h3>
+            <p>Hello,</p>
+            <p>The Delivery Challan <strong>#${dispatch.dcNo}</strong> that you requested to merge into has been recalled or deleted by its owner.</p>
+            <p>Your merge request has been cancelled. Please create your own Courier Dispatch for your items.</p>
+            <p><br>Thanks,<br>Avana Admin</p>
+          `
+        });
+      }
+    }
+
     await prisma.courierDispatch.delete({ where: { id } });
     return true;
   } catch (e) {
+    console.error('Failed to delete dispatch:', e);
     return false;
   }
+};
+
+exports.updateDispatch = async (id, data, requesterEmail, host) => {
+  const existing = await prisma.courierDispatch.findUnique({ where: { id }, include: { items: true } });
+  if (!existing) return null;
+
+  // Check for merge requests
+  const mergeRequests = await prisma.courierMergeRequest.findMany({ where: { targetDispatchId: id } });
+  if (mergeRequests.length > 0) {
+    const { sendEmail } = require('../utils/notifications');
+    for (const mr of mergeRequests) {
+      await sendEmail({
+        to: mr.requesterEmail,
+        subject: `Merge Request Cancelled - DC #${existing.dcNo} Recalled`,
+        htmlBody: `
+          <h3>Merge Request Cancelled</h3>
+          <p>Hello,</p>
+          <p>The Delivery Challan <strong>#${existing.dcNo}</strong> that you requested to merge into has been recalled and modified by its owner.</p>
+          <p>Your merge request has been cancelled as the parent details have changed. Please create your own Courier Dispatch for your items.</p>
+          <p><br>Thanks,<br>Avana Admin</p>
+        `
+      });
+    }
+    // Delete merge requests as they are invalidated
+    await prisma.courierMergeRequest.deleteMany({ where: { targetDispatchId: id } });
+  }
+
+  let totalAmount = 0;
+  const itemsData = (data.items || []).map(it => {
+    const qty = parseInt(it.qty, 10) || 1;
+    const rate = parseFloat(it.rate) || 0;
+    const val = parseFloat(it.value) || (qty * rate);
+    totalAmount += val;
+    return {
+      itemCode: it.itemCode || '',
+      description: it.description || it.name || 'Dispatched Item',
+      serialNo: it.serialNo || '',
+      qty,
+      rate,
+      value: val
+    };
+  });
+
+  await prisma.courierDispatchItem.deleteMany({ where: { dispatchId: id } });
+
+  const updated = await prisma.courierDispatch.update({
+    where: { id },
+    data: {
+      remarksType: data.remarksType || 'Service',
+      remarksOther: data.remarksOther || '',
+      transporterName: data.transporterName || '',
+      transporterAmount: data.transporterAmount ? parseFloat(data.transporterAmount) : null,
+      docketNo: data.docketNo || '',
+      noOfBoxes: parseInt(data.noOfBoxes, 10) || 1,
+      courierBilling: data.courierBilling || 'Avana Medical Devices Pvt Ltd',
+      signatoryCompany: data.signatoryCompany || 'Avana Medical Devices Pvt. Ltd.',
+      fromAddressText: data.fromAddressText || 'Avana Medical Devices Pvt Ltd.,\nNo.91, Sundar Nagar 4th Avenue, Nandambakkam,\nChennai – 600032, Tamil Nadu, India.',
+      senderName: data.senderName || 'Admin',
+      senderPhone: data.senderPhone || '',
+      toAddress: data.toAddress || '',
+      receiverName: data.receiverName || '',
+      receiverPhone: data.receiverPhone || '',
+      totalAmount,
+      dimensions: data.boxes ? JSON.stringify(data.boxes) : (data.dimensions || ''),
+      weight: data.weight || '',
+      updatedAt: new Date().toISOString(),
+      items: {
+        create: itemsData
+      }
+    },
+    include: { items: true }
+  });
+
+  updated.declaration = data.declaration || false;
+  updated.isFragile = data.isFragile || false;
+
+  try {
+    const pdfGenerator = require('../utils/courier_pdf_generator');
+    const dcBytes = await pdfGenerator.generateDCCopyPDF(updated);
+    const labelBytes = await pdfGenerator.generateAddressLabelPDF(updated);
+    
+    const attachments = [
+      { filename: `DC_${updated.dcNo}.pdf`, content: dcBytes, contentType: 'application/pdf' },
+      { filename: `Label_${updated.dcNo}.pdf`, content: labelBytes, contentType: 'application/pdf' }
+    ];
+
+    const { sendEmail } = require('../utils/notifications');
+    if (requesterEmail) {
+      await sendEmail({
+        to: requesterEmail,
+        subject: `Delivery Challan Updated - #${updated.dcNo}`,
+        htmlBody: `<p>Your Delivery Challan #${updated.dcNo} has been successfully updated.</p>`,
+        attachments
+      });
+    }
+  } catch (err) {
+    console.error('Failed to generate or send updated PDFs:', err);
+  }
+
+  return updated;
 };
 
 exports.renderDeliveryChallanHtml = (dispatch) => {

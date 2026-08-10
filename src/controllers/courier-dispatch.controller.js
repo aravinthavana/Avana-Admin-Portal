@@ -83,6 +83,33 @@ exports.deleteDispatch = async (req, res, next) => {
   }
 };
 
+exports.updateDispatchEmployee = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const requesterEmail = req.user?.email || req.body.requesterEmail || '';
+    const host = req.protocol + '://' + req.get('host');
+    const updated = await courierService.updateDispatch(id, req.body, requesterEmail, host);
+    if (!updated) return res.status(404).json({ error: 'Delivery Challan not found.' });
+
+    res.status(200).json({ message: 'Delivery Challan updated successfully.', dispatch: updated });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deleteDispatchEmployee = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    // Just reuse the main delete service
+    const success = await courierService.deleteDispatch(id);
+    if (!success) return res.status(404).json({ error: 'Record not found or failed to delete.' });
+
+    res.status(200).json({ message: 'Delivery Challan deleted successfully.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.printDeliveryChallan = async (req, res, next) => {
   try {
     const { id } = req.params;

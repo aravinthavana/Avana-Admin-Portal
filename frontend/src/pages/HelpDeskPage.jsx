@@ -1325,6 +1325,8 @@ function AllDispatchesHistory({ onRefill }) {
   const [loading, setLoading] = useState(true);
   const [viewDc, setViewDc] = useState(null);
   const [search, setSearch] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -1341,6 +1343,26 @@ function AllDispatchesHistory({ onRefill }) {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const todayStr = new Date().toISOString().slice(0, 10);
+
+  async function handleDeleteDc(dc) {
+    const hasMerge = dc.mergeRequests && dc.mergeRequests.length > 0;
+    const msg = hasMerge
+      ? `⚠️ DC #${dc.dcNo} has ${dc.mergeRequests.length} merge request(s). Deleting will cancel them and notify the requesters.\n\nAre you sure you want to delete this DC?`
+      : `Are you sure you want to delete DC #${dc.dcNo}? This action cannot be undone.`;
+    
+    if (!window.confirm(msg)) return;
+    
+    setDeleting(true);
+    try {
+      await employeeApi.deleteCourierDispatch(dc.id);
+      toast.success(`DC #${dc.dcNo} deleted successfully.`);
+      fetchAll();
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete DC.');
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   function formatDateDMY(dStr) {
     if (!dStr) return '—';
@@ -1439,7 +1461,7 @@ function AllDispatchesHistory({ onRefill }) {
                       </span>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
+                      <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                         <button
                           type="button"
                           className="btn btn--sm btn--outline"
@@ -1450,15 +1472,31 @@ function AllDispatchesHistory({ onRefill }) {
                           👁️ View
                         </button>
                         {isSubmittedToday ? (
-                          <button
-                            type="button"
-                            className="btn btn--sm btn--primary"
-                            onClick={() => onRefill(d)}
-                            title="Recall data and refill form"
-                            style={{ background: '#d97706', borderColor: '#b45309', color: '#ffffff', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700 }}
-                          >
-                            🔄 Recall & Refill
-                          </button>
+                          <>
+                            {d.mergeRequests && d.mergeRequests.length > 0 && (
+                              <span style={{ fontSize: '0.7rem', color: '#dc2626', fontWeight: 700, padding: '4px 6px', background: '#fef2f2', borderRadius: '6px' }} title="This DC has merge requests that will be cancelled on recall">
+                                ⓘ {d.mergeRequests.length} Merge
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              className="btn btn--sm btn--primary"
+                              onClick={() => onRefill(d)}
+                              title="Recall data and refill form for editing"
+                              style={{ background: '#d97706', borderColor: '#b45309', color: '#ffffff', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700 }}
+                            >
+                              🔄 Recall & Refill
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn--sm"
+                              onClick={() => handleDeleteDc(d)}
+                              title="Delete this DC (current day only)"
+                              style={{ background: '#ef4444', borderColor: '#dc2626', color: '#ffffff', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700 }}
+                            >
+                              🗑️ Delete
+                            </button>
+                          </>
                         ) : (
                           <span style={{ fontSize: '0.7rem', color: '#94a3b8', padding: '4px 6px' }}>Past Date</span>
                         )}
@@ -1493,16 +1531,26 @@ function AllDispatchesHistory({ onRefill }) {
               <div><strong>Signatory Entity:</strong> {viewDc.signatoryCompany || '—'}</div>
               <div><strong>Items Count:</strong> {viewDc.items?.length || 0} items</div>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
               {((viewDc.dcDate || '').slice(0, 10) === todayStr) && (
-                <button
-                  type="button"
-                  className="btn btn--primary"
-                  style={{ flex: 1, background: '#d97706', borderColor: '#b45309' }}
-                  onClick={() => { setViewDc(null); onRefill(viewDc); }}
-                >
-                  🔄 Recall & Refill Form
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="btn btn--primary"
+                    style={{ flex: 1, background: '#d97706', borderColor: '#b45309' }}
+                    onClick={() => { setViewDc(null); onRefill(viewDc); }}
+                  >
+                    🔄 Recall & Refill Form
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    style={{ flex: 1, background: '#ef4444', borderColor: '#dc2626', color: '#fff' }}
+                    onClick={() => { setViewDc(null); handleDeleteDc(viewDc); }}
+                  >
+                    🗑️ Delete DC
+                  </button>
+                </>
               )}
               <button
                 type="button"
@@ -1545,12 +1593,25 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
         }))
       : [{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }];
 
-    const refilledBoxes = Array.isArray(dc.boxes) && dc.boxes.length > 0
-      ? dc.boxes
-      : [{ weight: dc.weight || '', dim: dc.dimensions || '' }];
+    // Parse dimensions - it's stored as JSON string in DB e.g. [{"dim":"10x10","weight":"2kg"}]
+    let refilledBoxes = [{ weight: '', dim: '' }];
+    if (dc.dimensions) {
+      try {
+        const parsed = JSON.parse(dc.dimensions);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          refilledBoxes = parsed.map(b => ({ dim: b.dim || '', weight: b.weight || '' }));
+        }
+      } catch {
+        // If not valid JSON, treat as single box plain text
+        refilledBoxes = [{ weight: dc.weight || '', dim: dc.dimensions || '' }];
+      }
+    }
 
     setForm(f => ({
       ...f,
+      _recalledDcId: dc.id,  // Store the ID for update instead of create
+      _recalledDcNo: dc.dcNo,
+      _hasMergeRequests: (dc.mergeRequests && dc.mergeRequests.length > 0),
       dcNo: dc.dcNo || f.dcNo,
       dcDate: dc.dcDate || today,
       remarksType: dc.remarksType || 'Service',
@@ -1568,7 +1629,8 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
       toAddress: dc.toAddress || '',
       declaration: !!dc.declaration,
       items: refilledItems,
-      boxes: refilledBoxes
+      boxes: refilledBoxes,
+      noOfBoxes: refilledBoxes.length,
     }));
 
     setItems(refilledItems);
@@ -1618,6 +1680,42 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
       {activeTab === 'challan' && (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-6)', alignItems: 'flex-start' }}>
         <div style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+
+        {/* Recall Edit Banner */}
+        {form._recalledDcId && (
+          <div style={{
+            padding: '0.75rem 1rem',
+            background: 'linear-gradient(135deg, #fef3c7, #fffbeb)',
+            border: '1.5px solid #d97706',
+            borderRadius: '10px',
+            display: 'flex', alignItems: 'center', gap: '0.75rem',
+            boxShadow: '0 2px 8px rgba(217, 119, 6, 0.15)'
+          }}>
+            <span style={{ fontSize: '1.3rem' }}>🔄</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#92400e' }}>
+                Editing Recalled DC #{form._recalledDcNo}
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#78350f', marginTop: '2px' }}>
+                Submitting will update the existing record instead of creating a new one.
+                {form._hasMergeRequests && (
+                  <strong style={{ color: '#dc2626' }}> ⚠️ This DC has merge requests — they will be cancelled on update.</strong>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm(f => {
+                const { _recalledDcId, _recalledDcNo, _hasMergeRequests, ...rest } = f;
+                return rest;
+              })}
+              style={{ background: 'none', border: '1px solid #b45309', borderRadius: '6px', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, color: '#92400e', cursor: 'pointer' }}
+              title="Cancel recall mode and create a fresh DC instead"
+            >
+              Cancel Recall
+            </button>
+          </div>
+        )}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
           <FormField label="Delivery Challan No" required htmlFor="cd-dc-no">
             <input id="cd-dc-no" type="text" className="form-input" style={{ fontWeight: 'bold' }}
@@ -1969,12 +2067,23 @@ function HelpdeskRequestView() {
     setSubmitting(true);
     try {
       if (categoryKey === 'courier_dispatch') {
-        await employeeApi.createCourierDispatch({
+        const payload = {
           requesterEmail: employeeEmail,
           ...formData,
           senderName: formData.senderName || employeeEmail?.split('@')[0] || 'Employee'
-        });
-        toast.success('Courier dispatch request & Delivery Challan created! 📦');
+        };
+
+        if (formData._recalledDcId) {
+          // Updating an existing DC (Recall & Refill)
+          if (formData._hasMergeRequests) {
+            toast.warning(`⚠️ DC #${formData._recalledDcNo} had merge requests. They will be cancelled and the requesters will be notified to create their own DC.`);
+          }
+          await employeeApi.updateCourierDispatch(formData._recalledDcId, payload);
+          toast.success(`Delivery Challan #${formData._recalledDcNo} updated successfully! 📦`);
+        } else {
+          await employeeApi.createCourierDispatch(payload);
+          toast.success('Courier dispatch request & Delivery Challan created! 📦');
+        }
       } else {
         const payload = {
           category: categoryKey,

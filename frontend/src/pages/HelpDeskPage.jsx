@@ -87,6 +87,13 @@ const CATEGORIES = [
     desc: 'Generate Delivery Challan (DC) and request courier dispatch',
     color: '#ea580c',
   },
+  {
+    key: 'app_feedback',
+    label: 'App Feedback & Bugs',
+    icon: '💡',
+    desc: 'Suggest extra features or report bugs in this portal',
+    color: '#0ea5e9',
+  },
 ];
 
 /* ─── Helpers ─────────────────────────────────────────────── */
@@ -475,6 +482,37 @@ function ItemSelector({ items, selected, onChange, label = 'Select items' }) {
 }
 
 /* ─── Category Forms ──────────────────────────────────────── */
+function AppFeedbackForm({ form, setForm, errors }) {
+  return (
+    <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
+      <FormField label="Feedback Type" required htmlFor="af-type" error={errors.exact_query}>
+        <select
+          id="af-type"
+          className={`form-select${errors.exact_query ? ' form-input--error' : ''}`}
+          value={form.exact_query || ''}
+          onChange={e => setForm(f => ({ ...f, exact_query: e.target.value }))}
+        >
+          <option value="">Select Type</option>
+          <option value="Feature Request">💡 Feature Request</option>
+          <option value="Bug Report">🐛 Bug Report</option>
+          <option value="General Suggestion">💭 General Suggestion</option>
+        </select>
+      </FormField>
+
+      <FormField label="Description" required htmlFor="af-desc" error={errors.description}>
+        <textarea
+          id="af-desc"
+          className={`form-textarea${errors.description ? ' form-input--error' : ''}`}
+          placeholder="Please describe your suggestion or the bug you found in detail..."
+          rows={5}
+          value={form.description || ''}
+          onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+        />
+      </FormField>
+    </div>
+  );
+}
+
 function MaintenanceForm({ form, setForm, errors }) {
   return (
     <>
@@ -2057,6 +2095,9 @@ function HelpdeskRequestView() {
       }
       if (!form.receiverName?.trim()) e.receiverName = 'Receiver name is required';
       if (!form.toAddress?.trim()) e.toAddress = 'Destination address is required';
+    } else if (category === 'app_feedback') {
+      if (!form.exact_query) e.exact_query = 'Feedback type is required';
+      if (!form.description?.trim()) e.description = 'Description is required';
     }
     return e;
   }
@@ -2115,6 +2156,7 @@ function HelpdeskRequestView() {
       case 'print_scan':       return <PrintScanForm {...props} />;
       case 'admin_support':    return <AdminSupportForm {...props} />;
       case 'courier_dispatch': return <CourierDispatchForm {...props} onTabChange={setCourierTab} />;
+      case 'app_feedback':     return <AppFeedbackForm {...props} />;
       default: return null;
     }
   }

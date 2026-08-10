@@ -175,6 +175,7 @@ function RequestCategoriesSubView() {
     { icon: '🧹', title: 'Housekeeping Requests', desc: 'Manage cleaning requests and floor hygiene operations', link: '/helpdesk-admin/housekeeping', color: '#d97706' },
     { icon: '🖥️', title: 'Office Asset Requests', desc: 'Process requests for office equipment, furniture, and hardware', link: '/helpdesk-admin/office-asset', color: '#0891b2' },
     { icon: '🖨️', title: 'Printing & Scanning', desc: 'Handle bulk document printing, scanning, binding, and lamination', link: '/helpdesk-admin/print-scan', color: '#7c3aed' },
+    { icon: '💡', title: 'App Feedback', desc: 'Review user feedback and improvement suggestions for the portal', link: '/helpdesk-admin/app-feedback', color: '#0ea5e9' },
   ];
 
   return (
@@ -321,11 +322,12 @@ function CategoryWrapper() {
     return <HelpdeskTable />;
   }
   
-  const validCategories = ['conference', 'stationery', 'admin-support', 'maintenance', 'housekeeping', 'office-asset', 'print-scan'];
+  const validCategories = ['conference', 'stationery', 'admin-support', 'maintenance', 'housekeeping', 'office-asset', 'print-scan', 'app-feedback'];
   const categoryMap = {
     'admin-support': 'admin_support',
     'office-asset': 'office_asset',
-    'print-scan': 'print_scan'
+    'print-scan': 'print_scan',
+    'app-feedback': 'app_feedback'
   };
   const categoryFilter = validCategories.includes(path) ? (categoryMap[path] || path) : null;
   
@@ -354,6 +356,7 @@ export default function HelpDeskAdminPage() {
         <Route path="housekeeping" element={<CategoryWrapper />} />
         <Route path="office-asset" element={<CategoryWrapper />} />
         <Route path="print-scan" element={<CategoryWrapper />} />
+        <Route path="app-feedback" element={<CategoryWrapper />} />
         
         {/* Stock */}
         <Route path="stationery-stock" element={

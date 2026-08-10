@@ -161,5 +161,6 @@ export const CATEGORY_LABELS = {
   housekeeping:  'Housekeeping',
   office_asset:  'Office Asset',
   print_scan:    'Print & Scan',
+  app_feedback:  'App Feedback',
 };
 

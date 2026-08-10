@@ -18,6 +18,7 @@ const SIDEBAR_SECTIONS = [
       { to: '/helpdesk-admin/housekeeping',  label: '🧹 Housekeeping',         color: '#d97706' },
       { to: '/helpdesk-admin/office-asset',  label: '🖥️ Office Asset',         color: '#0891b2' },
       { to: '/helpdesk-admin/print-scan',    label: '🖨️ Printing & Scanning',  color: '#7c3aed' },
+      { to: '/helpdesk-admin/app-feedback',  label: '💡 App Feedback',         color: '#0ea5e9' },
     ]
   },
   {

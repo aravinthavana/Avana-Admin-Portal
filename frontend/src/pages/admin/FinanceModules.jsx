@@ -302,7 +302,7 @@ export function TaxPaymentsPage({ api }) {
                 <select className="form-select" value={form.status||'Unpaid'} onChange={e=>setForm(f=>({...f, status: e.target.value}))}>
                   <option value="Unpaid">Unpaid</option><option value="Paid">Paid</option>
                 </select>
-              </FormField>)}
+              </FormField>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
               <button type="button" className="btn btn--secondary" onClick={() => setShowForm(false)}>Cancel</button>
@@ -588,7 +588,7 @@ export function PettyCashPage() {
                   <option value="EXPENSE">Record Expense / Voucher</option>
                   <option value="ADD_FUNDS">Add Cash / Opening Balance</option>
                 </select>
-              </FormField>)}
+              </FormField>
               {addForm.type === 'EXPENSE' && (<FormField label="Company / Billing Entity">
                 <select className="form-select" value={addForm.company} onChange={e => setAddForm(f => ({ ...f, company: e.target.value }))}>
                   <option value="AMD">AMD (Avana Medical Devices)</option>
@@ -966,7 +966,7 @@ export function TravelExpensePage() {
                   <option value="Bike">🏍️ Bike (₹5 / KM)</option>
                   <option value="Car">🚗 Car (₹10 / KM)</option>
                 </select>
-              </FormField>)}
+              </FormField>
               <FormField label="Total KM *" required>
                 <input
                   type="number"

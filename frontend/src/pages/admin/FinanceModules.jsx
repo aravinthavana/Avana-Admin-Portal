@@ -67,6 +67,11 @@ export function UtilityPaymentsPage({ api }) {
     return 'https://paytm.com/electricity-bill-payment'; // Electricity
   }
 
+  const filteredRecords = useMemo(() => {
+    if (!filterMonth) return records;
+    return records.filter(r => (r.due_date || r.payment_date || '').startsWith(filterMonth));
+  }, [records, filterMonth]);
+
   if (showForm) {
     return (
       <div>
@@ -102,11 +107,6 @@ export function UtilityPaymentsPage({ api }) {
       </div>
     );
   }
-
-  const filteredRecords = useMemo(() => {
-    if (!filterMonth) return records;
-    return records.filter(r => (r.due_date || r.payment_date || '').startsWith(filterMonth));
-  }, [records, filterMonth]);
 
   const handleLegacyPDF = () => {
     const totalSum = filteredRecords.reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);

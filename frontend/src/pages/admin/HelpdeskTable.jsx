@@ -181,7 +181,7 @@ export function HelpdeskTable({ categoryFilter }) {
           idx + 1,
           formatDateTime(req.created_at || req.createdAt),
           CATEGORY_LABELS[req.category] || req.category || 'General',
-          `${req.requester_name || req.requesterName || 'Employee'}<br/><span style="font-size:0.75rem;color:#64748b">${req.requester_email || req.requesterEmail || ''}</span>`,
+          `${req.name || req.full_name || req.requester_name || req.requesterName || 'Employee'}<br/><span style="font-size:0.75rem;color:#64748b">${req.email || req.requester_email || req.requesterEmail || ''}</span>`,
           req.floor_no || req.floorNo || req.location || req.floor || 'N/A',
           `${details}${itemStr}`,
           req.status || 'Pending',

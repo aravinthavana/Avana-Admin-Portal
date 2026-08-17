@@ -93,7 +93,7 @@ export function UtilityPaymentsPage({ api }) {
                 <select className="form-select" value={form.status||'Unpaid'} onChange={e=>setForm(f=>({...f, status: e.target.value}))}>
                   <option value="Unpaid">Unpaid</option><option value="Paid">Paid</option><option value="Overdue">Overdue</option>
                 </select>
-              </FormField>
+              </FormField>)})}
               <FormField label="Payment Date"><input type="date" className="form-input" value={form.payment_date||''} onChange={e=>setForm(f=>({...f, payment_date: e.target.value}))}/></FormField>
               <FormField label="Transaction Ref"><input type="text" className="form-input" value={form.transaction_ref||''} onChange={e=>setForm(f=>({...f, transaction_ref: e.target.value}))}/></FormField>
             </div>
@@ -109,37 +109,29 @@ export function UtilityPaymentsPage({ api }) {
   }
 
   const handleLegacyPDF = () => {
-    const totalSum = filteredRecords.reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
-    const paidSum = filteredRecords.filter(r => r.status === 'Paid').reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
-
     openLegacyPrintReport({
-      title: `Utility Payments Report`,
-      subtitle: filterMonth ? `Records for ${filterMonth}` : `All Utility Records`,
-      docNo: 'AMD-QSP05-03',
+      title: 'Petty Cash Report',
+      subtitle: monthFilter ? `For month: ${monthFilter}` : 'All Vouchers',
       summary: [
-        { label: 'Total Entries', value: `${filteredRecords.length} Records` },
-        { label: 'Total Amount', value: `Rs ${totalSum.toLocaleString('en-IN')}` },
-        { label: 'Total Paid', value: `Rs ${paidSum.toLocaleString('en-IN')}`, color: '#16a34a' },
+        { label: 'Opening Balance', value: `Rs ${openingBalance.toLocaleString()}` },
+        { label: 'Cleared this month', value: `Rs ${monthCleared.toLocaleString()}` },
+        { label: 'Closing Balance', value: `Rs ${closingBalance.toLocaleString()}` }
       ],
       headers: [
-        { title: '#' },
+        { title: 'Date' },
         { title: 'Type' },
-        { title: 'Provider' },
-        { title: 'Account Number' },
-        { title: 'Billing Cycle' },
-        { title: 'Due Date' },
+        { title: 'Reason' },
         { title: 'Amount', align: 'right' },
         { title: 'Status' },
+        { title: 'Remarks' }
       ],
-      rows: filteredRecords.map((r, idx) => [
-        idx + 1,
-        r.utility_type || '—',
-        r.provider_name || '—',
-        r.account_number || '—',
-        r.billing_cycle || '—',
-        r.due_date || '—',
-        `Rs ${(parseFloat(r.amount) || 0).toLocaleString('en-IN')}`,
-        r.status === 'Paid' ? `Paid (${r.payment_date || ''})` : r.status,
+      rows: filtered.map(item => [
+        item.date,
+        item.type === 'ADD_FUNDS' ? 'Cash Added' : 'Expense',
+        item.reason,
+        `Rs ${(item.amount || 0).toLocaleString()}`,
+        item.type === 'ADD_FUNDS' ? '-' : (item.cleared ? 'Cleared' : 'Pending'),
+        item.remarks || '-'
       ])
     });
   };
@@ -310,7 +302,7 @@ export function TaxPaymentsPage({ api }) {
                 <select className="form-select" value={form.status||'Unpaid'} onChange={e=>setForm(f=>({...f, status: e.target.value}))}>
                   <option value="Unpaid">Unpaid</option><option value="Paid">Paid</option>
                 </select>
-              </FormField>
+              </FormField>)}
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
               <button type="button" className="btn btn--secondary" onClick={() => setShowForm(false)}>Cancel</button>
@@ -323,34 +315,29 @@ export function TaxPaymentsPage({ api }) {
   }
 
   const handleLegacyPDF = () => {
-    const totalTaxSum = filteredRecords.reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
-    const paidTaxSum = filteredRecords.filter(r => r.status === 'Paid').reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
-
     openLegacyPrintReport({
-      title: `${activeTab} Statement Report`,
-      subtitle: filterYear !== 'All' ? `Year: ${filterYear}` : 'All Tax Assessment Years',
+      title: 'Petty Cash Report',
+      subtitle: monthFilter ? `For month: ${monthFilter}` : 'All Vouchers',
       summary: [
-        { label: 'Total Tax Entries', value: `${filteredRecords.length} Records` },
-        { label: 'Total Assessment Amount', value: `Rs ${totalTaxSum.toLocaleString('en-IN')}` },
-        { label: 'Total Paid', value: `Rs ${paidTaxSum.toLocaleString('en-IN')}`, color: '#16a34a' },
+        { label: 'Opening Balance', value: `Rs ${openingBalance.toLocaleString()}` },
+        { label: 'Cleared this month', value: `Rs ${monthCleared.toLocaleString()}` },
+        { label: 'Closing Balance', value: `Rs ${closingBalance.toLocaleString()}` }
       ],
       headers: [
-        { title: '#' },
-        { title: 'Location / Office' },
-        { title: 'Bill Number' },
-        { title: 'Year & Term' },
-        { title: 'Due Date' },
+        { title: 'Date' },
+        { title: 'Type' },
+        { title: 'Reason' },
         { title: 'Amount', align: 'right' },
         { title: 'Status' },
+        { title: 'Remarks' }
       ],
-      rows: filteredRecords.map((r, idx) => [
-        idx + 1,
-        r.location || '—',
-        r.bill_no || '—',
-        `${r.year || ''} - ${r.term || ''}`,
-        r.due_date || '—',
-        `Rs ${(parseFloat(r.amount) || 0).toLocaleString('en-IN')}`,
-        r.status === 'Paid' ? `Paid (${r.payment_date || ''})` : 'Unpaid',
+      rows: filtered.map(item => [
+        item.date,
+        item.type === 'ADD_FUNDS' ? 'Cash Added' : 'Expense',
+        item.reason,
+        `Rs ${(item.amount || 0).toLocaleString()}`,
+        item.type === 'ADD_FUNDS' ? '-' : (item.cleared ? 'Cleared' : 'Pending'),
+        item.remarks || '-'
       ])
     });
   };
@@ -444,12 +431,12 @@ export function PettyCashPage() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [monthFilter, setMonthFilter] = useState('');
+  const [monthFilter, setMonthFilter] = useState(new Date().toISOString().slice(0, 7));
   const [search, setSearch] = useState('');
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [addForm, setAddForm] = useState({ date: new Date().toISOString().slice(0, 10), company: 'AMD', expenseName: 'Printing & stationary', reason: '', collectedFrom: '', amount: '', remarks: '' });
+  const [addForm, setAddForm] = useState({ date: new Date().toISOString().slice(0, 10), type: 'EXPENSE', company: 'AMD', expenseName: 'Printing & stationary', reason: '', collectedFrom: '', amount: '', remarks: '' });
   const [showClearForm, setShowClearForm] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [clearForm, setClearForm] = useState({ clearAmount: '', remarks: '' });
@@ -459,14 +446,14 @@ export function PettyCashPage() {
   const fetchEntries = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await pettyCashApi.getAll(monthFilter);
+      const data = await pettyCashApi.getAll();
       setEntries(data || []);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [monthFilter]);
+  }, []);
 
   useEffect(() => { fetchEntries(); }, [fetchEntries]);
 
@@ -477,7 +464,7 @@ export function PettyCashPage() {
       await pettyCashApi.create(addForm);
       toast.success('Petty cash voucher created successfully.');
       setShowAddForm(false);
-      setAddForm({ date: new Date().toISOString().slice(0, 10), company: 'AMD', expenseName: 'Printing & stationary', reason: '', collectedFrom: '', amount: '', remarks: '' });
+      setAddForm({ date: new Date().toISOString().slice(0, 10), type: 'EXPENSE', company: 'AMD', expenseName: 'Printing & stationary', reason: '', collectedFrom: '', amount: '', remarks: '' });
       fetchEntries();
     } catch (err) {
       toast.error(err.message || 'Failed to create voucher');
@@ -516,25 +503,49 @@ export function PettyCashPage() {
     openLegacyPrintReport({
       title: 'Petty Cash Report',
       subtitle: monthFilter ? `For month: ${monthFilter}` : 'All Vouchers',
+      summary: [
+        { label: 'Opening Balance', value: `Rs ${openingBalance.toLocaleString()}` },
+        { label: 'Cleared this month', value: `Rs ${monthCleared.toLocaleString()}` },
+        { label: 'Closing Balance', value: `Rs ${closingBalance.toLocaleString()}` }
+      ],
       headers: [
         { title: 'Date' },
-        { title: 'Company' },
+        { title: 'Type' },
         { title: 'Reason' },
         { title: 'Amount', align: 'right' },
-        { title: 'Status' }
+        { title: 'Status' },
+        { title: 'Remarks' }
       ],
       rows: filtered.map(item => [
         item.date,
-        item.company || 'AMD',
+        item.type === 'ADD_FUNDS' ? 'Cash Added' : 'Expense',
         item.reason,
-        `₹${(item.amount || 0).toLocaleString()}`,
-        item.cleared ? 'Cleared' : 'Pending'
+        `Rs ${(item.amount || 0).toLocaleString()}`,
+        item.type === 'ADD_FUNDS' ? '-' : (item.cleared ? 'Cleared' : 'Pending'),
+        item.remarks || '-'
       ])
     });
   };
 
+  
+  // Calculations
+  const monthPrefix = monthFilter || new Date().toISOString().slice(0, 7);
+  
+  // Overall Balance
+  const totalFundsAllTime = entries.filter(r => r.type === 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const totalExpenseAllTime = entries.filter(r => r.type !== 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const overallAvailableBalance = totalFundsAllTime - totalExpenseAllTime;
+
+  // Opening Balance for selected month
+  const priorEntries = entries.filter(r => r.date < monthPrefix + '-01');
+  const priorFunds = priorEntries.filter(r => r.type === 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const priorExpenses = priorEntries.filter(r => r.type !== 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const openingBalance = priorFunds - priorExpenses;
+
+  const currentMonthEntries = entries.filter(r => monthFilter ? r.date.startsWith(monthFilter) : true);
+  
   const filtered = useMemo(() => {
-    return entries.filter(r => {
+    return currentMonthEntries.filter(r => {
       if (search) {
         const q = search.toLowerCase();
         return (
@@ -544,12 +555,14 @@ export function PettyCashPage() {
         );
       }
       return true;
-    });
-  }, [entries, search]);
+    }).sort((a,b) => new Date(a.date) - new Date(b.date)); // chronological
+  }, [currentMonthEntries, search]);
 
-  const totalAmount = filtered.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-  const clearedAmount = filtered.filter(f => f.cleared).reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-  const pendingAmount = totalAmount - clearedAmount;
+  const monthFunds = currentMonthEntries.filter(r => r.type === 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const monthExpenses = currentMonthEntries.filter(r => r.type !== 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const monthCleared = currentMonthEntries.filter(r => r.type !== 'ADD_FUNDS' && r.cleared).reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const closingBalance = openingBalance + monthFunds - monthExpenses;
+
 
   if (showAddForm) {
     return (
@@ -569,13 +582,20 @@ export function PettyCashPage() {
               <FormField label="Date" required>
                 <input type="date" className="form-input" value={addForm.date} onChange={e => setAddForm(f => ({ ...f, date: e.target.value }))} required />
               </FormField>
-              <FormField label="Company / Billing Entity">
+              
+              <FormField label="Entry Type">
+                <select className="form-select" value={addForm.type} onChange={e => setAddForm(f => ({ ...f, type: e.target.value }))}>
+                  <option value="EXPENSE">Record Expense / Voucher</option>
+                  <option value="ADD_FUNDS">Add Cash / Opening Balance</option>
+                </select>
+              </FormField>)}
+              {addForm.type === 'EXPENSE' && (<FormField label="Company / Billing Entity">
                 <select className="form-select" value={addForm.company} onChange={e => setAddForm(f => ({ ...f, company: e.target.value }))}>
                   <option value="AMD">AMD (Avana Medical Devices)</option>
                   <option value="ATS">ATS (Avana Technology Services)</option>
                 </select>
-              </FormField>
-              <FormField label="Expense Category">
+              </FormField>)}
+              {addForm.type === 'EXPENSE' && (<FormField label="Expense Category">
                 <select className="form-select" value={addForm.expenseName} onChange={e => setAddForm(f => ({ ...f, expenseName: e.target.value }))}>
                   <option value="Printing & stationary">Printing & Stationery</option>
                   <option value="Repair & maintance electrical">Repair & Maintenance Electrical</option>
@@ -584,7 +604,7 @@ export function PettyCashPage() {
                   <option value="Vehicle & Fuel">Vehicle & Fuel</option>
                   <option value="Miscellaneous">Miscellaneous</option>
                 </select>
-              </FormField>
+              </FormField>)}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
@@ -660,9 +680,9 @@ export function PettyCashPage() {
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        <StatCard title="Total Cash Issued" value={`₹${totalAmount.toLocaleString()}`} icon="💵" />
-        <StatCard title="Cleared & Settled" value={`₹${clearedAmount.toLocaleString()}`} icon="✅" />
-        <StatCard title="Outstanding Balance" value={`₹${pendingAmount.toLocaleString()}`} icon="⏳" />
+        <StatCard title="Overall Available Balance" value={`₹${overallAvailableBalance.toLocaleString()}`} icon="💰" />
+        <StatCard title="Month Opening Balance" value={`₹${openingBalance.toLocaleString()}`} icon="📅" />
+        <StatCard title="Month Closing Balance" value={`₹${closingBalance.toLocaleString()}`} icon="📊" />
       </div>
 
       {/* Action Bar */}
@@ -711,23 +731,30 @@ export function PettyCashPage() {
                 </tr>
               </thead>
               <tbody>
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'right', fontWeight: 600 }}>Opening Balance</td>
+                  <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-primary-dark)' }}>₹{openingBalance.toLocaleString()}</td>
+                  <td colSpan="2"></td>
+                </tr>
                 {filtered.map((item) => (
-                  <tr key={item.id}>
+                  <tr key={item.id} style={{ background: item.type === 'ADD_FUNDS' ? 'rgba(34, 197, 94, 0.05)' : '' }}>
                     <td style={{ whiteSpace: 'nowrap', fontSize: '0.88rem' }}>{item.date}</td>
                     <td>
-                      <span className="badge badge--info" style={{ fontWeight: 600 }}>{item.company || 'AMD'}</span>
+                      {item.type === 'ADD_FUNDS' ? '-' : <span className="badge badge--info" style={{ fontWeight: 600 }}>{item.company || 'AMD'}</span>}
                     </td>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{item.reason}</div>
+                      <div style={{ fontWeight: 600 }}>{item.type === 'ADD_FUNDS' ? '💵 Cash Added: ' + item.reason : item.reason}</div>
                       {item.remarks && <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{item.remarks}</div>}
                     </td>
-                    <td style={{ fontSize: '0.88rem' }}>{item.expenseName || 'Miscellaneous'}</td>
+                    <td style={{ fontSize: '0.88rem' }}>{item.type === 'ADD_FUNDS' ? '-' : (item.expenseName || 'Miscellaneous')}</td>
                     <td style={{ fontWeight: 500, fontSize: '0.88rem' }}>{item.collectedFrom || '—'}</td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-primary-dark)' }}>
-                      ₹{(item.amount || 0).toLocaleString()}
+                    <td style={{ textAlign: 'right', fontWeight: 700, fontSize: '0.95rem', color: item.type === 'ADD_FUNDS' ? '#16a34a' : '#ea580c' }}>
+                      {item.type === 'ADD_FUNDS' ? '+' : '-'}₹{(item.amount || 0).toLocaleString()}
                     </td>
                     <td>
-                      {item.cleared ? (
+                      {item.type === 'ADD_FUNDS' ? (
+                        <span className="badge badge--success" style={{ fontWeight: 600 }}>Added to Hand</span>
+                      ) : item.cleared ? (
                         <span className="badge badge--success" style={{ fontWeight: 600 }}>
                           Cleared ({item.clearedDate || 'Done'})
                         </span>
@@ -739,7 +766,8 @@ export function PettyCashPage() {
                     </td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
-                        {!item.cleared && (
+                        {!item.cleared && item.type !== 'ADD_FUNDS' && (
+
                           <button
                             className="btn btn--sm btn--primary"
                             onClick={() => { setSelectedEntry(item); setClearForm({ clearAmount: item.amount, remarks: '' }); setShowClearForm(true); }}
@@ -784,7 +812,7 @@ export function TravelExpensePage() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [monthFilter, setMonthFilter] = useState('');
+  const [monthFilter, setMonthFilter] = useState(new Date().toISOString().slice(0, 7));
   const [search, setSearch] = useState('');
 
   // Page View state (replacing pop-up modal)
@@ -813,7 +841,7 @@ export function TravelExpensePage() {
     } finally {
       setLoading(false);
     }
-  }, [monthFilter]);
+  }, []);
 
   useEffect(() => { fetchEntries(); }, [fetchEntries]);
 
@@ -874,30 +902,28 @@ export function TravelExpensePage() {
 
   const handleLegacyPDF = () => {
     openLegacyPrintReport({
-      title: 'Travel & Fuel Expenses Report',
-      subtitle: monthFilter ? `Month: ${monthFilter}` : 'All Trips',
+      title: 'Petty Cash Report',
+      subtitle: monthFilter ? `For month: ${monthFilter}` : 'All Vouchers',
       summary: [
-        { label: 'Total Trips Logged', value: `${filtered.length} Trips` },
-        { label: 'Total Distance', value: `${totalKmSum.toLocaleString('en-IN')} KM`, color: '#0284c7' },
-        { label: 'Total Expense', value: `Rs ${totalCostSum.toLocaleString('en-IN')}`, color: '#C59100' },
+        { label: 'Opening Balance', value: `Rs ${openingBalance.toLocaleString()}` },
+        { label: 'Cleared this month', value: `Rs ${monthCleared.toLocaleString()}` },
+        { label: 'Closing Balance', value: `Rs ${closingBalance.toLocaleString()}` }
       ],
       headers: [
         { title: 'Date' },
-        { title: 'Travel Route (From ➔ To)' },
-        { title: 'Employee / Driver' },
-        { title: 'Mode' },
-        { title: 'Total KM' },
-        { title: 'Total Expense', align: 'right' },
-        { title: 'Remarks' },
+        { title: 'Type' },
+        { title: 'Reason' },
+        { title: 'Amount', align: 'right' },
+        { title: 'Status' },
+        { title: 'Remarks' }
       ],
       rows: filtered.map(item => [
         item.date,
-        `${item.fromLoc || '—'} ➔ ${item.toLoc || '—'}`,
-        item.employeeName || 'Admin',
-        item.mode === 'Car' ? 'Car (Rs 10/KM)' : 'Bike (Rs 5/KM)',
-        `${item.totalKm || 0} KM`,
-        `Rs ${(item.totalExpense || 0).toLocaleString('en-IN')}`,
-        item.remarks || '—',
+        item.type === 'ADD_FUNDS' ? 'Cash Added' : 'Expense',
+        item.reason,
+        `Rs ${(item.amount || 0).toLocaleString()}`,
+        item.type === 'ADD_FUNDS' ? '-' : (item.cleared ? 'Cleared' : 'Pending'),
+        item.remarks || '-'
       ])
     });
   };
@@ -940,7 +966,7 @@ export function TravelExpensePage() {
                   <option value="Bike">🏍️ Bike (₹5 / KM)</option>
                   <option value="Car">🚗 Car (₹10 / KM)</option>
                 </select>
-              </FormField>
+              </FormField>)}
               <FormField label="Total KM *" required>
                 <input
                   type="number"

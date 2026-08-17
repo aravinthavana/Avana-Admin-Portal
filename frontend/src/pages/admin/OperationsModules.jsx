@@ -1802,7 +1802,7 @@ export function OtherStockPage() {
     try {
       await otherStockApi.useStock(selectedItem.id, useForm.subtitleId, useForm.qtyToUse, useForm.usedBy, useForm.remarks);
       toast.success('Stock usage recorded!');
-      setUseModalOpen(false);
+      setShowUseForm(false);
       fetchItems();
     } catch (err) {
       toast.error(err.message || 'Failed to record usage');

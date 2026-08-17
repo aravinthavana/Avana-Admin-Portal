@@ -261,6 +261,7 @@ model PettyCash {
   expenseName   String?
   collectedFrom String?
   amount        Float    @default(0)
+  type          String   @default("EXPENSE") // 'EXPENSE' or 'ADD_FUNDS'
   remarks       String?
   cleared       Boolean  @default(false)
   clearedDate   String?

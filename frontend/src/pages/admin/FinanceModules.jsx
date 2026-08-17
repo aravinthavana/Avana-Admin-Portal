@@ -93,7 +93,7 @@ export function UtilityPaymentsPage({ api }) {
                 <select className="form-select" value={form.status||'Unpaid'} onChange={e=>setForm(f=>({...f, status: e.target.value}))}>
                   <option value="Unpaid">Unpaid</option><option value="Paid">Paid</option><option value="Overdue">Overdue</option>
                 </select>
-              </FormField>)})}
+              </FormField>
               <FormField label="Payment Date"><input type="date" className="form-input" value={form.payment_date||''} onChange={e=>setForm(f=>({...f, payment_date: e.target.value}))}/></FormField>
               <FormField label="Transaction Ref"><input type="text" className="form-input" value={form.transaction_ref||''} onChange={e=>setForm(f=>({...f, transaction_ref: e.target.value}))}/></FormField>
             </div>

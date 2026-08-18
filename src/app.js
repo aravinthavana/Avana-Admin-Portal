@@ -21,6 +21,7 @@ const helpdeskRoutes = require('./routes/helpdesk.routes');
 const employeeAuthRoutes = require('./routes/employee-auth.routes');
 const adminRoutes = require('./routes/admin.routes');
 const inventoryRoutes = require('./routes/inventory.routes');
+const purchaseRoutes = require('./routes/purchase.routes');
 
 // Public Asset Acknowledgement Routes
 const assetTrackerController = require('./controllers/asset-tracker.controller');
@@ -40,6 +41,7 @@ app.use('/api/helpdesk', helpdeskRoutes);
 app.use('/api/employee', employeeAuthRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', inventoryRoutes);
+app.use('/api/purchase', purchaseRoutes);
 
 // Serve static frontend files (React SPA)
 app.use(express.static(path.join(__dirname, '../frontend/dist')));

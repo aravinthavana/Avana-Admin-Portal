@@ -6,7 +6,7 @@ import { HelpdeskTable } from './admin/HelpdeskTable';
 import { StockManager } from './admin/StockManager';
 import { StationeryAudit, HousekeepingAudit } from './admin/Audits';
 import { AMCPage } from './admin/AMCPage';
-import { UtilityPaymentsPage, TaxPaymentsPage, PettyCashPage, TravelExpensePage } from './admin/FinanceModules';
+import { UtilityPaymentsPage, TaxPaymentsPage, PettyCashPage, TravelExpensePage, PurchaseApprovalPage } from './admin/FinanceModules';
 import { AssetTrackerPage, CourierDispatchPage, BillWarrantyPage, OtherStockPage, RemindersPage } from './admin/OperationsModules';
 import { LoginAuditPage, AdminSettings } from './admin/AdminSettingsPage';
 
@@ -275,6 +275,7 @@ function InventorySubView() {
     { icon: '⚡', title: 'Utility Payments', desc: 'Track electricity, water, internet, and office utility bills', link: '/helpdesk-admin/utility-payments', color: '#0891b2' },
     { icon: '🏛️', title: 'Tax Payments', desc: 'Record property tax, municipal tax, and statutory payments', link: '/helpdesk-admin/tax-payments', color: '#8b5cf6' },
     { icon: '🔔', title: 'Reminder List', desc: 'Configure automatic email & system reminders for renewals', link: '/helpdesk-admin/reminders', color: '#6366f1' },
+    { icon: '🛒', title: 'Purchase Approval', desc: 'Request and track purchases requiring approval', link: '/helpdesk-admin/purchase-approval', color: '#0369a1' },
   ];
 
   return (
@@ -390,6 +391,7 @@ export default function HelpDeskAdminPage() {
         <Route path="cash-handling" element={<PettyCashPage />} />
         <Route path="travel" element={<TravelExpensePage />} />
         <Route path="bill-warranty" element={<BillWarrantyPage />} />
+        <Route path="purchase-approval" element={<PurchaseApprovalPage />} />
 
         {/* System & Security */}
         <Route path="reminders" element={<RemindersPage />} />

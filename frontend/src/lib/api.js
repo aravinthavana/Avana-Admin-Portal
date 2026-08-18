@@ -390,6 +390,17 @@ export const remindersApi = {
     request(`/admin/reminders/${id}`, { method: 'DELETE' }, 'admin'),
 };
 
+export const purchaseApi = {
+  getAll: () =>
+    request('/purchase', {}, 'admin'),
+
+  create: (data) =>
+    request('/purchase', { method: 'POST', body: JSON.stringify(data) }, 'admin'),
+
+  markPurchased: (id, data) =>
+    request(`/purchase/${id}/purchased`, { method: 'POST', body: JSON.stringify(data) }, 'admin'),
+};
+
 
 
 

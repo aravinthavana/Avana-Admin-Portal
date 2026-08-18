@@ -58,7 +58,7 @@ exports.getAllPettyCash = async (month) => {
 };
 
 exports.createPettyCash = async (data) => {
-  const { date, reason, company, expenseName, collectedFrom, amount, remarks, type } = data;
+  const { date, reason, company, expenseName, collectedFrom, amount, remarks } = data;
   return prisma.pettyCash.create({
     data: {
       date: date || new Date().toISOString().slice(0,10),
@@ -67,7 +67,6 @@ exports.createPettyCash = async (data) => {
       expenseName: expenseName || 'Miscellaneous',
       collectedFrom: collectedFrom || '',
       amount: parseFloat(amount) || 0,
-      type: type || 'EXPENSE',
       remarks: remarks || '',
       cleared: false,
       clearedDate: null,

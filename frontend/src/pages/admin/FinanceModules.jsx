@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi,
-  assetTrackerApi, courierApi, pettyCashApi, travelApi, billWarrantyApi, otherStockApi, remindersApi,
+  assetTrackerApi, courierApi, pettyCashApi, travelApi, billWarrantyApi, otherStockApi, remindersApi, purchaseApi,
 } from '../../lib/api';
 import {
   Badge, Spinner, EmptyState, Alert, Modal, ConfirmModal,
@@ -109,29 +109,37 @@ export function UtilityPaymentsPage({ api }) {
   }
 
   const handleLegacyPDF = () => {
+    const totalSum = filteredRecords.reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
+    const paidSum = filteredRecords.filter(r => r.status === 'Paid').reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
+
     openLegacyPrintReport({
-      title: 'Petty Cash Report',
-      subtitle: monthFilter ? `For month: ${monthFilter}` : 'All Vouchers',
+      title: `Utility Payments Report`,
+      subtitle: filterMonth ? `Records for ${filterMonth}` : `All Utility Records`,
+      docNo: 'AMD-QSP05-03',
       summary: [
-        { label: 'Opening Balance', value: `Rs ${openingBalance.toLocaleString()}` },
-        { label: 'Cleared this month', value: `Rs ${monthCleared.toLocaleString()}` },
-        { label: 'Closing Balance', value: `Rs ${closingBalance.toLocaleString()}` }
+        { label: 'Total Entries', value: `${filteredRecords.length} Records` },
+        { label: 'Total Amount', value: `Rs ${totalSum.toLocaleString('en-IN')}` },
+        { label: 'Total Paid', value: `Rs ${paidSum.toLocaleString('en-IN')}`, color: '#16a34a' },
       ],
       headers: [
-        { title: 'Date' },
+        { title: '#' },
         { title: 'Type' },
-        { title: 'Reason' },
+        { title: 'Provider' },
+        { title: 'Account Number' },
+        { title: 'Billing Cycle' },
+        { title: 'Due Date' },
         { title: 'Amount', align: 'right' },
         { title: 'Status' },
-        { title: 'Remarks' }
       ],
-      rows: filtered.map(item => [
-        item.date,
-        item.type === 'ADD_FUNDS' ? 'Cash Added' : 'Expense',
-        item.reason,
-        `Rs ${(item.amount || 0).toLocaleString()}`,
-        item.type === 'ADD_FUNDS' ? '-' : (item.cleared ? 'Cleared' : 'Pending'),
-        item.remarks || '-'
+      rows: filteredRecords.map((r, idx) => [
+        idx + 1,
+        r.utility_type || '—',
+        r.provider_name || '—',
+        r.account_number || '—',
+        r.billing_cycle || '—',
+        r.due_date || '—',
+        `Rs ${(parseFloat(r.amount) || 0).toLocaleString('en-IN')}`,
+        r.status === 'Paid' ? `Paid (${r.payment_date || ''})` : r.status,
       ])
     });
   };
@@ -315,29 +323,34 @@ export function TaxPaymentsPage({ api }) {
   }
 
   const handleLegacyPDF = () => {
+    const totalTaxSum = filteredRecords.reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
+    const paidTaxSum = filteredRecords.filter(r => r.status === 'Paid').reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
+
     openLegacyPrintReport({
-      title: 'Petty Cash Report',
-      subtitle: monthFilter ? `For month: ${monthFilter}` : 'All Vouchers',
+      title: `${activeTab} Statement Report`,
+      subtitle: filterYear !== 'All' ? `Year: ${filterYear}` : 'All Tax Assessment Years',
       summary: [
-        { label: 'Opening Balance', value: `Rs ${openingBalance.toLocaleString()}` },
-        { label: 'Cleared this month', value: `Rs ${monthCleared.toLocaleString()}` },
-        { label: 'Closing Balance', value: `Rs ${closingBalance.toLocaleString()}` }
+        { label: 'Total Tax Entries', value: `${filteredRecords.length} Records` },
+        { label: 'Total Assessment Amount', value: `Rs ${totalTaxSum.toLocaleString('en-IN')}` },
+        { label: 'Total Paid', value: `Rs ${paidTaxSum.toLocaleString('en-IN')}`, color: '#16a34a' },
       ],
       headers: [
-        { title: 'Date' },
-        { title: 'Type' },
-        { title: 'Reason' },
+        { title: '#' },
+        { title: 'Location / Office' },
+        { title: 'Bill Number' },
+        { title: 'Year & Term' },
+        { title: 'Due Date' },
         { title: 'Amount', align: 'right' },
         { title: 'Status' },
-        { title: 'Remarks' }
       ],
-      rows: filtered.map(item => [
-        item.date,
-        item.type === 'ADD_FUNDS' ? 'Cash Added' : 'Expense',
-        item.reason,
-        `Rs ${(item.amount || 0).toLocaleString()}`,
-        item.type === 'ADD_FUNDS' ? '-' : (item.cleared ? 'Cleared' : 'Pending'),
-        item.remarks || '-'
+      rows: filteredRecords.map((r, idx) => [
+        idx + 1,
+        r.location || '—',
+        r.bill_no || '—',
+        `${r.year || ''} - ${r.term || ''}`,
+        r.due_date || '—',
+        `Rs ${(parseFloat(r.amount) || 0).toLocaleString('en-IN')}`,
+        r.status === 'Paid' ? `Paid (${r.payment_date || ''})` : 'Unpaid',
       ])
     });
   };
@@ -431,12 +444,12 @@ export function PettyCashPage() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [monthFilter, setMonthFilter] = useState(new Date().toISOString().slice(0, 7));
+  const [monthFilter, setMonthFilter] = useState('');
   const [search, setSearch] = useState('');
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [addForm, setAddForm] = useState({ date: new Date().toISOString().slice(0, 10), type: 'EXPENSE', company: 'AMD', expenseName: 'Printing & stationary', reason: '', collectedFrom: '', amount: '', remarks: '' });
+  const [addForm, setAddForm] = useState({ date: new Date().toISOString().slice(0, 10), company: 'AMD', expenseName: 'Printing & stationary', reason: '', collectedFrom: '', amount: '', remarks: '' });
   const [showClearForm, setShowClearForm] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [clearForm, setClearForm] = useState({ clearAmount: '', remarks: '' });
@@ -446,14 +459,14 @@ export function PettyCashPage() {
   const fetchEntries = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await pettyCashApi.getAll();
+      const data = await pettyCashApi.getAll(monthFilter);
       setEntries(data || []);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [monthFilter]);
 
   useEffect(() => { fetchEntries(); }, [fetchEntries]);
 
@@ -464,7 +477,7 @@ export function PettyCashPage() {
       await pettyCashApi.create(addForm);
       toast.success('Petty cash voucher created successfully.');
       setShowAddForm(false);
-      setAddForm({ date: new Date().toISOString().slice(0, 10), type: 'EXPENSE', company: 'AMD', expenseName: 'Printing & stationary', reason: '', collectedFrom: '', amount: '', remarks: '' });
+      setAddForm({ date: new Date().toISOString().slice(0, 10), company: 'AMD', expenseName: 'Printing & stationary', reason: '', collectedFrom: '', amount: '', remarks: '' });
       fetchEntries();
     } catch (err) {
       toast.error(err.message || 'Failed to create voucher');
@@ -503,49 +516,25 @@ export function PettyCashPage() {
     openLegacyPrintReport({
       title: 'Petty Cash Report',
       subtitle: monthFilter ? `For month: ${monthFilter}` : 'All Vouchers',
-      summary: [
-        { label: 'Opening Balance', value: `Rs ${openingBalance.toLocaleString()}` },
-        { label: 'Cleared this month', value: `Rs ${monthCleared.toLocaleString()}` },
-        { label: 'Closing Balance', value: `Rs ${closingBalance.toLocaleString()}` }
-      ],
       headers: [
         { title: 'Date' },
-        { title: 'Type' },
+        { title: 'Company' },
         { title: 'Reason' },
         { title: 'Amount', align: 'right' },
-        { title: 'Status' },
-        { title: 'Remarks' }
+        { title: 'Status' }
       ],
       rows: filtered.map(item => [
         item.date,
-        item.type === 'ADD_FUNDS' ? 'Cash Added' : 'Expense',
+        item.company || 'AMD',
         item.reason,
-        `Rs ${(item.amount || 0).toLocaleString()}`,
-        item.type === 'ADD_FUNDS' ? '-' : (item.cleared ? 'Cleared' : 'Pending'),
-        item.remarks || '-'
+        `₹${(item.amount || 0).toLocaleString()}`,
+        item.cleared ? 'Cleared' : 'Pending'
       ])
     });
   };
 
-  
-  // Calculations
-  const monthPrefix = monthFilter || new Date().toISOString().slice(0, 7);
-  
-  // Overall Balance
-  const totalFundsAllTime = entries.filter(r => r.type === 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-  const totalExpenseAllTime = entries.filter(r => r.type !== 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-  const overallAvailableBalance = totalFundsAllTime - totalExpenseAllTime;
-
-  // Opening Balance for selected month
-  const priorEntries = entries.filter(r => r.date < monthPrefix + '-01');
-  const priorFunds = priorEntries.filter(r => r.type === 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-  const priorExpenses = priorEntries.filter(r => r.type !== 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-  const openingBalance = priorFunds - priorExpenses;
-
-  const currentMonthEntries = entries.filter(r => monthFilter ? r.date.startsWith(monthFilter) : true);
-  
   const filtered = useMemo(() => {
-    return currentMonthEntries.filter(r => {
+    return entries.filter(r => {
       if (search) {
         const q = search.toLowerCase();
         return (
@@ -555,14 +544,12 @@ export function PettyCashPage() {
         );
       }
       return true;
-    }).sort((a,b) => new Date(a.date) - new Date(b.date)); // chronological
-  }, [currentMonthEntries, search]);
+    });
+  }, [entries, search]);
 
-  const monthFunds = currentMonthEntries.filter(r => r.type === 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-  const monthExpenses = currentMonthEntries.filter(r => r.type !== 'ADD_FUNDS').reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-  const monthCleared = currentMonthEntries.filter(r => r.type !== 'ADD_FUNDS' && r.cleared).reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-  const closingBalance = openingBalance + monthFunds - monthExpenses;
-
+  const totalAmount = filtered.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const clearedAmount = filtered.filter(f => f.cleared).reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const pendingAmount = totalAmount - clearedAmount;
 
   if (showAddForm) {
     return (
@@ -582,20 +569,13 @@ export function PettyCashPage() {
               <FormField label="Date" required>
                 <input type="date" className="form-input" value={addForm.date} onChange={e => setAddForm(f => ({ ...f, date: e.target.value }))} required />
               </FormField>
-              
-              <FormField label="Entry Type">
-                <select className="form-select" value={addForm.type} onChange={e => setAddForm(f => ({ ...f, type: e.target.value }))}>
-                  <option value="EXPENSE">Record Expense / Voucher</option>
-                  <option value="ADD_FUNDS">Add Cash / Opening Balance</option>
-                </select>
-              </FormField>
-              {addForm.type === 'EXPENSE' && (<FormField label="Company / Billing Entity">
+              <FormField label="Company / Billing Entity">
                 <select className="form-select" value={addForm.company} onChange={e => setAddForm(f => ({ ...f, company: e.target.value }))}>
                   <option value="AMD">AMD (Avana Medical Devices)</option>
                   <option value="ATS">ATS (Avana Technology Services)</option>
                 </select>
-              </FormField>)}
-              {addForm.type === 'EXPENSE' && (<FormField label="Expense Category">
+              </FormField>
+              <FormField label="Expense Category">
                 <select className="form-select" value={addForm.expenseName} onChange={e => setAddForm(f => ({ ...f, expenseName: e.target.value }))}>
                   <option value="Printing & stationary">Printing & Stationery</option>
                   <option value="Repair & maintance electrical">Repair & Maintenance Electrical</option>
@@ -604,7 +584,7 @@ export function PettyCashPage() {
                   <option value="Vehicle & Fuel">Vehicle & Fuel</option>
                   <option value="Miscellaneous">Miscellaneous</option>
                 </select>
-              </FormField>)}
+              </FormField>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
@@ -680,9 +660,9 @@ export function PettyCashPage() {
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        <StatCard title="Overall Available Balance" value={`₹${overallAvailableBalance.toLocaleString()}`} icon="💰" />
-        <StatCard title="Month Opening Balance" value={`₹${openingBalance.toLocaleString()}`} icon="📅" />
-        <StatCard title="Month Closing Balance" value={`₹${closingBalance.toLocaleString()}`} icon="📊" />
+        <StatCard title="Total Cash Issued" value={`₹${totalAmount.toLocaleString()}`} icon="💵" />
+        <StatCard title="Cleared & Settled" value={`₹${clearedAmount.toLocaleString()}`} icon="✅" />
+        <StatCard title="Outstanding Balance" value={`₹${pendingAmount.toLocaleString()}`} icon="⏳" />
       </div>
 
       {/* Action Bar */}
@@ -731,30 +711,23 @@ export function PettyCashPage() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td colSpan="5" style={{ textAlign: 'right', fontWeight: 600 }}>Opening Balance</td>
-                  <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-primary-dark)' }}>₹{openingBalance.toLocaleString()}</td>
-                  <td colSpan="2"></td>
-                </tr>
                 {filtered.map((item) => (
-                  <tr key={item.id} style={{ background: item.type === 'ADD_FUNDS' ? 'rgba(34, 197, 94, 0.05)' : '' }}>
+                  <tr key={item.id}>
                     <td style={{ whiteSpace: 'nowrap', fontSize: '0.88rem' }}>{item.date}</td>
                     <td>
-                      {item.type === 'ADD_FUNDS' ? '-' : <span className="badge badge--info" style={{ fontWeight: 600 }}>{item.company || 'AMD'}</span>}
+                      <span className="badge badge--info" style={{ fontWeight: 600 }}>{item.company || 'AMD'}</span>
                     </td>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{item.type === 'ADD_FUNDS' ? '💵 Cash Added: ' + item.reason : item.reason}</div>
+                      <div style={{ fontWeight: 600 }}>{item.reason}</div>
                       {item.remarks && <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{item.remarks}</div>}
                     </td>
-                    <td style={{ fontSize: '0.88rem' }}>{item.type === 'ADD_FUNDS' ? '-' : (item.expenseName || 'Miscellaneous')}</td>
+                    <td style={{ fontSize: '0.88rem' }}>{item.expenseName || 'Miscellaneous'}</td>
                     <td style={{ fontWeight: 500, fontSize: '0.88rem' }}>{item.collectedFrom || '—'}</td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, fontSize: '0.95rem', color: item.type === 'ADD_FUNDS' ? '#16a34a' : '#ea580c' }}>
-                      {item.type === 'ADD_FUNDS' ? '+' : '-'}₹{(item.amount || 0).toLocaleString()}
+                    <td style={{ textAlign: 'right', fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-primary-dark)' }}>
+                      ₹{(item.amount || 0).toLocaleString()}
                     </td>
                     <td>
-                      {item.type === 'ADD_FUNDS' ? (
-                        <span className="badge badge--success" style={{ fontWeight: 600 }}>Added to Hand</span>
-                      ) : item.cleared ? (
+                      {item.cleared ? (
                         <span className="badge badge--success" style={{ fontWeight: 600 }}>
                           Cleared ({item.clearedDate || 'Done'})
                         </span>
@@ -766,8 +739,7 @@ export function PettyCashPage() {
                     </td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
-                        {!item.cleared && item.type !== 'ADD_FUNDS' && (
-
+                        {!item.cleared && (
                           <button
                             className="btn btn--sm btn--primary"
                             onClick={() => { setSelectedEntry(item); setClearForm({ clearAmount: item.amount, remarks: '' }); setShowClearForm(true); }}
@@ -812,7 +784,7 @@ export function TravelExpensePage() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [monthFilter, setMonthFilter] = useState(new Date().toISOString().slice(0, 7));
+  const [monthFilter, setMonthFilter] = useState('');
   const [search, setSearch] = useState('');
 
   // Page View state (replacing pop-up modal)
@@ -841,7 +813,7 @@ export function TravelExpensePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [monthFilter]);
 
   useEffect(() => { fetchEntries(); }, [fetchEntries]);
 
@@ -902,28 +874,30 @@ export function TravelExpensePage() {
 
   const handleLegacyPDF = () => {
     openLegacyPrintReport({
-      title: 'Petty Cash Report',
-      subtitle: monthFilter ? `For month: ${monthFilter}` : 'All Vouchers',
+      title: 'Travel & Fuel Expenses Report',
+      subtitle: monthFilter ? `Month: ${monthFilter}` : 'All Trips',
       summary: [
-        { label: 'Opening Balance', value: `Rs ${openingBalance.toLocaleString()}` },
-        { label: 'Cleared this month', value: `Rs ${monthCleared.toLocaleString()}` },
-        { label: 'Closing Balance', value: `Rs ${closingBalance.toLocaleString()}` }
+        { label: 'Total Trips Logged', value: `${filtered.length} Trips` },
+        { label: 'Total Distance', value: `${totalKmSum.toLocaleString('en-IN')} KM`, color: '#0284c7' },
+        { label: 'Total Expense', value: `Rs ${totalCostSum.toLocaleString('en-IN')}`, color: '#C59100' },
       ],
       headers: [
         { title: 'Date' },
-        { title: 'Type' },
-        { title: 'Reason' },
-        { title: 'Amount', align: 'right' },
-        { title: 'Status' },
-        { title: 'Remarks' }
+        { title: 'Travel Route (From ➔ To)' },
+        { title: 'Employee / Driver' },
+        { title: 'Mode' },
+        { title: 'Total KM' },
+        { title: 'Total Expense', align: 'right' },
+        { title: 'Remarks' },
       ],
       rows: filtered.map(item => [
         item.date,
-        item.type === 'ADD_FUNDS' ? 'Cash Added' : 'Expense',
-        item.reason,
-        `Rs ${(item.amount || 0).toLocaleString()}`,
-        item.type === 'ADD_FUNDS' ? '-' : (item.cleared ? 'Cleared' : 'Pending'),
-        item.remarks || '-'
+        `${item.fromLoc || '—'} ➔ ${item.toLoc || '—'}`,
+        item.employeeName || 'Admin',
+        item.mode === 'Car' ? 'Car (Rs 10/KM)' : 'Bike (Rs 5/KM)',
+        `${item.totalKm || 0} KM`,
+        `Rs ${(item.totalExpense || 0).toLocaleString('en-IN')}`,
+        item.remarks || '—',
       ])
     });
   };
@@ -1129,3 +1103,346 @@ export function TravelExpensePage() {
 }
 
 /* ─── Bills & Warranty Register Component ─────────────────── */
+
+
+/* ── Purchase Approval Component ────────────────────────────────────────── */
+export function PurchaseApprovalPage() {
+  const toast = useToast();
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Modals
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showPurchasedModal, setShowPurchasedModal] = useState(false);
+  const [showMonthReportModal, setShowMonthReportModal] = useState(false);
+  const [viewDetails, setViewDetails] = useState(null);
+  
+  // Forms
+  const [addForm, setAddForm] = useState({
+    itemName: '',
+    quantity: 1,
+    amount: '',
+    modeOfPurchase: 'Amazon',
+    link: '',
+    itemImage: '',
+    reason: '',
+    gstStatus: 'With GST',
+    approvalEmail: ''
+  });
+  
+  const [purchasedForm, setPurchasedForm] = useState({
+    orderId: '',
+    deliveryDate: '',
+    actualAmount: ''
+  });
+  
+  const [reportForm, setReportForm] = useState({
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear()
+  });
+
+  const [selectedReqId, setSelectedReqId] = useState(null);
+
+  const fetchRequests = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await purchaseApi.getAll();
+      setRequests(data);
+    } catch (err) {
+      toast.error('Failed to load purchase requests');
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
+
+  const handleAddSubmit = async (e) => {
+    e.preventDefault();
+    if (!addForm.approvalEmail.endsWith('@avanamedical.com') && !addForm.approvalEmail.endsWith('@avanasurgical.com')) {
+      return toast.error('Approval email must be an @avanamedical.com or @avanasurgical.com address.');
+    }
+    try {
+      await purchaseApi.create({
+        ...addForm,
+        requesterName: 'Admin',
+        requesterEmail: 'admin@avanamedical.com'
+      });
+      toast.success('Purchase request submitted.');
+      setShowAddModal(false);
+      setAddForm({ itemName: '', quantity: 1, amount: '', modeOfPurchase: 'Amazon', link: '', itemImage: '', reason: '', gstStatus: 'With GST', approvalEmail: '' });
+      fetchRequests();
+    } catch (err) {
+      toast.error('Failed to submit purchase request.');
+    }
+  };
+
+  const handlePurchasedSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await purchaseApi.markPurchased(selectedReqId, purchasedForm);
+      toast.success('Marked as purchased.');
+      setShowPurchasedModal(false);
+      setPurchasedForm({ orderId: '', deliveryDate: '', actualAmount: '' });
+      fetchRequests();
+    } catch (err) {
+      toast.error('Failed to update status.');
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setAddForm(f => ({ ...f, itemImage: reader.result }));
+    reader.readAsDataURL(file);
+  };
+
+  const downloadReport = (req) => {
+    const content = `Purchase Request Details\n====================================\nRequest ID: ${req.id}\nRequest Date: ${formatDate(req.createdAt)}\nRequester: ${req.requesterName} (${req.requesterEmail})\n\nItem Name: ${req.itemName}\nQuantity: ${req.quantity}\nAmount Per Unit: ₹${req.amount}\nTotal Requested Amount: ₹${req.totalAmount}\nMode of Purchase: ${req.modeOfPurchase}\nPurchase Link: ${req.link || 'N/A'}\nReason for Purchase: ${req.reason}\nGST Status: ${req.gstStatus}\n\nApproval Details\n------------------------------------\nApproval Person: ${req.approvalEmail}\nApproval Status: ${req.status}\nApproval Date: ${req.approvalDate ? formatDate(req.approvalDate) : 'N/A'}\nApproval Comments: ${req.approvalComment || 'None'}\n\nActual Purchase Details\n------------------------------------\nOrder ID: ${req.orderId || 'N/A'}\nActual Purchase Amount: ${req.actualAmount ? '₹' + req.actualAmount : 'N/A'}\nDelivery Date: ${req.deliveryDate ? formatDate(req.deliveryDate) : 'N/A'}\nFinal Purchase Status: ${req.status === 'Purchased' ? 'Purchased' : 'Pending'}\n`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `PurchaseRequest_${req.id.substring(0,6)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadMonthlyCSV = () => {
+    const m = parseInt(reportForm.month);
+    const y = parseInt(reportForm.year);
+    
+    const filtered = requests.filter(req => {
+      const d = new Date(req.createdAt);
+      return d.getMonth() + 1 === m && d.getFullYear() === y;
+    });
+
+    if (filtered.length === 0) {
+      return toast.warning('No records found for this month.');
+    }
+
+    const headers = ['Request Date', 'Item', 'Qty', 'Requested Amount', 'Actual Amount', 'Difference', 'Mode', 'Approver', 'Status'];
+    const rows = filtered.map(r => {
+      const diff = r.actualAmount ? (parseFloat(r.totalAmount) - parseFloat(r.actualAmount)).toFixed(2) : 'N/A';
+      return [
+        formatDate(r.createdAt),
+        r.itemName,
+        r.quantity,
+        r.totalAmount,
+        r.actualAmount || 'N/A',
+        diff,
+        r.modeOfPurchase,
+        r.approvalEmail,
+        r.status
+      ];
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + headers.join(',') + "\n"
+      + rows.map(e => e.join(',')).join("\n");
+      
+    const encodedUri = encodeURI(csvContent);
+    const a = document.createElement('a');
+    a.href = encodedUri;
+    a.download = `Monthly_Purchase_Report_${y}_${m}.csv`;
+    a.click();
+  };
+
+  return (
+    <div className="fade-in">
+      <PageHeader 
+        title="🛒 Purchase Approvals"
+        subtitle="Manage and track all purchase requests"
+        action={
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="btn btn--secondary" onClick={() => setShowMonthReportModal(true)}>
+              📥 Monthly Report
+            </button>
+            <button className="btn btn--primary" onClick={() => setShowAddModal(true)}>
+              + Add Purchase
+            </button>
+          </div>
+        }
+      />
+
+      <div className="card" style={{ marginTop: 'var(--space-6)' }}>
+        {loading ? (
+          <div style={{ padding: '40px', textAlign: 'center' }}><Spinner /></div>
+        ) : requests.length === 0 ? (
+          <EmptyState title="No purchase requests found" icon="🛒" />
+        ) : (
+          <div className="table-responsive">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Amount</th>
+                  <th>Mode</th>
+                  <th>Approver</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {requests.map(req => (
+                  <tr key={req.id}>
+                    <td>{formatDate(req.createdAt)}</td>
+                    <td>{req.itemName}</td>
+                    <td>{req.quantity}</td>
+                    <td>₹{req.totalAmount}</td>
+                    <td>{req.modeOfPurchase}</td>
+                    <td>{req.approvalEmail}</td>
+                    <td><Badge status={req.status} /></td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <button className="btn btn--xs btn--outline" onClick={() => setViewDetails(req)}>View</button>
+                      <button className="btn btn--xs btn--outline" style={{ marginLeft: 8 }} onClick={() => downloadReport(req)}>Download</button>
+                      {req.status === 'Approved' && (
+                        <button className="btn btn--xs btn--primary" style={{ marginLeft: 8 }} onClick={() => { setSelectedReqId(req.id); setShowPurchasedModal(true); }}>
+                          Mark Purchased
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* View Details Modal */}
+      <Modal isOpen={!!viewDetails} onClose={() => setViewDetails(null)} title="Purchase Request Details">
+        {viewDetails && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div><strong>Item:</strong> {viewDetails.itemName}</div>
+            <div><strong>Quantity:</strong> {viewDetails.quantity}</div>
+            <div><strong>Amount:</strong> ₹{viewDetails.amount}</div>
+            <div><strong>Total Amount:</strong> ₹{viewDetails.totalAmount}</div>
+            <div><strong>Mode:</strong> {viewDetails.modeOfPurchase}</div>
+            <div><strong>Reason:</strong> {viewDetails.reason}</div>
+            <div><strong>GST Status:</strong> {viewDetails.gstStatus}</div>
+            <div><strong>Approver:</strong> {viewDetails.approvalEmail}</div>
+            <div><strong>Status:</strong> <Badge status={viewDetails.status} /></div>
+            {viewDetails.link && <div><strong>Link:</strong> <a href={viewDetails.link} target="_blank" rel="noreferrer">View Product</a></div>}
+            {viewDetails.itemImage && (
+              <div>
+                <strong>Attached Image:</strong><br/>
+                <img src={viewDetails.itemImage} alt="Item" style={{ maxWidth: '100%', maxHeight: 300, marginTop: 8, borderRadius: 4, border: '1px solid #eee' }} />
+              </div>
+            )}
+            {viewDetails.status === 'Purchased' && (
+              <div style={{ padding: 12, background: '#f8fafc', borderRadius: 4, marginTop: 12 }}>
+                <h4 style={{ margin: '0 0 8px 0' }}>Order Details</h4>
+                <div><strong>Order ID:</strong> {viewDetails.orderId}</div>
+                <div><strong>Delivery Date:</strong> {formatDate(viewDetails.deliveryDate)}</div>
+                <div><strong>Actual Amount:</strong> ₹{viewDetails.actualAmount}</div>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Monthly Report Modal */}
+      <Modal isOpen={showMonthReportModal} onClose={() => setShowMonthReportModal(false)} title="Download Monthly Report">
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '1rem' }}>
+          <FormField label="Month">
+            <select className="form-select" value={reportForm.month} onChange={e => setReportForm(f => ({ ...f, month: e.target.value }))}>
+              {Array.from({length: 12}).map((_, i) => <option key={i+1} value={i+1}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>)}
+            </select>
+          </FormField>
+          <FormField label="Year">
+            <input type="number" className="form-input" value={reportForm.year} onChange={e => setReportForm(f => ({ ...f, year: e.target.value }))} />
+          </FormField>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button className="btn btn--primary" onClick={downloadMonthlyCSV}>Download CSV</button>
+        </div>
+      </Modal>
+
+      {/* Add Purchase Modal */}
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add Purchase Request">
+        <form onSubmit={handleAddSubmit}>
+          <FormField label="Item Name" required>
+            <input type="text" className="form-input" value={addForm.itemName} onChange={e => setAddForm(f => ({ ...f, itemName: e.target.value }))} required />
+          </FormField>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <FormField label="Quantity" required>
+              <input type="number" min="1" className="form-input" value={addForm.quantity} onChange={e => setAddForm(f => ({ ...f, quantity: parseInt(e.target.value) || 1 }))} required />
+            </FormField>
+            <FormField label="Amount per Unit (₹)" required>
+              <input type="number" step="0.01" className="form-input" value={addForm.amount} onChange={e => setAddForm(f => ({ ...f, amount: e.target.value }))} required />
+            </FormField>
+          </div>
+
+          <FormField label="Total Amount (₹)">
+            <input type="text" className="form-input" value={(addForm.quantity * (parseFloat(addForm.amount) || 0)).toFixed(2)} disabled style={{ background: '#f8fafc' }} />
+          </FormField>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <FormField label="Mode of Purchase" required>
+              <select className="form-select" value={addForm.modeOfPurchase} onChange={e => setAddForm(f => ({ ...f, modeOfPurchase: e.target.value }))} required>
+                <option>Amazon</option>
+                <option>Flipkart</option>
+                <option>Other Online Portal</option>
+                <option>Offline Store</option>
+                <option>Others</option>
+              </select>
+            </FormField>
+            <FormField label="GST Option" required>
+              <select className="form-select" value={addForm.gstStatus} onChange={e => setAddForm(f => ({ ...f, gstStatus: e.target.value }))} required>
+                <option>With GST</option>
+                <option>Without GST</option>
+              </select>
+            </FormField>
+          </div>
+
+          <FormField label="Product Link (Optional)">
+            <input type="url" className="form-input" value={addForm.link} onChange={e => setAddForm(f => ({ ...f, link: e.target.value }))} />
+          </FormField>
+
+          <FormField label="Item Image (Optional)">
+            <input type="file" accept="image/*" className="form-input" onChange={handleFileUpload} />
+          </FormField>
+
+          <FormField label="Reason for Purchase" required>
+            <textarea className="form-input" rows="3" value={addForm.reason} onChange={e => setAddForm(f => ({ ...f, reason: e.target.value }))} required />
+          </FormField>
+
+          <FormField label="Approval Person Email" required>
+            <input type="email" className="form-input" value={addForm.approvalEmail} onChange={e => setAddForm(f => ({ ...f, approvalEmail: e.target.value }))} placeholder="manager@avanamedical.com" required />
+          </FormField>
+          
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '1.5rem' }}>
+            <button type="button" className="btn btn--outline" onClick={() => setShowAddModal(false)}>Cancel</button>
+            <button type="submit" className="btn btn--primary">Submit Request</button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Mark Purchased Modal */}
+      <Modal isOpen={showPurchasedModal} onClose={() => setShowPurchasedModal(false)} title="Mark as Purchased">
+        <form onSubmit={handlePurchasedSubmit}>
+          <FormField label="Order ID / Order Number" required>
+            <input type="text" className="form-input" value={purchasedForm.orderId} onChange={e => setPurchasedForm(f => ({ ...f, orderId: e.target.value }))} required />
+          </FormField>
+          <FormField label="Delivery Date" required>
+            <input type="date" className="form-input" value={purchasedForm.deliveryDate} onChange={e => setPurchasedForm(f => ({ ...f, deliveryDate: e.target.value }))} required />
+          </FormField>
+          <FormField label="Exact Purchase Amount (₹)" required>
+            <input type="number" step="0.01" className="form-input" value={purchasedForm.actualAmount} onChange={e => setPurchasedForm(f => ({ ...f, actualAmount: e.target.value }))} required />
+          </FormField>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '1.5rem' }}>
+            <button type="button" className="btn btn--outline" onClick={() => setShowPurchasedModal(false)}>Cancel</button>
+            <button type="submit" className="btn btn--primary">Confirm Purchase</button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  );
+}

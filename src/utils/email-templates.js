@@ -680,6 +680,67 @@ const templates = {
     });
   },
 
+  purchaseApprovalRequest: (request, host) => {
+    const approveUrl = `${host}/api/purchase/approve/${request.approvalToken}/Approved`;
+    const rejectUrl = `${host}/api/purchase/approve/${request.approvalToken}/Rejected`;
+    const discussUrl = `${host}/api/purchase/approve/${request.approvalToken}/Need%20to%20Discuss`;
+
+    const bodyHtml = `
+      <h3 style="margin-top: 0; color: #1e293b; font-size: 18px;">Purchase Request Approval Required</h3>
+      <p>A new purchase request has been submitted by <strong>${request.requesterName}</strong> (${request.requesterEmail}).</p>
+      
+      <table style="${TABLE_WRAP}">
+        ${tableRow('Item Name', request.itemName)}
+        ${tableRow('Quantity', request.quantity, true)}
+        ${tableRow('Amount', '₹' + request.amount)}
+        ${tableRow('Total Amount', '<strong>₹' + request.totalAmount + '</strong>', true)}
+        ${tableRow('Mode', request.modeOfPurchase)}
+        ${tableRow('GST Status', request.gstStatus, true)}
+        ${tableRow('Link', request.link ? `<a href="${request.link}">View Link</a>` : 'N/A')}
+      </table>
+
+      ${highlightBox('<strong>Reason:</strong> ' + request.reason, '#0ea5e9', '#f0f9ff')}
+
+      <div style="margin-top: 24px; text-align: center;">
+        <a href="${approveUrl}" style="display: inline-block; padding: 10px 20px; margin: 5px; background: #16a34a; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;">Approve</a>
+        <a href="${rejectUrl}" style="display: inline-block; padding: 10px 20px; margin: 5px; background: #dc2626; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;">Reject</a>
+        <a href="${discussUrl}" style="display: inline-block; padding: 10px 20px; margin: 5px; background: #f59e0b; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;">Need to Discuss</a>
+      </div>
+    `;
+    return buildEmail({
+      title: 'Purchase Approval Request',
+      subtitle: 'Purchase Module',
+      accentColor: '#0ea5e9',
+      bodyHtml
+    });
+  },
+
+  purchaseStatusUpdate: (request, host) => {
+    const statusColor = request.status === 'Approved' ? '#16a34a' : (request.status === 'Rejected' ? '#dc2626' : '#f59e0b');
+    
+    const bodyHtml = `
+      <h3 style="margin-top: 0; color: #1e293b; font-size: 18px;">Purchase Request Update</h3>
+      <p>Your purchase request for <strong>${request.itemName}</strong> has been updated.</p>
+      
+      ${highlightBox('<strong>Status:</strong> ' + request.status, statusColor, '#f8fafc')}
+
+      <table style="${TABLE_WRAP}">
+        ${tableRow('Item Name', request.itemName)}
+        ${tableRow('Total Amount', '₹' + request.totalAmount, true)}
+        ${tableRow('Approver', request.approvalEmail)}
+      </table>
+      
+      <p>Please log in to the admin portal to view complete details.</p>
+    `;
+    
+    return buildEmail({
+      title: 'Purchase Request Status',
+      subtitle: 'Purchase Module',
+      accentColor: statusColor,
+      bodyHtml
+    });
+  }
+
 };
 
 module.exports = { buildEmail, templates };

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { adminApi } from '../lib/api';
+import { openLegacyPrintReport } from './admin/utils';
 import {
   Badge, Spinner, EmptyState, Alert, ConfirmModal, Modal,
   FormField, PageHeader, StatCard,
@@ -29,35 +30,7 @@ function formatTime(t) {
   return `${hour % 12 || 12}:${m} ${ampm}`;
 }
 
-/* Download CSV helper */
-function downloadCSV(rows, filename) {
-  const BOM = '\uFEFF';
-  const headers = ['#','Date','End Date','Type','Start Time','End Time','Full Name','Email','Phone','Reason','Attendees','Food','Food Count','Remarks','Status'];
-  const csvRows = [headers, ...rows.map((b, i) => [
-    i + 1,
-    b.startDate || b.date || '',
-    b.endDate || b.date || '',
-    b.bookingType === 'full' ? 'Full Day' : 'Time Slot',
-    b.bookingType === 'full' ? '' : (b.startTime || ''),
-    b.bookingType === 'full' ? '' : (b.endTime || ''),
-    b.name || '',
-    b.email || '',
-    b.phone || '',
-    (b.reason || '').replace(/,/g, ';'),
-    Array.isArray(b.attendees) ? b.attendees.join(' | ') : (b.attendees || ''),
-    b.food || '',
-    b.foodCount || '',
-    (b.remarks || '').replace(/,/g, ';'),
-    b.status || '',
-  ])];
-  const csv = BOM + csvRows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+
 
 /* ─── Login Audit Section ─────────────────────────────────── */
 function LoginAuditSection() {
@@ -301,14 +274,44 @@ export default function AdminDashPage() {
     }
   }
 
-  /* CSV Download */
+  /* Report Download */
   function handleDownloadCSV() {
     if (filtered.length === 0) { toast.warning('No bookings to download.'); return; }
     const label = filterMonth !== 'all'
-      ? `${MONTHS[parseInt(filterMonth, 10) - 1]}_${filterYear}`
+      ? `${MONTHS[parseInt(filterMonth, 10) - 1]} ${filterYear}`
       : filterYear !== 'all' ? filterYear : 'All';
-    downloadCSV(filtered, `Avana_Bookings_${label}.csv`);
-    toast.success('CSV downloaded!');
+
+    openLegacyPrintReport({
+      title: 'Conference Room Bookings Report',
+      subtitle: `Filtered By: ${label}`,
+      summary: [
+        { label: 'Total Bookings', value: `${filtered.length} Bookings` },
+        { label: 'Approved', value: `${filtered.filter(b => b.status === 'approved').length} Bookings`, color: '#16a34a' },
+        { label: 'Pending', value: `${filtered.filter(b => b.status === 'pending').length} Bookings`, color: '#ea580c' },
+      ],
+      headers: [
+        { title: '#' },
+        { title: 'Date' },
+        { title: 'Booked Time' },
+        { title: 'Booked On' },
+        { title: 'Submitted By' },
+        { title: 'Reason' },
+        { title: 'Attendees' },
+        { title: 'Meals' },
+        { title: 'Remarks' },
+      ],
+      rows: filtered.map((b, i) => [
+        i + 1,
+        b.bookingType === 'full' ? `${b.startDate || b.date} to ${b.endDate || b.date}` : (b.date || '—'),
+        b.bookingType === 'full' ? 'Full Day' : `${b.startTime || '—'} - ${b.endTime || '—'}`,
+        b.createdAt ? formatDate(b.createdAt.slice(0, 10)) : '—',
+        `${b.name || '—'}\n(${b.email || '—'})`,
+        b.reason || '—',
+        Array.isArray(b.attendees) ? b.attendees.join(', ') : (b.attendees || '—'),
+        (b.food && b.food !== 'none') ? `${b.food === 'others' ? b.foodSpecify : b.food} (x${b.foodCount || 1})` : '—',
+        b.remarks || '—',
+      ])
+    });
   }
 
   const yearOptions = [String(nowYear - 1), String(nowYear), String(nowYear + 1)];
@@ -320,8 +323,8 @@ export default function AdminDashPage() {
         subtitle="Manage and review all conference room reservations"
         action={
           <button type="button" className="btn btn--secondary btn--sm" onClick={handleDownloadCSV}>
-            ⬇️ Download CSV
-          </button>
+              📄 Download Report
+            </button>
         }
       />
 

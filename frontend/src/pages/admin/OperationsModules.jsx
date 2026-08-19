@@ -226,13 +226,12 @@ export function AssetTrackerPage() {
     const pendingCount = filtered.filter(h => h.status === 'Pending Acknowledgement').length;
 
     openLegacyPrintReport({
-      title: item.stockName,
-      subtitle: 'Stock Usage & Availability Report',
+      title: 'Stationery & Asset Tracking Report',
+      subtitle: 'Employee Hardware & Stationery Asset Handovers',
       summary: [
-        { label: 'Location', value: item.location || 'HO Store' },
-        { label: 'Size & Variants', value: (item.subtitles || []).map(st => `${st.title ? st.title + ':' : ''} ${st.details} (${st.qty} avail)`).join(' | ') || 'Default' },
-        { label: 'Total Stock Available', value: `${item.availableQty} Units` },
-        { label: 'Used Stock', value: `${item.usedQty} Units`, color: '#0284c7' }
+        { label: 'Total Handovers', value: `${totalCount} Records` },
+        { label: 'Acknowledged', value: `${ackCount} Records`, color: '#16a34a' },
+        { label: 'Pending Ack', value: `${pendingCount} Records`, color: '#d97706' },
       ],
       headers: [
         { title: '#' },
@@ -1775,16 +1774,19 @@ export function OtherStockPage() {
       setItems(data || []);
       
       // Update selected item if history modal is open
-      if (showHistoryModal && selectedItem) {
-         const updated = data.find(d => d.id === selectedItem.id);
-         if (updated) setSelectedItem(updated);
+      if (showHistoryModal) {
+         setSelectedItem(prev => {
+            if (!prev) return prev;
+            const updated = data.find(d => d.id === prev.id);
+            return updated ? updated : prev;
+         });
       }
     } catch (err) {
       setError(err.message || 'Failed to fetch other stock');
     } finally {
       setLoading(false);
     }
-  }, [selectedItem, showHistoryModal]);
+  }, [showHistoryModal]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
@@ -1846,12 +1848,18 @@ export function OtherStockPage() {
   };
 
   const downloadItemPDF = (item) => {
+    const variantBreakdown = (item.subtitles || []).map(st => 
+      `${st.title ? st.title + ':' : ''} ${st.details} (${st.qty} avail)`
+    ).join(' | ');
+
     openLegacyPrintReport({
-      title: 'Stock Item Details & Usage Report',
-      subtitle: `Item: ${item.stockName} (${item.location || 'HO Store'})`,
+      title: item.stockName,
+      subtitle: 'Stock Usage & Availability Report',
       summary: [
-        { label: 'Available Qty', value: `${item.availableQty} Units` },
-        { label: 'Total Used Qty', value: `${item.usedQty} Units`, color: '#0284c7' }
+        { label: 'Location', value: item.location || 'HO Store' },
+        { label: 'Size & Variants', value: variantBreakdown || 'Default' },
+        { label: 'Total Stock Available', value: `${item.availableQty} Units` },
+        { label: 'Used Stock', value: `${item.usedQty} Units`, color: '#0284c7' }
       ],
       headers: [
         { title: 'Date' },

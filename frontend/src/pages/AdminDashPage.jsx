@@ -292,12 +292,12 @@ export default function AdminDashPage() {
       headers: [
         { title: '#' },
         { title: 'Date' },
-        { title: 'Booked Time' },
-        { title: 'Booked On' },
-        { title: 'Submitted By' },
+        { title: 'Booked Time (from start to end time)' },
+        { title: 'Booked On (When it was booked)' },
+        { title: 'Submitted By (Name & Email)' },
         { title: 'Reason' },
-        { title: 'Attendees' },
-        { title: 'Meals' },
+        { title: 'Attendees (List of names)' },
+        { title: 'Meals (Food selected and quantity)' },
         { title: 'Remarks' },
       ],
       rows: filtered.map((b, i) => [

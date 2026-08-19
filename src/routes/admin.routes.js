@@ -109,6 +109,7 @@ router.get('/other-stock', otherStockController.getAll);
 router.post('/other-stock', otherStockController.save);
 router.post('/other-stock/use', otherStockController.useStock);
 router.delete('/other-stock/:id', otherStockController.delete);
+router.put('/other-stock/:id/usage/:usageId', otherStockController.updateUsage);
 
 // Renewal Reminders & Deadline Audit
 const remindersController = require('../controllers/reminders.controller');

@@ -142,12 +142,14 @@ exports.useOtherStock = async (data) => {
   const newUsed = item.usedQty + count;
 
   history.unshift({
-    date: new Date().toISOString(),
-    usedBy: usedBy || 'Admin',
-    qty: count,
-    subtitleText: subTitleText,
-    remarks: remarks || ''
-  });
+      id: 'usage-' + Date.now() + Math.random().toString(36).substr(2,4),
+      subtitleId: subtitleId || null,
+      date: new Date().toISOString(),
+      usedBy: usedBy || 'Admin',
+      qty: count,
+      subtitleText: subTitleText,
+      remarks: remarks || ''
+    });
 
   const updated = await prisma.otherStock.update({
     where: { id: stockId },
@@ -174,4 +176,65 @@ exports.deleteOtherStock = async (id) => {
   } catch (e) {
     return false;
   }
+};
+
+exports.updateUsage = async (stockId, usageId, newQty, newRemarks) => {
+  const item = await prisma.otherStock.findUnique({ where: { id: stockId } });
+  if (!item) throw new Error('Stock item not found');
+  
+  const history = item.usageHistoryJson ? JSON.parse(item.usageHistoryJson) : [];
+  const usageIdx = history.findIndex(h => h.id === usageId);
+  if (usageIdx === -1) throw new Error('Usage record not found');
+  
+  const oldQty = history[usageIdx].qty || 0;
+  const diff = newQty - oldQty;
+  
+  history[usageIdx].qty = newQty;
+  if (newRemarks !== undefined) history[usageIdx].remarks = newRemarks;
+  
+  let newAvailable = item.availableQty;
+  let newUsed = item.usedQty;
+  let subtitles = item.subtitlesJson ? JSON.parse(item.subtitlesJson) : [];
+  
+  if (diff !== 0) {
+    newAvailable = Math.max(0, item.availableQty - diff);
+    newUsed = Math.max(0, item.usedQty + diff);
+    
+    // Attempt to update subtitle qty
+    const subId = history[usageIdx].subtitleId;
+    if (subId) {
+      const subIdx = subtitles.findIndex(s => s.id === subId);
+      if (subIdx !== -1) {
+        subtitles[subIdx].qty = Math.max(0, (subtitles[subIdx].qty || 0) - diff);
+        subtitles[subIdx].usedQty = Math.max(0, (subtitles[subIdx].usedQty || 0) + diff);
+      }
+    } else {
+      // Fallback to text matching for legacy records
+      const subText = history[usageIdx].subtitleText;
+      if (subText) {
+         const subIdx = subtitles.findIndex(s => `${s.title}: ${s.details}` === subText);
+         if (subIdx !== -1) {
+            subtitles[subIdx].qty = Math.max(0, (subtitles[subIdx].qty || 0) - diff);
+            subtitles[subIdx].usedQty = Math.max(0, (subtitles[subIdx].usedQty || 0) + diff);
+         }
+      }
+    }
+  }
+
+  const updated = await prisma.otherStock.update({
+    where: { id: stockId },
+    data: {
+      availableQty: newAvailable,
+      usedQty: newUsed,
+      subtitlesJson: JSON.stringify(subtitles),
+      usageHistoryJson: JSON.stringify(history),
+      updatedAt: new Date().toISOString()
+    }
+  });
+
+  return {
+    ...updated,
+    subtitles,
+    usageHistory: history
+  };
 };

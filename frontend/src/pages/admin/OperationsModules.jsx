@@ -1738,9 +1738,10 @@ export function OtherStockPage() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
 
-  // Page View States (replacing popups)
+  // Page View States
   const [showAddForm, setShowAddForm] = useState(false);
   const [showUseForm, setShowUseForm] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -1754,13 +1755,15 @@ export function OtherStockPage() {
     remarks: ''
   });
 
-  // Form State for Use Stock
   const [useForm, setUseForm] = useState({
     subtitleId: '',
     qtyToUse: 1,
     usedBy: 'Admin',
     remarks: ''
   });
+
+  const [editUsageId, setEditUsageId] = useState(null);
+  const [editUsageForm, setEditUsageForm] = useState({ qty: 0, remarks: '' });
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -1769,18 +1772,23 @@ export function OtherStockPage() {
     try {
       const data = await otherStockApi.getAll();
       setItems(data || []);
+      
+      // Update selected item if history modal is open
+      if (showHistoryModal && selectedItem) {
+         const updated = data.find(d => d.id === selectedItem.id);
+         if (updated) setSelectedItem(updated);
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to fetch other stock');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedItem, showHistoryModal]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!addForm.stockName) { toast.warning('Stock name is required.'); return; }
     setSubmitting(true);
     try {
       await otherStockApi.save(addForm);
@@ -1811,6 +1819,18 @@ export function OtherStockPage() {
     }
   };
 
+  const handleUpdateUsage = async (usageId) => {
+    if (!selectedItem) return;
+    try {
+       await otherStockApi.updateUsage(selectedItem.id, usageId, editUsageForm.qty, editUsageForm.remarks);
+       toast.success('Usage record updated');
+       setEditUsageId(null);
+       fetchItems();
+    } catch (err) {
+       toast.error(err.message || 'Failed to update usage');
+    }
+  };
+
   const handleDeleteConfirm = async () => {
     if (!deleteId) return;
     try {
@@ -1824,8 +1844,29 @@ export function OtherStockPage() {
     }
   };
 
-  const handleLegacyPDF = () => {
-    window.print();
+  const downloadItemPDF = (item) => {
+    openLegacyPrintReport({
+      title: 'Stock Item Details & Usage Report',
+      subtitle: `Item: ${item.stockName} (${item.location || 'HO Store'})`,
+      summary: [
+        { label: 'Available Qty', value: `${item.availableQty} Units` },
+        { label: 'Total Used Qty', value: `${item.usedQty} Units`, color: '#0284c7' }
+      ],
+      headers: [
+        { title: 'Date' },
+        { title: 'Used By' },
+        { title: 'Qty Consumed', align: 'right' },
+        { title: 'Variant/Specs' },
+        { title: 'Remarks' }
+      ],
+      rows: (item.usageHistory || []).map(h => [
+        new Date(h.date).toLocaleDateString(),
+        h.usedBy,
+        `${h.qty} Units`,
+        h.subtitleText || '-',
+        h.remarks || '-'
+      ])
+    });
   };
 
   const filtered = items.filter(item => {
@@ -1848,7 +1889,7 @@ export function OtherStockPage() {
           subtitle="Enter item details, location, and dynamic specifications/subtitles"
           action={
             <button type="button" className="btn btn--outline" onClick={() => setShowAddForm(false)}>
-              ← Back to Catalog
+              ⬅️ Back to Catalog
             </button>
           }
         />
@@ -1863,7 +1904,7 @@ export function OtherStockPage() {
               </FormField>
             </div>
 
-            {/* Subtitles / Specifications (Matching Legacy App) */}
+            {/* Subtitles / Specifications */}
             <div style={{ background: '#f8fafc', padding: 'var(--space-4)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: 'var(--space-4)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
                 <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1e3a8a' }}>Add Subtitle + (Custom Specifications / Details)</span>
@@ -1897,7 +1938,7 @@ export function OtherStockPage() {
                   {addForm.subtitles.length > 1 && (
                     <button type="button" className="btn btn--sm btn--danger" onClick={() => {
                       setAddForm(f => ({ ...f, subtitles: f.subtitles.filter((_, i) => i !== idx) }));
-                    }}>✕</button>
+                    }}>🗑️</button>
                   )}
                 </div>
               ))}
@@ -1918,6 +1959,8 @@ export function OtherStockPage() {
   }
 
   if (showUseForm && selectedItem) {
+    const hasVariants = selectedItem.subtitles && selectedItem.subtitles.length > 0 && !(selectedItem.subtitles.length === 1 && selectedItem.subtitles[0].title === '' && selectedItem.subtitles[0].details === '');
+    
     return (
       <div>
         <PageHeader
@@ -1925,21 +1968,23 @@ export function OtherStockPage() {
           subtitle="Issue inventory item and record recipient"
           action={
             <button type="button" className="btn btn--outline" onClick={() => setShowUseForm(false)}>
-              ← Back to Catalog
+              ⬅️ Back to Catalog
             </button>
           }
         />
         <div className="card" style={{ maxWidth: 650, margin: '0 auto', padding: 'var(--space-6)' }}>
           <form onSubmit={handleUseSubmit}>
-            <FormField label="Select Size / Variation" required>
-              <select className="form-select" value={useForm.subtitleId} onChange={e => setUseForm(f => ({ ...f, subtitleId: e.target.value }))}>
-                {(selectedItem.subtitles || []).map(st => (
-                  <option key={st.id} value={st.id}>
-                    {st.title}: {st.details} (Available: {st.qty})
-                  </option>
-                ))}
-              </select>
-            </FormField>
+            {hasVariants && (
+              <FormField label="Select Size / Variation" required>
+                <select className="form-select" value={useForm.subtitleId} onChange={e => setUseForm(f => ({ ...f, subtitleId: e.target.value }))}>
+                  {(selectedItem.subtitles || []).map(st => (
+                    <option key={st.id} value={st.id}>
+                      {st.title}: {st.details} (Available: {st.qty})
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
               <FormField label="Quantity Consumed" required>
@@ -1970,14 +2015,13 @@ export function OtherStockPage() {
         title="📦 Other Stock Items Catalog"
         subtitle="Manage uniforms, T-shirts, promotional merchandise, equipment stock, and size variations"
       />
-      <PrintHeader title="Other Stock Items Report" subtitle={`Generated on: ${new Date().toLocaleDateString()}`} />
 
       {error && <Alert type="error" onClose={() => setError(null)}>{error}</Alert>}
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         <StatCard title="Total Stock Catalog Items" value={`${filtered.length} Items`} icon="📦" />
-        <StatCard title="Total Available Inventory" value={`${totalAvailableSum} Units`} icon="📊" />
+        <StatCard title="Total Available Inventory" value={`${totalAvailableSum} Units`} icon="📋" />
         <StatCard title="Total Consumed Stock" value={`${totalUsedSum} Units`} icon="📤" />
       </div>
 
@@ -1992,9 +2036,6 @@ export function OtherStockPage() {
           style={{ maxWidth: 400 }}
         />
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-          <button className="btn btn--secondary" onClick={handleLegacyPDF}>
-            📄 Download PDF
-          </button>
           <button className="btn btn--primary" onClick={() => {
             setAddForm({ id: null, stockName: '', availableQty: 0, subtitles: [{ title: '', details: '', qty: 0, remarks: '' }], location: 'HO Store', remarks: '' });
             setShowAddForm(true);
@@ -2020,7 +2061,6 @@ export function OtherStockPage() {
                   <th scope="col">Size / Variation Breakdown</th>
                   <th scope="col" style={{ textAlign: 'center' }}>Available Qty</th>
                   <th scope="col" style={{ textAlign: 'center' }}>Used Qty</th>
-                  <th scope="col">Remarks</th>
                   <th scope="col" style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
@@ -2034,31 +2074,29 @@ export function OtherStockPage() {
                       <span className="badge badge--info" style={{ fontWeight: 600 }}>{item.location || 'HO'}</span>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-1)' }}>
-                        {(item.subtitles || []).map((st, idx) => (
-                          <span key={st.id || idx} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.15rem 0.45rem', borderRadius: 4, fontSize: '0.78rem' }}>
-                            <strong>{st.details || st.title}:</strong> {st.qty} avail
-                          </span>
-                        ))}
-                      </div>
+                      {(item.subtitles || []).map((st, idx) => (
+                        <div key={idx} style={{ fontSize: '0.82rem', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '2px' }}>
+                          <span>{st.title ? `${st.title}: ${st.details}` : st.details || 'Default'}</span>
+                          <span style={{ fontWeight: 600, color: st.qty > 0 ? '#16a34a' : '#ef4444' }}>{st.qty} left</span>
+                        </div>
+                      ))}
                     </td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, fontSize: '1rem', color: '#059669' }}>
-                      {item.availableQty}
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{ fontSize: '1.2rem', fontWeight: 800, color: item.availableQty > 0 ? '#16a34a' : '#ef4444' }}>
+                        {item.availableQty || 0}
+                      </span>
                     </td>
-                    <td style={{ textAlign: 'center', fontWeight: 600, fontSize: '0.9rem', color: '#64748b' }}>
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#0284c7' }}>
                       {item.usedQty || 0}
                     </td>
-                    <td style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', maxWidth: 180 }}>
-                      {item.remarks || '—'}
-                    </td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
+                      <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end', marginBottom: '8px' }}>
                         <button
                           className="btn btn--sm btn--primary"
                           onClick={() => { setSelectedItem(item); setUseForm({ subtitleId: item.subtitles?.[0]?.id || '', qtyToUse: 1, usedBy: 'Admin', remarks: '' }); setShowUseForm(true); }}
                           style={{ background: '#ea580c', borderColor: 'transparent' }}
                         >
-                          📤 Use Stock
+                          📤 Use
                         </button>
                         <button
                           className="btn btn--sm btn--outline"
@@ -2066,9 +2104,15 @@ export function OtherStockPage() {
                         >
                           ✏️ Edit
                         </button>
-                        <button className="btn btn--sm btn--danger" onClick={() => setDeleteId(item.id)}>
-                          🗑️
+                      </div>
+                      <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
+                        <button className="btn btn--sm btn--secondary" onClick={() => { setSelectedItem(item); setShowHistoryModal(true); }}>
+                           🕰️ History
                         </button>
+                        <button className="btn btn--sm btn--secondary" onClick={() => downloadItemPDF(item)}>
+                           📥 PDF
+                        </button>
+                        <button className="btn btn--sm btn--danger" onClick={() => setDeleteId(item.id)}>🗑️</button>
                       </div>
                     </td>
                   </tr>
@@ -2085,15 +2129,76 @@ export function OtherStockPage() {
           isOpen={!!deleteId}
           onClose={() => setDeleteId(null)}
           onConfirm={handleDeleteConfirm}
-          title="Delete Stock Item"
-          message="Are you sure you want to delete this stock item record?"
-          confirmLabel="Delete Stock Item"
+          title="Delete Stock Entry"
+          message="Are you sure you want to delete this item? This will remove all its variations and records."
+          confirmLabel="Delete Stock"
           dangerous
         />
       )}
+
+      {/* History Modal */}
+      <Modal isOpen={showHistoryModal} onClose={() => setShowHistoryModal(false)} title={`Usage History - ${selectedItem?.stockName}`}>
+         {selectedItem?.usageHistory?.length === 0 ? (
+            <p>No usage history recorded.</p>
+         ) : (
+            <div className="table-responsive">
+              <table className="table" style={{ fontSize: '0.85rem' }}>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Used By</th>
+                    <th>Variant</th>
+                    <th>Qty</th>
+                    <th>Remarks</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedItem?.usageHistory?.map(h => (
+                    <tr key={h.id || h.date}>
+                      {editUsageId === h.id && h.id ? (
+                        <>
+                          <td>{new Date(h.date).toLocaleDateString()}</td>
+                          <td>{h.usedBy}</td>
+                          <td>{h.subtitleText || '-'}</td>
+                          <td>
+                             <input type="number" className="form-input" style={{ width: 60, padding: 4 }} value={editUsageForm.qty} onChange={e => setEditUsageForm(f => ({ ...f, qty: parseInt(e.target.value) || 0 }))} />
+                          </td>
+                          <td>
+                             <input type="text" className="form-input" style={{ padding: 4 }} value={editUsageForm.remarks} onChange={e => setEditUsageForm(f => ({ ...f, remarks: e.target.value }))} />
+                          </td>
+                          <td>
+                             <button className="btn btn--xs btn--primary" onClick={() => handleUpdateUsage(h.id)}>Save</button>
+                             <button className="btn btn--xs btn--outline" onClick={() => setEditUsageId(null)} style={{ marginLeft: 4 }}>Cancel</button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td>{new Date(h.date).toLocaleDateString()}</td>
+                          <td>{h.usedBy}</td>
+                          <td>{h.subtitleText || '-'}</td>
+                          <td>{h.qty}</td>
+                          <td>{h.remarks || '-'}</td>
+                          <td>
+                             {h.id ? (
+                               <button className="btn btn--xs btn--outline" onClick={() => { setEditUsageId(h.id); setEditUsageForm({ qty: h.qty, remarks: h.remarks || '' }); }}>Edit</button>
+                             ) : (
+                               <span style={{ color: '#999', fontSize: '0.7rem' }}>Legacy</span>
+                             )}
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+         )}
+      </Modal>
     </div>
   );
 }
+
 
 /* ─── Renewal & Task Reminders Audit Component ───────────── */
 export function RemindersPage() {

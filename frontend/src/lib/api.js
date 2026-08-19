@@ -371,6 +371,9 @@ export const otherStockApi = {
   useStock: (stockId, subtitleId, qtyToUse, usedBy, remarks) =>
     request('/admin/other-stock/use', { method: 'POST', body: JSON.stringify({ stockId, subtitleId, qtyToUse, usedBy, remarks }) }, 'admin'),
 
+  updateUsage: (stockId, usageId, qty, remarks) =>
+    request(`/admin/other-stock/${stockId}/usage/${usageId}`, { method: 'PUT', body: JSON.stringify({ qty, remarks }) }, 'admin'),
+
   delete: (id) =>
     request(`/admin/other-stock/${id}`, { method: 'DELETE' }, 'admin'),
 };

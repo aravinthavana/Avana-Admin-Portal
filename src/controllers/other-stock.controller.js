@@ -40,3 +40,15 @@ exports.delete = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.updateUsage = async (req, res) => {
+  try {
+    const { id, usageId } = req.params;
+    const { qty, remarks } = req.body;
+    const updated = await otherStockService.updateUsage(id, usageId, parseInt(qty), remarks);
+    res.json(updated);
+  } catch (err) {
+    console.error('Update Usage Error:', err);
+    res.status(500).json({ message: err.message || 'Internal server error' });
+  }
+};

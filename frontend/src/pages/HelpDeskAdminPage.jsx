@@ -217,7 +217,7 @@ function RequestCategoriesSubView() {
 /* ─── 2B. Security & System Logs Sub-View Card Grid ──────────────────────── */
 function SecuritySubView() {
   const modules = [
-    { icon: '🔑', title: 'Employee Login Audit', desc: 'View timestamps, IP addresses, and login/logout activity for employees', link: '/helpdesk-admin/logins', color: '#2563eb' },
+
     { icon: '⚙️', title: 'Portal Settings', desc: 'Change administrator credentials and configure portal defaults', link: '/helpdesk-admin/settings', color: '#64748b' },
   ];
 
@@ -399,7 +399,7 @@ export default function HelpDeskAdminPage() {
         <Route path="tax-payments" element={<TaxPaymentsPage api={taxApi} />} />
 
         {/* Admin */}
-        <Route path="logins" element={<LoginAuditPage />} />
+
         <Route path="settings" element={<AdminSettings />} />
       </Routes>
     </div>

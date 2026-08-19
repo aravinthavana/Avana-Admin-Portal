@@ -502,7 +502,7 @@ export default function AdminDashPage() {
       <ChangePasswordPanel />
 
       {/* ── Login Audit ── */}
-      <LoginAuditSection />
+      {/* <LoginAuditSection /> */}
 
       {/* ── Confirm Delete ── */}
       <ConfirmModal

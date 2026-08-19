@@ -161,7 +161,17 @@ exports.getLogins = async (req, res, next) => {
       orderBy: { timestamp: 'desc' },
       take: 100
     });
-    res.status(200).json(logins);
+    
+    // Map to frontend expected format
+    const mapped = logins.map(l => ({
+      id: l.id,
+      email: l.username,
+      created_at: l.timestamp,
+      action: l.status,
+      ip: l.ip
+    }));
+    
+    res.status(200).json(mapped);
   } catch (error) {
     next(error);
   }

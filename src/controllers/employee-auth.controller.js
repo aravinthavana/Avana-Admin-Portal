@@ -86,6 +86,17 @@ exports.login = (req, res) => {
 
     const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
     const token = jwt.sign({ role: 'employee', email: storedOtpData.email }, jwtSecret, { expiresIn: '8h' });
+    
+    // Track employee login
+    prisma.adminLogin.create({
+      data: {
+        username: storedOtpData.email,
+        timestamp: new Date().toISOString(),
+        ip: req.ip || req.connection?.remoteAddress || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+        status: 'login'
+      }
+    }).catch(err => console.error('[Employee Login Audit] Failed to log:', err));
 
     res.status(200).json({ success: true, message: 'Login successful.', token });
   } catch (error) {
@@ -216,6 +227,17 @@ exports.loginPassword = async (req, res, next) => {
     if (derivedKey === hash) {
       const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
       const token = jwt.sign({ role: 'employee', email: emailLower }, jwtSecret, { expiresIn: '8h' });
+    
+    // Track employee login
+    prisma.adminLogin.create({
+      data: {
+        username: emailLower,
+        timestamp: new Date().toISOString(),
+        ip: req.ip || req.connection?.remoteAddress || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+        status: 'login'
+      }
+    }).catch(err => console.error('[Employee Login Audit] Failed to log:', err));
       res.status(200).json({ success: true, message: 'Login successful', token, email: emailLower });
     } else {
       res.status(401).json({ success: false, error: 'Invalid email or password.' });

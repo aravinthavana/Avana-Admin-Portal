@@ -183,7 +183,7 @@ exports.updateUsage = async (stockId, usageId, newQty, newRemarks) => {
   if (!item) throw new Error('Stock item not found');
   
   const history = item.usageHistoryJson ? JSON.parse(item.usageHistoryJson) : [];
-  const usageIdx = history.findIndex(h => h.id === usageId);
+  const usageIdx = history.findIndex(h => h.id === usageId || h.date === usageId);
   if (usageIdx === -1) throw new Error('Usage record not found');
   
   const oldQty = history[usageIdx].qty || 0;

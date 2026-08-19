@@ -226,12 +226,13 @@ export function AssetTrackerPage() {
     const pendingCount = filtered.filter(h => h.status === 'Pending Acknowledgement').length;
 
     openLegacyPrintReport({
-      title: 'Stationery & Asset Tracking Report',
-      subtitle: 'Employee Hardware & Stationery Asset Handovers',
+      title: item.stockName,
+      subtitle: 'Stock Usage & Availability Report',
       summary: [
-        { label: 'Total Handovers', value: `${totalCount} Records` },
-        { label: 'Acknowledged', value: `${ackCount} Records`, color: '#16a34a' },
-        { label: 'Pending Ack', value: `${pendingCount} Records`, color: '#d97706' },
+        { label: 'Location', value: item.location || 'HO Store' },
+        { label: 'Size & Variants', value: (item.subtitles || []).map(st => `${st.title ? st.title + ':' : ''} ${st.details} (${st.qty} avail)`).join(' | ') || 'Default' },
+        { label: 'Total Stock Available', value: `${item.availableQty} Units` },
+        { label: 'Used Stock', value: `${item.usedQty} Units`, color: '#0284c7' }
       ],
       headers: [
         { title: '#' },
@@ -2156,7 +2157,7 @@ export function OtherStockPage() {
                 <tbody>
                   {selectedItem?.usageHistory?.map(h => (
                     <tr key={h.id || h.date}>
-                      {editUsageId === h.id && h.id ? (
+                      {editUsageId === (h.id || h.date) ? (
                         <>
                           <td>{new Date(h.date).toLocaleDateString()}</td>
                           <td>{h.usedBy}</td>
@@ -2168,7 +2169,7 @@ export function OtherStockPage() {
                              <input type="text" className="form-input" style={{ padding: 4 }} value={editUsageForm.remarks} onChange={e => setEditUsageForm(f => ({ ...f, remarks: e.target.value }))} />
                           </td>
                           <td>
-                             <button className="btn btn--xs btn--primary" onClick={() => handleUpdateUsage(h.id)}>Save</button>
+                             <button className="btn btn--xs btn--primary" onClick={() => handleUpdateUsage(h.id || h.date)}>Save</button>
                              <button className="btn btn--xs btn--outline" onClick={() => setEditUsageId(null)} style={{ marginLeft: 4 }}>Cancel</button>
                           </td>
                         </>
@@ -2180,11 +2181,7 @@ export function OtherStockPage() {
                           <td>{h.qty}</td>
                           <td>{h.remarks || '-'}</td>
                           <td>
-                             {h.id ? (
-                               <button className="btn btn--xs btn--outline" onClick={() => { setEditUsageId(h.id); setEditUsageForm({ qty: h.qty, remarks: h.remarks || '' }); }}>Edit</button>
-                             ) : (
-                               <span style={{ color: '#999', fontSize: '0.7rem' }}>Legacy</span>
-                             )}
+                             <button className="btn btn--xs btn--outline" onClick={() => { setEditUsageId(h.id || h.date); setEditUsageForm({ qty: h.qty, remarks: h.remarks || '' }); }}>Edit</button>
                           </td>
                         </>
                       )}

@@ -24,7 +24,7 @@ export function getStatusBadge(status) {
   return 'pending';
 }
 
-export function openLegacyPrintReport({ title, subtitle, docNo, summary = [], headers = [], rows = [], sections = null }) {
+export function openLegacyPrintReport({ title, subtitle, docNo, summary = [], details = [], headers = [], rows = [], sections = null }) {
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
     alert('Please allow popups to open the PDF report.');
@@ -33,7 +33,7 @@ export function openLegacyPrintReport({ title, subtitle, docNo, summary = [], he
 
   const logoUrl = `${window.location.origin}/Logo%20new.png`;
 
-  const sectionsData = sections || [{ sectionTitle: '', subtitle: '', summary, headers, rows }];
+  const sectionsData = sections || [{ sectionTitle: '', subtitle: '', summary, details, headers, rows }];
 
   const contentHtml = sectionsData.map((sec, sIdx) => {
     const secTitleHtml = sec.sectionTitle ? `<h2 style="font-size: 1.1rem; color: var(--color-primary-dark); margin-bottom: 0.5rem; margin-top: ${sIdx > 0 ? '2rem' : '0'}; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3rem;">${sec.sectionTitle}</h2>` : '';

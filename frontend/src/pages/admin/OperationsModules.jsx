@@ -717,6 +717,7 @@ export function CourierDispatchPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
+  const [monthFilter, setMonthFilter] = useState(new Date().toISOString().slice(0, 7));
 
   // Modals
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -846,11 +847,16 @@ export function CourierDispatchPage() {
 
   const filtered = dispatches.filter(d => {
     const s = search.toLowerCase();
-    return (d.dcNo || '').toLowerCase().includes(s) ||
+    const matchSearch = (d.dcNo || '').toLowerCase().includes(s) ||
            (d.receiverName || '').toLowerCase().includes(s) ||
            (d.senderName || '').toLowerCase().includes(s) ||
            (d.toAddress || '').toLowerCase().includes(s) ||
            (d.docketNo || '').toLowerCase().includes(s);
+
+    const dcMonth = d.dcDate ? d.dcDate.slice(0, 7) : (d.createdAt ? d.createdAt.slice(0, 7) : '');
+    const matchMonth = monthFilter === 'all' || dcMonth === monthFilter;
+
+    return matchSearch && matchMonth;
   });
 
   if (addModalOpen) {
@@ -1095,12 +1101,17 @@ export function CourierDispatchPage() {
       title: 'DELIVERY CHALLAN',
       subtitle: `DC No: ${d.dcNo || '—'} | Date: ${d.dcDate || '—'}`,
       details: [
-        { label: 'Sender Name', value: d.senderName || '—' },
-        { label: 'Consignee Name', value: d.receiverName || '—' },
-        { label: 'Delivery Address', value: d.toAddress || '—' },
-        { label: 'Transporter', value: d.transporterName || '—' },
-        { label: 'Docket No', value: d.docketNo || '—' },
-      ],
+          { label: 'Billing Entity', value: d.courierBilling || '—' },
+          { label: 'Auth. Signatory', value: d.signatoryCompany || '—' },
+          { label: 'Sender Name', value: d.senderName + (d.senderPhone ? ' ('+d.senderPhone+')' : '') },
+          { label: 'From Address', value: d.fromAddressText || '—' },
+          { label: 'Consignee Name', value: d.receiverName + (d.receiverPhone ? ' ('+d.receiverPhone+')' : '') },
+          { label: 'Delivery Address', value: d.toAddress || '—' },
+          { label: 'Category', value: d.remarksType + (d.remarksOther ? ' - '+d.remarksOther : '') },
+          { label: 'Transporter', value: d.transporterName || '—' },
+          { label: 'Docket No', value: d.docketNo || '—' },
+          { label: 'Box Details', value: (d.boxes && d.boxes.length > 0) ? d.boxes.map(b => `Box ${b.boxNo}: ${b.dimensions} (${b.weight})`).join(' | ') : '—' }
+        ],
       headers: [
         { title: 'S.No.' },
         { title: 'Item Description' },
@@ -1136,14 +1147,28 @@ export function CourierDispatchPage() {
 
       {/* Top Action Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-4)', marginBottom: 'var(--space-5)' }}>
-        <input
-          type="text"
-          className="form-input"
-          placeholder="🔍 Search DC No, Recipient, City, Docket No..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ maxWidth: 400 }}
-        />
+        <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="🔍 Search DC No, Recipient, City, Docket No..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{ maxWidth: 300 }}
+            />
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Month:</span>
+              <input
+                type="month"
+                className="form-input"
+                value={monthFilter === 'all' ? '' : monthFilter}
+                onChange={e => setMonthFilter(e.target.value || 'all')}
+              />
+              {monthFilter !== 'all' && (
+                <button className="btn btn--xs btn--outline" onClick={() => setMonthFilter('all')}>View All</button>
+              )}
+            </div>
+          </div>
         <button className="btn btn--primary" onClick={() => setAddModalOpen(true)} style={{ background: '#0284c7', borderColor: 'transparent' }}>
           ➕ New Delivery Challan
         </button>

@@ -287,7 +287,7 @@ export default function AdminDashPage() {
       summary: [
         { label: 'Total Bookings', value: `${filtered.length} Bookings` },
         { label: 'Approved', value: `${filtered.filter(b => b.status === 'approved').length} Bookings`, color: '#16a34a' },
-        { label: 'Pending', value: `${filtered.filter(b => b.status === 'pending').length} Bookings`, color: '#ea580c' },
+        { label: 'Pending', value: `${filtered.filter(b => b.status === 'pending').length} Bookings`, color: '#d97706' },
       ],
       headers: [
         { title: '#' },

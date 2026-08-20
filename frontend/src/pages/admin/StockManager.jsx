@@ -152,7 +152,7 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
             onChange={e => setNewItemStock(e.target.value)}
             style={{ width: '110px' }}
           />
-          <button type="submit" className="btn btn-primary" disabled={addingItem} style={{ background: type === 'housekeeping' ? '#0d9488' : '#059669', borderColor: 'transparent' }}>
+          <button type="submit" className="btn btn-primary" disabled={addingItem} style={{ background: type === 'housekeeping' ? '#404131' : '#16a34a', borderColor: 'transparent' }}>
             {addingItem ? 'Adding...' : 'Add Item'}
           </button>
         </form>

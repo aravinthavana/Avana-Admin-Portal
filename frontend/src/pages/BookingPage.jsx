@@ -89,7 +89,7 @@ function getDayColor(dateStr, bookedMinutes, today) {
 }
 
 const COLOR_MAP = {
-  available: { bg: 'rgba(16, 185, 129, 0.08)', border: 'rgba(16, 185, 129, 0.3)', text: 'var(--color-text-primary)', hover: 'rgba(16, 185, 129, 0.15)', indicator: '#10b981' },
+  available: { bg: 'rgba(16, 185, 129, 0.08)', border: 'rgba(16, 185, 129, 0.3)', text: 'var(--color-text-primary)', hover: 'rgba(16, 185, 129, 0.15)', indicator: '#16a34a' },
   partial:   { bg: 'rgba(217, 119, 6, 0.08)', border: 'rgba(245, 158, 11, 0.3)', text: 'var(--color-text-primary)', hover: 'rgba(217, 119, 6, 0.15)', indicator: '#d97706' },
   full:      { bg: 'rgba(220, 38, 38, 0.08)', border: 'rgba(239, 68, 68, 0.3)', text: 'var(--color-text-primary)', hover: 'rgba(220, 38, 38, 0.15)', indicator: '#dc2626' },
 };
@@ -619,13 +619,13 @@ export default function BookingPage() {
               border: '1px solid #fde68a', borderRadius: '10px'
             }}>
               <h4 style={{
-                fontSize: '0.85rem', fontWeight: 700, color: '#b45309',
+                fontSize: '0.85rem', fontWeight: 700, color: '#d97706',
                 marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem'
               }}>
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 Already Booked Timings for this Date:
               </h4>
-              <div style={{ fontSize: '0.85rem', color: '#92400e', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <div style={{ fontSize: '0.85rem', color: '#d97706', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                 {selectedDateBookings.map(b => (
                   <div key={b.id}>
                     • {b.bookingType === 'full' ? 'Full Day' : `${formatTime12(b.startTime)} – ${formatTime12(b.endTime)}`}

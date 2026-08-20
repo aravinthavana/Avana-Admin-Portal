@@ -66,7 +66,7 @@ export default function AssetAcknowledgementPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: 'var(--space-6) var(--space-4)' }}>
+    <div style={{ minHeight: '100vh', background: '#f9f9fb', padding: 'var(--space-6) var(--space-4)' }}>
       <div style={{ maxWidth: 750, margin: '0 auto' }}>
         
         {/* Header Branding */}
@@ -84,11 +84,11 @@ export default function AssetAcknowledgementPage() {
         {submitted ? (
           <div className="card" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
             <div style={{ fontSize: '3.5rem', marginBottom: 'var(--space-3)' }}>✅</div>
-            <h2 style={{ color: '#059669', marginBottom: 'var(--space-2)' }}>Acknowledgement Confirmed</h2>
+            <h2 style={{ color: '#16a34a', marginBottom: 'var(--space-2)' }}>Acknowledgement Confirmed</h2>
             <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)', lineHeight: 1.6 }}>
               Thank you, <strong>{handover?.name}</strong>! Your digital acknowledgement for the issued office assets has been recorded successfully.
             </p>
-            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 'var(--radius)', padding: 'var(--space-4)', fontSize: '0.88rem', color: '#166534', display: 'inline-block', textAlign: 'left' }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 'var(--radius)', padding: 'var(--space-4)', fontSize: '0.88rem', color: '#16a34a', display: 'inline-block', textAlign: 'left' }}>
               <div>• <strong>Signed By:</strong> {signature || handover?.signature || handover?.name}</div>
               <div>• <strong>Acknowledged Date:</strong> {new Date(handover?.acknowledgedAt || Date.now()).toLocaleString()}</div>
               <div>• <strong>Handover Ref ID:</strong> #{handover?.id}</div>
@@ -98,7 +98,7 @@ export default function AssetAcknowledgementPage() {
           <div className="card" style={{ padding: 'var(--space-6)' }}>
             
             {/* Employee info card */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', background: '#f1f5f9', padding: 'var(--space-4)', borderRadius: 'var(--radius)', marginBottom: 'var(--space-6)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', background: '#f9f9fb', padding: 'var(--space-4)', borderRadius: 'var(--radius)', marginBottom: 'var(--space-6)' }}>
               <div>
                 <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'block' }}>EMPLOYEE NAME</span>
                 <strong style={{ fontSize: '1.05rem' }}>{handover.name}</strong>
@@ -137,7 +137,7 @@ export default function AssetAcknowledgementPage() {
                     <tr key={it.id || idx}>
                       <td style={{ color: 'var(--color-text-muted)' }}>{idx + 1}</td>
                       <td style={{ fontWeight: 600 }}>{it.itemName}</td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>{it.serialNo || 'N/A'}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>{it.serialNo || 'N/A'}</td>
                       <td>
                         <span className="badge badge--success">{it.condition || 'Good'}</span>
                       </td>
@@ -157,7 +157,7 @@ export default function AssetAcknowledgementPage() {
                     onChange={e => setAgreed(e.target.checked)}
                     style={{ marginTop: 3, width: 18, height: 18, accentColor: 'var(--color-primary)' }}
                   />
-                  <span style={{ fontSize: '0.92rem', color: '#92400e', lineHeight: 1.5 }}>
+                  <span style={{ fontSize: '0.92rem', color: '#d97706', lineHeight: 1.5 }}>
                     <strong>Declaration:</strong> I hereby confirm receipt of the company asset(s) listed above in good working condition. I agree to keep them secure and use them in accordance with company policy.
                   </span>
                 </label>

@@ -191,7 +191,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #fdfcfb 0%, var(--brand-beige) 100%);
+  background: linear-gradient(135deg, #f9f9fb 0%, var(--brand-beige) 100%);
   background-attachment: fixed;
   transition: margin-left var(--transition-slow);
 }

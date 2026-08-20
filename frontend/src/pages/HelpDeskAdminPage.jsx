@@ -13,7 +13,7 @@ import { LoginAuditPage, AdminSettings } from './admin/AdminSettingsPage';
 import { stationeryApi, housekeepingApi, utilityApi, taxApi } from '../lib/api';
 
 /* ─── Reusable Card Component for Grid Views ────────────────────────────── */
-function NavCard({ icon, title, description, badge, link, color = '#c29100' }) {
+function NavCard({ icon, title, description, badge, link, color = '#b27f0d' }) {
   return (
     <Link
       to={link}
@@ -26,7 +26,7 @@ function NavCard({ icon, title, description, badge, link, color = '#c29100' }) {
         background: '#ffffff',
         borderRadius: '16px',
         padding: '1.5rem',
-        border: '1px solid #e2e8f0',
+        border: '1px solid #e4e4e7',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         position: 'relative',
@@ -41,7 +41,7 @@ function NavCard({ icon, title, description, badge, link, color = '#c29100' }) {
       onMouseLeave={e => {
         e.currentTarget.style.transform = 'translateY(0)';
         e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)';
-        e.currentTarget.style.borderColor = '#e2e8f0';
+        e.currentTarget.style.borderColor = '#e4e4e7';
       }}
     >
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: color }} />
@@ -62,13 +62,13 @@ function NavCard({ icon, title, description, badge, link, color = '#c29100' }) {
           </div>
           {badge && (
             <span style={{
-              background: '#f1f5f9',
-              color: '#475569',
+              background: '#f9f9fb',
+              color: '#6b7280',
               fontSize: '0.75rem',
               fontWeight: 700,
               padding: '0.25rem 0.6rem',
               borderRadius: '20px',
-              border: '1px solid #cbd5e1',
+              border: '1px solid #e4e4e7',
             }}>
               {badge}
             </span>
@@ -78,7 +78,7 @@ function NavCard({ icon, title, description, badge, link, color = '#c29100' }) {
         <h3 style={{
           fontSize: '1.15rem',
           fontWeight: 700,
-          color: '#0f172a',
+          color: '#172025',
           margin: '0 0 0.5rem 0',
           fontFamily: 'var(--font-heading, inherit)'
         }}>
@@ -87,7 +87,7 @@ function NavCard({ icon, title, description, badge, link, color = '#c29100' }) {
 
         <p style={{
           fontSize: '0.875rem',
-          color: '#64748b',
+          color: '#6b7280',
           margin: 0,
           lineHeight: 1.5,
         }}>
@@ -98,7 +98,7 @@ function NavCard({ icon, title, description, badge, link, color = '#c29100' }) {
       <div style={{
         marginTop: '1.25rem',
         paddingTop: '0.85rem',
-        borderTop: '1px solid #f1f5f9',
+        borderTop: '1px solid #f9f9fb',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -118,10 +118,10 @@ function MainDashboardView() {
   return (
     <div style={{ padding: '1rem 0' }}>
       <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.5rem 0' }}>
+        <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#172025', margin: '0 0 0.5rem 0' }}>
           🏢 Admin Control Dashboard
         </h1>
-        <p style={{ fontSize: '0.95rem', color: '#64748b', margin: 0 }}>
+        <p style={{ fontSize: '0.95rem', color: '#6b7280', margin: 0 }}>
           Select a category box below to manage requests, view security logs, or handle inventory & operations.
         </p>
       </div>
@@ -157,7 +157,7 @@ function MainDashboardView() {
           description="Track stock levels, run monthly audits, manage courier dispatches, AMC contracts, bill warranties, tax & utility payments, and cash handling."
           badge="14 Modules"
           link="/helpdesk-admin/inventory"
-          color="#059669"
+          color="#16a34a"
         />
       </div>
     </div>
@@ -167,25 +167,25 @@ function MainDashboardView() {
 /* ─── 2A. Request Categories Sub-View Card Grid ──────────────────────────── */
 function RequestCategoriesSubView() {
   const categories = [
-    { icon: '📋', title: 'All Requests', desc: 'View and filter all incoming helpdesk tickets across all departments', link: '/helpdesk-admin/all-tickets', color: '#c29100' },
+    { icon: '📋', title: 'All Requests', desc: 'View and filter all incoming helpdesk tickets across all departments', link: '/helpdesk-admin/all-tickets', color: '#b27f0d' },
     { icon: '📅', title: 'Conference Room', desc: 'Manage room bookings, approve schedules, and view calendar bookings', link: '/helpdesk-admin/conference', color: '#2563eb' },
-    { icon: '✏️', title: 'Stationery Requests', desc: 'Review employee stationery and office supply requests', link: '/helpdesk-admin/stationery', color: '#059669' },
-    { icon: '💼', title: 'Admin Support', desc: 'Assist employees with administrative and general office support requests', link: '/helpdesk-admin/admin-support', color: '#0284c7' },
+    { icon: '✏️', title: 'Stationery Requests', desc: 'Review employee stationery and office supply requests', link: '/helpdesk-admin/stationery', color: '#16a34a' },
+    { icon: '💼', title: 'Admin Support', desc: 'Assist employees with administrative and general office support requests', link: '/helpdesk-admin/admin-support', color: '#2563eb' },
     { icon: '🔧', title: 'Maintenance Complaints', desc: 'Track facility maintenance, AC, electrical, and plumbing repairs', link: '/helpdesk-admin/maintenance', color: '#dc2626' },
     { icon: '🧹', title: 'Housekeeping Requests', desc: 'Manage cleaning requests and floor hygiene operations', link: '/helpdesk-admin/housekeeping', color: '#d97706' },
-    { icon: '🖥️', title: 'Office Asset Requests', desc: 'Process requests for office equipment, furniture, and hardware', link: '/helpdesk-admin/office-asset', color: '#0891b2' },
+    { icon: '🖥️', title: 'Office Asset Requests', desc: 'Process requests for office equipment, furniture, and hardware', link: '/helpdesk-admin/office-asset', color: '#2563eb' },
     { icon: '🖨️', title: 'Printing & Scanning', desc: 'Handle bulk document printing, scanning, binding, and lamination', link: '/helpdesk-admin/print-scan', color: '#7c3aed' },
-    { icon: '💡', title: 'App Feedback', desc: 'Review user feedback and improvement suggestions for the portal', link: '/helpdesk-admin/app-feedback', color: '#0ea5e9' },
+    { icon: '💡', title: 'App Feedback', desc: 'Review user feedback and improvement suggestions for the portal', link: '/helpdesk-admin/app-feedback', color: '#2563eb' },
   ];
 
   return (
     <div style={{ padding: '1rem 0' }}>
       <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.25rem 0' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#172025', margin: '0 0 0.25rem 0' }}>
             📂 Request Categories
           </h2>
-          <p style={{ fontSize: '0.9rem', color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: '0.9rem', color: '#6b7280', margin: 0 }}>
             Select a category card to view, filter, and manage tickets
           </p>
         </div>
@@ -218,17 +218,17 @@ function RequestCategoriesSubView() {
 function SecuritySubView() {
   const modules = [
 
-    { icon: '⚙️', title: 'Portal Settings', desc: 'Change administrator credentials and configure portal defaults', link: '/helpdesk-admin/settings', color: '#64748b' },
+    { icon: '⚙️', title: 'Portal Settings', desc: 'Change administrator credentials and configure portal defaults', link: '/helpdesk-admin/settings', color: '#6b7280' },
   ];
 
   return (
     <div style={{ padding: '1rem 0' }}>
       <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.25rem 0' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#172025', margin: '0 0 0.25rem 0' }}>
             🔐 Security & Audit Logs
           </h2>
-          <p style={{ fontSize: '0.9rem', color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: '0.9rem', color: '#6b7280', margin: 0 }}>
             Select a module to review security events or update administrative settings
           </p>
         </div>
@@ -261,20 +261,20 @@ function SecuritySubView() {
 /* ─── 2C. Inventory & Operations Sub-View Card Grid ─────────────────────── */
 function InventorySubView() {
   const modules = [
-    { icon: '✏️', title: 'Stationery Stock', desc: 'Monitor stationery inventory levels and restock items', link: '/helpdesk-admin/stationery-stock', color: '#059669' },
+    { icon: '✏️', title: 'Stationery Stock', desc: 'Monitor stationery inventory levels and restock items', link: '/helpdesk-admin/stationery-stock', color: '#16a34a' },
     { icon: '📊', title: 'Stationery Audit', desc: 'Perform monthly physical stock reconciliations and overrides', link: '/helpdesk-admin/stationery-audit', color: '#d97706' },
-    { icon: '🧹', title: 'Housekeeping Stock', desc: 'Track housekeeping and cleaning item stock counts', link: '/helpdesk-admin/housekeeping-stock', color: '#0d9488' },
-    { icon: '🧴', title: 'Housekeeping Audit', desc: 'Run monthly audits for cleaning products and supplies', link: '/helpdesk-admin/housekeeping-audit', color: '#0d9488' },
-    { icon: '📦', title: 'Stationery Tracker', desc: 'Track stationery handovers and issuance history', link: '/helpdesk-admin/asset-tracker', color: '#059669' },
+    { icon: '🧹', title: 'Housekeeping Stock', desc: 'Track housekeeping and cleaning item stock counts', link: '/helpdesk-admin/housekeeping-stock', color: '#404131' },
+    { icon: '🧴', title: 'Housekeeping Audit', desc: 'Run monthly audits for cleaning products and supplies', link: '/helpdesk-admin/housekeeping-audit', color: '#404131' },
+    { icon: '📦', title: 'Stationery Tracker', desc: 'Track stationery handovers and issuance history', link: '/helpdesk-admin/asset-tracker', color: '#16a34a' },
     { icon: '📦', title: 'Other Stock', desc: 'Manage miscellaneous stock items and general inventory', link: '/helpdesk-admin/other-stock', color: '#2563eb' },
-    { icon: '📋', title: 'AMC Contracts', desc: 'Manage annual maintenance contracts, vendors, and renewal dates', link: '/helpdesk-admin/amc', color: '#3b82f6' },
-    { icon: '🚚', title: 'Courier & Dispatch', desc: 'Manage outbound shipments, auto-generate Delivery Challans, and set Global Addresses', link: '/helpdesk-admin/courier', color: '#f97316' },
-    { icon: '💵', title: 'Cash Handling', desc: 'Log petty cash transactions, vouchers, and office expenditures', link: '/helpdesk-admin/cash-handling', color: '#ea580c' },
-    { icon: '🚗', title: 'Travel Expenses', desc: 'Track employee travel claims, cab bookings, and reimbursements', link: '/helpdesk-admin/travel', color: '#0284c7' },
-    { icon: '📄', title: 'Bill & Warranty', desc: 'Store bills, invoices, and product warranty expiration dates', link: '/helpdesk-admin/bill-warranty', color: '#8b5cf6' },
-    { icon: '⚡', title: 'Utility Payments', desc: 'Track electricity, water, internet, and office utility bills', link: '/helpdesk-admin/utility-payments', color: '#0891b2' },
-    { icon: '🏛️', title: 'Tax Payments', desc: 'Record property tax, municipal tax, and statutory payments', link: '/helpdesk-admin/tax-payments', color: '#8b5cf6' },
-    { icon: '🔔', title: 'Reminder List', desc: 'Configure automatic email & system reminders for renewals', link: '/helpdesk-admin/reminders', color: '#6366f1' },
+    { icon: '📋', title: 'AMC Contracts', desc: 'Manage annual maintenance contracts, vendors, and renewal dates', link: '/helpdesk-admin/amc', color: '#2563eb' },
+    { icon: '🚚', title: 'Courier & Dispatch', desc: 'Manage outbound shipments, auto-generate Delivery Challans, and set Global Addresses', link: '/helpdesk-admin/courier', color: '#d97706' },
+    { icon: '💵', title: 'Cash Handling', desc: 'Log petty cash transactions, vouchers, and office expenditures', link: '/helpdesk-admin/cash-handling', color: '#d97706' },
+    { icon: '🚗', title: 'Travel Expenses', desc: 'Track employee travel claims, cab bookings, and reimbursements', link: '/helpdesk-admin/travel', color: '#2563eb' },
+    { icon: '📄', title: 'Bill & Warranty', desc: 'Store bills, invoices, and product warranty expiration dates', link: '/helpdesk-admin/bill-warranty', color: '#7c3aed' },
+    { icon: '⚡', title: 'Utility Payments', desc: 'Track electricity, water, internet, and office utility bills', link: '/helpdesk-admin/utility-payments', color: '#2563eb' },
+    { icon: '🏛️', title: 'Tax Payments', desc: 'Record property tax, municipal tax, and statutory payments', link: '/helpdesk-admin/tax-payments', color: '#7c3aed' },
+    { icon: '🔔', title: 'Reminder List', desc: 'Configure automatic email & system reminders for renewals', link: '/helpdesk-admin/reminders', color: '#7c3aed' },
     
   ];
 
@@ -282,10 +282,10 @@ function InventorySubView() {
     <div style={{ padding: '1rem 0' }}>
       <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.25rem 0' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#172025', margin: '0 0 0.25rem 0' }}>
             📦 Inventory & Operations
           </h2>
-          <p style={{ fontSize: '0.9rem', color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: '0.9rem', color: '#6b7280', margin: 0 }}>
             Select an inventory, operations, or finance module below
           </p>
         </div>

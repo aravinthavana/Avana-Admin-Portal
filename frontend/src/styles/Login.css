@@ -8,7 +8,7 @@
   padding: var(--space-6);
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%);
+  background: linear-gradient(135deg, #f9f9fb 0%, #d7d0bc 100%);
 }
 
 /* Decorative background circles */

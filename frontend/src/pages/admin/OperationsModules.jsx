@@ -130,7 +130,7 @@ export function AssetTrackerPage() {
         <head>
           <title>Asset Handover - ${selectedHandover.name}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 40px; color: #172025; }
+            body { font-family: 'Arimo', sans-serif; padding: 40px; color: #172025; }
             .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #b27f0d; padding-bottom: 20px; margin-bottom: 30px; }
             .logo { max-height: 50px; }
             .title { font-size: 24px; font-weight: bold; color: #b27f0d; }
@@ -895,7 +895,7 @@ export function CourierDispatchPage() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
-              <div style={{ background: '#f8fafc', padding: 'var(--space-3)', borderRadius: 'var(--radius)', border: '1px solid #e2e8f0' }}>
+              <div style={{ background: '#f9f9fb', padding: 'var(--space-3)', borderRadius: 'var(--radius)', border: '1px solid #e4e4e7' }}>
                 <h5 style={{ margin: '0 0 var(--space-2) 0', fontSize: '0.85rem', color: 'var(--color-primary-dark)' }}>SENDER / CONSIGNOR</h5>
                 <FormField label="Sender Name">
                   <input type="text" className="form-input" value={addForm.senderName} onChange={e => setAddForm(f => ({ ...f, senderName: e.target.value }))} />
@@ -918,7 +918,7 @@ export function CourierDispatchPage() {
               </div>
 
               <div style={{ background: '#f0f9ff', padding: 'var(--space-3)', borderRadius: 'var(--radius)', border: '1px solid #bae6fd' }}>
-                <h5 style={{ margin: '0 0 var(--space-2) 0', fontSize: '0.85rem', color: '#0369a1' }}>RECIPIENT / CONSIGNEE *</h5>
+                <h5 style={{ margin: '0 0 var(--space-2) 0', fontSize: '0.85rem', color: '#2563eb' }}>RECIPIENT / CONSIGNEE *</h5>
                 <FormField label="Receiver Name" required>
                   <input type="text" className="form-input" required value={addForm.receiverName} onChange={e => setAddForm(f => ({ ...f, receiverName: e.target.value }))} placeholder="Dr. John Smith / Client" />
                 </FormField>
@@ -966,7 +966,7 @@ export function CourierDispatchPage() {
                   arr[idx].value = arr[idx].qty * rate;
                   setAddForm(f => ({ ...f, items: arr }));
                 }} style={{ width: 100 }} />
-                <input type="number" className="form-input" placeholder="Value (₹)" value={it.value} readOnly style={{ width: 100, background: '#f8fafc' }} />
+                <input type="number" className="form-input" placeholder="Value (₹)" value={it.value} readOnly style={{ width: 100, background: '#f9f9fb' }} />
                 
                 {addForm.items.length > 1 && (
                   <button type="button" className="btn btn--sm btn--danger" onClick={() => {
@@ -1074,7 +1074,7 @@ export function CourierDispatchPage() {
       subtitle: search ? `Search: "${search}"` : 'All Shipments',
       summary: [
         { label: 'Total Shipments', value: `${filtered.length} Dispatches` },
-        { label: 'Pending Shipments', value: `${filtered.filter(d => d.status === 'Pending').length}`, color: '#ea580c' },
+        { label: 'Pending Shipments', value: `${filtered.filter(d => d.status === 'Pending').length}`, color: '#d97706' },
         { label: 'Dispatched', value: `${filtered.filter(d => d.status === 'Dispatched').length}`, color: '#16a34a' },
       ],
       headers: [
@@ -1169,7 +1169,7 @@ export function CourierDispatchPage() {
               )}
             </div>
           </div>
-        <button className="btn btn--primary" onClick={() => setAddModalOpen(true)} style={{ background: '#0284c7', borderColor: 'transparent' }}>
+        <button className="btn btn--primary" onClick={() => setAddModalOpen(true)} style={{ background: '#2563eb', borderColor: 'transparent' }}>
           ➕ New Delivery Challan
         </button>
       </div>
@@ -1238,7 +1238,7 @@ export function CourierDispatchPage() {
                     </td>
                     <td>
                       <div style={{ fontSize: '0.85rem', fontWeight: 500 }}>{d.transporterName || '—'}</div>
-                      <div style={{ fontSize: '0.78rem', fontFamily: 'monospace', color: 'var(--color-text-muted)' }}>
+                      <div style={{ fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>
                         {d.docketNo ? `Waybill: ${d.docketNo}` : 'No tracking'}
                       </div>
                     </td>
@@ -1255,7 +1255,7 @@ export function CourierDispatchPage() {
                           <button
                             className="btn btn--sm btn--primary"
                             title="Recall and Refill into New DC Form"
-                            style={{ background: '#d97706', borderColor: '#b45309' }}
+                            style={{ background: '#d97706', borderColor: '#d97706' }}
                             onClick={() => {
                               setAddForm({
                                 dcNo: d.dcNo || '',
@@ -1461,7 +1461,7 @@ export function BillWarrantyPage() {
       summary: [
         { label: 'Total Bills Archived', value: `${filtered.length} Invoices` },
         { label: 'Active Warranties', value: `${activeWarrantyCount} Active`, color: '#16a34a' },
-        { label: 'Total Invoice Value', value: `Rs ${totalValueSum.toLocaleString('en-IN')}`, color: '#C59100' },
+        { label: 'Total Invoice Value', value: `Rs ${totalValueSum.toLocaleString('en-IN')}`, color: '#b27f0d' },
       ],
       headers: [
         { title: 'Bill No' },
@@ -1669,7 +1669,7 @@ export function BillWarrantyPage() {
                           #{item.billNo}
                         </span>
                       </td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '0.85rem', fontWeight: 600 }}>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 600 }}>
                         {assetNos}
                       </td>
                       <td style={{ whiteSpace: 'nowrap', fontSize: '0.88rem' }}>{item.date}</td>
@@ -1884,7 +1884,7 @@ export function OtherStockPage() {
         { label: 'Location', value: item.location || 'HO Store' },
         { label: 'Size & Variants', value: variantBreakdown || 'Default' },
         { label: 'Total Stock Available', value: `${item.availableQty} Units` },
-        { label: 'Used Stock', value: `${item.usedQty} Units`, color: '#0284c7' }
+        { label: 'Used Stock', value: `${item.usedQty} Units`, color: '#2563eb' }
       ],
       headers: [
         { title: 'Date' },
@@ -1939,9 +1939,9 @@ export function OtherStockPage() {
             </div>
 
             {/* Subtitles / Specifications */}
-            <div style={{ background: '#f8fafc', padding: 'var(--space-4)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: 'var(--space-4)' }}>
+            <div style={{ background: '#f9f9fb', padding: 'var(--space-4)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: 'var(--space-4)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1e3a8a' }}>Add Subtitle + (Custom Specifications / Details)</span>
+                <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#172025' }}>Add Subtitle + (Custom Specifications / Details)</span>
                 <button type="button" className="btn btn--sm btn--outline" onClick={() => setAddForm(f => ({ ...f, subtitles: [...f.subtitles, { title: '', details: '', qty: 0, remarks: '' }] }))}>
                   ➕ Add Subtitle
                 </button>
@@ -2073,7 +2073,7 @@ export function OtherStockPage() {
           <button className="btn btn--primary" onClick={() => {
             setAddForm({ id: null, stockName: '', availableQty: 0, subtitles: [{ title: '', details: '', qty: 0, remarks: '' }], location: 'HO Store', remarks: '' });
             setShowAddForm(true);
-          }} style={{ background: '#059669', borderColor: 'transparent' }}>
+          }} style={{ background: '#16a34a', borderColor: 'transparent' }}>
             ➕ Add Stock Item
           </button>
         </div>
@@ -2109,18 +2109,18 @@ export function OtherStockPage() {
                     </td>
                     <td>
                       {(item.subtitles || []).map((st, idx) => (
-                        <div key={idx} style={{ fontSize: '0.82rem', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '2px' }}>
+                        <div key={idx} style={{ fontSize: '0.82rem', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f9f9fb', paddingBottom: '2px' }}>
                           <span>{st.title ? `${st.title}: ${st.details}` : st.details || 'Default'}</span>
-                          <span style={{ fontWeight: 600, color: st.qty > 0 ? '#16a34a' : '#ef4444' }}>{st.qty} left</span>
+                          <span style={{ fontWeight: 600, color: st.qty > 0 ? '#16a34a' : '#dc2626' }}>{st.qty} left</span>
                         </div>
                       ))}
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      <span style={{ fontSize: '1.2rem', fontWeight: 800, color: item.availableQty > 0 ? '#16a34a' : '#ef4444' }}>
+                      <span style={{ fontSize: '1.2rem', fontWeight: 800, color: item.availableQty > 0 ? '#16a34a' : '#dc2626' }}>
                         {item.availableQty || 0}
                       </span>
                     </td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#0284c7' }}>
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#2563eb' }}>
                       {item.usedQty || 0}
                     </td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
@@ -2128,7 +2128,7 @@ export function OtherStockPage() {
                         <button
                           className="btn btn--sm btn--primary"
                           onClick={() => { setSelectedItem(item); setUseForm({ subtitleId: item.subtitles?.[0]?.id || '', qtyToUse: 1, usedBy: 'Admin', remarks: '' }); setShowUseForm(true); }}
-                          style={{ background: '#ea580c', borderColor: 'transparent' }}
+                          style={{ background: '#d97706', borderColor: 'transparent' }}
                         >
                           📤 Use
                         </button>
@@ -2325,7 +2325,7 @@ export function RemindersPage() {
       subtitle: 'Renewal & Deadline Tracking Log',
       summary: [
         { label: 'Total Scheduled Tasks', value: `${filtered.length} Reminders` },
-        { label: 'Pending Due Tasks', value: `${pendingCount} Pending`, color: '#ea580c' },
+        { label: 'Pending Due Tasks', value: `${pendingCount} Pending`, color: '#d97706' },
         { label: 'Dispatched Email Alerts', value: `${sentCount} Sent`, color: '#16a34a' },
       ],
       headers: [
@@ -2445,10 +2445,10 @@ export function RemindersPage() {
           style={{ maxWidth: 380 }}
         />
         <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-          <button className="btn btn--secondary" onClick={handleTriggerScan} disabled={scanning} style={{ borderColor: '#6366f1', color: '#6366f1' }}>
+          <button className="btn btn--secondary" onClick={handleTriggerScan} disabled={scanning} style={{ borderColor: '#7c3aed', color: '#7c3aed' }}>
             {scanning ? 'Scanning...' : '⚡ Run Instant Scan'}
           </button>
-          <button className="btn btn--primary" onClick={() => setShowForm(true)} style={{ background: '#6366f1', borderColor: 'transparent' }}>
+          <button className="btn btn--primary" onClick={() => setShowForm(true)} style={{ background: '#7c3aed', borderColor: 'transparent' }}>
             ➕ Schedule Reminder
           </button>
         </div>

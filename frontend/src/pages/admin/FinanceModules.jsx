@@ -380,7 +380,7 @@ export function TaxPaymentsPage({ api }) {
             {years.map(y => <option key={y} value={y}>{y === 'All' ? 'All Years' : y}</option>)}
           </select>
           <input type="text" className="form-input" placeholder="Search location or bill no..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-          <button className="btn btn--primary" onClick={openNew} style={{ background: '#0284c7', borderColor: 'transparent' }}>
+          <button className="btn btn--primary" onClick={openNew} style={{ background: '#2563eb', borderColor: 'transparent' }}>
             ➕ New Tax Entry
           </button>
         </div>
@@ -684,7 +684,7 @@ export function PettyCashPage() {
             style={{ flex: 1, minWidth: 150 }}
           />
         </div>
-        <button className="btn btn--primary" onClick={() => setShowAddForm(true)} style={{ background: '#ea580c', borderColor: 'transparent' }}>
+        <button className="btn btn--primary" onClick={() => setShowAddForm(true)} style={{ background: '#d97706', borderColor: 'transparent' }}>
           ➕ Add Cash Voucher
         </button>
       </div>
@@ -878,8 +878,8 @@ export function TravelExpensePage() {
       subtitle: monthFilter ? `Month: ${monthFilter}` : 'All Trips',
       summary: [
         { label: 'Total Trips Logged', value: `${filtered.length} Trips` },
-        { label: 'Total Distance', value: `${totalKmSum.toLocaleString('en-IN')} KM`, color: '#0284c7' },
-        { label: 'Total Expense', value: `Rs ${totalCostSum.toLocaleString('en-IN')}`, color: '#C59100' },
+        { label: 'Total Distance', value: `${totalKmSum.toLocaleString('en-IN')} KM`, color: '#2563eb' },
+        { label: 'Total Expense', value: `Rs ${totalCostSum.toLocaleString('en-IN')}`, color: '#b27f0d' },
       ],
       headers: [
         { title: 'Date' },
@@ -1025,7 +1025,7 @@ export function TravelExpensePage() {
             style={{ flex: 1, minWidth: 150 }}
           />
         </div>
-        <button className="btn btn--primary" onClick={() => setShowForm(true)} style={{ background: '#0284c7', borderColor: 'transparent' }}>
+        <button className="btn btn--primary" onClick={() => setShowForm(true)} style={{ background: '#2563eb', borderColor: 'transparent' }}>
           ➕ Log Travel Record
         </button>
       </div>
@@ -1332,11 +1332,11 @@ export function PurchaseApprovalPage() {
             {viewDetails.itemImage && (
               <div>
                 <strong>Attached Image:</strong><br/>
-                <img src={viewDetails.itemImage} alt="Item" style={{ maxWidth: '100%', maxHeight: 300, marginTop: 8, borderRadius: 4, border: '1px solid #eee' }} />
+                <img src={viewDetails.itemImage} alt="Item" style={{ maxWidth: '100%', maxHeight: 300, marginTop: 8, borderRadius: 4, border: '1px solid #e4e4e7' }} />
               </div>
             )}
             {viewDetails.status === 'Purchased' && (
-              <div style={{ padding: 12, background: '#f8fafc', borderRadius: 4, marginTop: 12 }}>
+              <div style={{ padding: 12, background: '#f9f9fb', borderRadius: 4, marginTop: 12 }}>
                 <h4 style={{ margin: '0 0 8px 0' }}>Order Details</h4>
                 <div><strong>Order ID:</strong> {viewDetails.orderId}</div>
                 <div><strong>Delivery Date:</strong> {formatDate(viewDetails.deliveryDate)}</div>
@@ -1381,7 +1381,7 @@ export function PurchaseApprovalPage() {
           </div>
 
           <FormField label="Total Amount (₹)">
-            <input type="text" className="form-input" value={(addForm.quantity * (parseFloat(addForm.amount) || 0)).toFixed(2)} disabled style={{ background: '#f8fafc' }} />
+            <input type="text" className="form-input" value={(addForm.quantity * (parseFloat(addForm.amount) || 0)).toFixed(2)} disabled style={{ background: '#f9f9fb' }} />
           </FormField>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

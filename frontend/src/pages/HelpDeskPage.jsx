@@ -42,7 +42,7 @@ const CATEGORIES = [
     label: 'Housekeeping Material',
     icon: '🧴',
     desc: 'Request cleaning and housekeeping supplies',
-    color: '#0891b2',
+    color: '#2563eb',
     restricted: true,
   },
   {
@@ -71,28 +71,28 @@ const CATEGORIES = [
     label: 'Office Asset Request',
     icon: '🖥️',
     desc: 'Request new equipment or furniture',
-    color: '#9333ea',
+    color: '#7c3aed',
   },
   {
     key: 'print_scan',
     label: 'Printing & Scanning',
     icon: '🖨️',
     desc: 'Bulk printing, scanning, binding and lamination',
-    color: '#0f766e',
+    color: '#404131',
   },
   {
     key: 'courier_dispatch',
     label: 'Courier & Dispatch',
     icon: '📦',
     desc: 'Generate Delivery Challan (DC) and request courier dispatch',
-    color: '#ea580c',
+    color: '#d97706',
   },
   {
     key: 'app_feedback',
     label: 'App Feedback & Bugs',
     icon: '💡',
     desc: 'Suggest extra features or report bugs in this portal',
-    color: '#0ea5e9',
+    color: '#2563eb',
   },
 ];
 
@@ -1159,7 +1159,7 @@ function ShippingLabelForm({ userEmail }) {
       {/* Fragile Checkbox Option */}
       <div style={{
         padding: 'var(--space-3) var(--space-4)',
-        background: form.isFragile ? '#ffffe0' : 'var(--color-surface-2)',
+        background: form.isFragile ? '#fdf5e6' : 'var(--color-surface-2)',
         border: `1.5px dashed ${form.isFragile ? '#d97706' : 'var(--color-border)'}`,
         borderRadius: 'var(--radius-md)',
         transition: 'all 0.2s'
@@ -1171,7 +1171,7 @@ function ShippingLabelForm({ userEmail }) {
             onChange={e => setForm(f => ({ ...f, isFragile: e.target.checked }))}
             style={{ width: 18, height: 18, accentColor: '#d97706' }}
           />
-          <span style={{ color: form.isFragile ? '#b45309' : 'var(--color-text)' }}>
+          <span style={{ color: form.isFragile ? '#d97706' : 'var(--color-text)' }}>
             ⚠️ Add Fragile Warning Label (Includes Fragile logo taking half the page)
           </span>
         </label>
@@ -1288,7 +1288,7 @@ function CourierMergeForm({ userEmail }) {
               display: 'flex', flexDirection: 'column', gap: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', textAlign: 'left'
             }}>
               <div style={{ fontWeight: 700, color: '#9a3412', fontSize: '0.88rem' }}>DC No: #{dc.dcNo}</div>
-              <div style={{ fontSize: '0.8rem', color: '#4b5563' }}>
+              <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
                 <strong>To:</strong> {dc.receiverName}
               </div>
               <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
@@ -1299,13 +1299,13 @@ function CourierMergeForm({ userEmail }) {
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.2rem' }}>
                 <button type="button" onClick={() => setViewDc(dc)} style={{
-                  background: '#f8fafc', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.45rem',
+                  background: '#f9f9fb', color: '#6b7280', border: '1px solid #e4e4e7', borderRadius: '6px', padding: '0.45rem',
                   fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', flex: 1
                 }}>
                   👁️ View Details
                 </button>
                 <button type="button" onClick={() => setSelectedDc(dc.id)} style={{
-                  background: '#ea580c', color: 'white', border: 'none', borderRadius: '6px', padding: '0.45rem',
+                  background: '#d97706', color: 'white', border: 'none', borderRadius: '6px', padding: '0.45rem',
                   fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', flex: 1
                 }}>
                   🔗 Merge
@@ -1320,7 +1320,7 @@ function CourierMergeForm({ userEmail }) {
             <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--brand-amber)' }}>
               Merging into DC #{dispatches.find(d => d.id === selectedDc)?.dcNo}
             </span>
-            <button type="button" onClick={() => setSelectedDc(null)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Cancel</button>
+            <button type="button" onClick={() => setSelectedDc(null)} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Cancel</button>
           </div>
           <ItemsTable items={items} setItems={setItems} title="Items to Merge" />
           <button type="button" onClick={handleSubmit} className="btn btn--primary" style={{ width: '100%', marginTop: 'var(--space-2)' }} disabled={submitting}>
@@ -1331,11 +1331,11 @@ function CourierMergeForm({ userEmail }) {
       {viewDc && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
           <div style={{ background: 'white', borderRadius: '12px', padding: '1.5rem', maxWidth: '400px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1e293b' }}>DC #{viewDc.dcNo} Details</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#172025' }}>DC #{viewDc.dcNo} Details</h3>
               <button onClick={() => setViewDc(null)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
             </div>
-            <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ fontSize: '0.85rem', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div><strong>Date:</strong> {viewDc.dcDate}</div>
               <div><strong>Sender:</strong> {viewDc.senderName} ({viewDc.senderPhone || 'No Phone'})</div>
               <div><strong>Sender Email:</strong> {viewDc.requesterEmail || 'N/A'}</div>
@@ -1425,13 +1425,13 @@ function AllDispatchesHistory({ onRefill }) {
   });
 
   return (
-    <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+    <div style={{ background: '#ffffff', border: '1px solid #e4e4e7', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#172025' }}>
             📋 My Delivery Challans & History
           </h3>
-          <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+          <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#6b7280' }}>
             View Delivery Challans submitted by you. Submissions created today can be <strong>Recalled & Refilled</strong>.
           </p>
         </div>
@@ -1448,14 +1448,14 @@ function AllDispatchesHistory({ onRefill }) {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '2rem' }}><Spinner /></div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b', fontSize: '0.9rem' }}>
+        <div style={{ textAlign: 'center', padding: '2.5rem', color: '#6b7280', fontSize: '0.9rem' }}>
           No Delivery Challans found for your account ({employeeEmail}).
         </div>
       ) : (
         <div className="table-wrapper" style={{ maxHeight: '550px', overflowY: 'auto' }}>
           <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
             <thead>
-              <tr style={{ background: '#f8fafc', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+              <tr style={{ background: '#f9f9fb', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
                 <th>DC #</th>
                 <th>Date (DD/MM/YYYY)</th>
                 <th>Submitted By / Sender</th>
@@ -1473,17 +1473,17 @@ function AllDispatchesHistory({ onRefill }) {
 
                 return (
                   <tr key={d.id}>
-                    <td style={{ fontWeight: 800, color: '#0f172a' }}>#{d.dcNo}</td>
-                    <td style={{ whiteSpace: 'nowrap', fontWeight: 600, color: '#92400e' }}>
+                    <td style={{ fontWeight: 800, color: '#172025' }}>#{d.dcNo}</td>
+                    <td style={{ whiteSpace: 'nowrap', fontWeight: 600, color: '#d97706' }}>
                       {formatDateDMY(d.dcDate)}
                     </td>
                     <td>
                       <div style={{ fontWeight: 700 }}>{d.senderName || '—'}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{d.requesterEmail || ''}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{d.requesterEmail || ''}</div>
                     </td>
                     <td>
                       <div style={{ fontWeight: 700 }}>{d.receiverName || '—'}</div>
-                      {d.receiverPhone && <div style={{ fontSize: '0.75rem', color: '#64748b' }}>📞 {d.receiverPhone}</div>}
+                      {d.receiverPhone && <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>📞 {d.receiverPhone}</div>}
                     </td>
                     <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.toAddress}>
                       {d.toAddress || '—'}
@@ -1492,8 +1492,8 @@ function AllDispatchesHistory({ onRefill }) {
                     <td>
                       <span style={{
                         padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700,
-                        background: d.status === 'Dispatched' ? '#dcfce7' : d.status === 'Approved' ? '#fef3c7' : '#e2e8f0',
-                        color: d.status === 'Dispatched' ? '#166534' : d.status === 'Approved' ? '#92400e' : '#475569',
+                        background: d.status === 'Dispatched' ? '#dcfce7' : d.status === 'Approved' ? '#fef3c7' : '#e4e4e7',
+                        color: d.status === 'Dispatched' ? '#16a34a' : d.status === 'Approved' ? '#d97706' : '#6b7280',
                       }}>
                         {d.status || 'Submitted'}
                       </span>
@@ -1521,7 +1521,7 @@ function AllDispatchesHistory({ onRefill }) {
                               className="btn btn--sm btn--primary"
                               onClick={() => onRefill(d)}
                               title="Recall data and refill form for editing"
-                              style={{ background: '#d97706', borderColor: '#b45309', color: '#ffffff', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700 }}
+                              style={{ background: '#d97706', borderColor: '#d97706', color: '#ffffff', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700 }}
                             >
                               🔄 Recall & Refill
                             </button>
@@ -1530,13 +1530,13 @@ function AllDispatchesHistory({ onRefill }) {
                               className="btn btn--sm"
                               onClick={() => handleDeleteDc(d)}
                               title="Delete this DC (current day only)"
-                              style={{ background: '#ef4444', borderColor: '#dc2626', color: '#ffffff', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700 }}
+                              style={{ background: '#dc2626', borderColor: '#dc2626', color: '#ffffff', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700 }}
                             >
                               🗑️ Delete
                             </button>
                           </>
                         ) : (
-                          <span style={{ fontSize: '0.7rem', color: '#94a3b8', padding: '4px 6px' }}>Past Date</span>
+                          <span style={{ fontSize: '0.7rem', color: '#aab2b2', padding: '4px 6px' }}>Past Date</span>
                         )}
                       </div>
                     </td>
@@ -1551,14 +1551,14 @@ function AllDispatchesHistory({ onRefill }) {
       {viewDc && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, padding: '1rem' }}>
           <div style={{ background: 'white', borderRadius: '12px', padding: '1.5rem', maxWidth: '480px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a', fontWeight: 800 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#172025', fontWeight: 800 }}>
                 📋 Delivery Challan #{viewDc.dcNo}
               </h3>
-              <button onClick={() => setViewDc(null)} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#64748b' }}>×</button>
+              <button onClick={() => setViewDc(null)} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#6b7280' }}>×</button>
             </div>
-            <div style={{ fontSize: '0.85rem', color: '#334155', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <div><strong>Date (DD/MM/YYYY):</strong> <span style={{ color: '#b45309', fontWeight: 700 }}>{formatDateDMY(viewDc.dcDate)}</span></div>
+            <div style={{ fontSize: '0.85rem', color: '#172025', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div><strong>Date (DD/MM/YYYY):</strong> <span style={{ color: '#d97706', fontWeight: 700 }}>{formatDateDMY(viewDc.dcDate)}</span></div>
               <div><strong>Sender / Employee:</strong> {viewDc.senderName} ({viewDc.senderPhone || 'No Phone'})</div>
               <div><strong>Requester Email:</strong> {viewDc.requesterEmail || 'N/A'}</div>
               <div><strong>Receiver Name:</strong> {viewDc.receiverName} ({viewDc.receiverPhone || 'No Phone'})</div>
@@ -1575,7 +1575,7 @@ function AllDispatchesHistory({ onRefill }) {
                   <button
                     type="button"
                     className="btn btn--primary"
-                    style={{ flex: 1, background: '#d97706', borderColor: '#b45309' }}
+                    style={{ flex: 1, background: '#d97706', borderColor: '#d97706' }}
                     onClick={() => { setViewDc(null); onRefill(viewDc); }}
                   >
                     🔄 Recall & Refill Form
@@ -1583,7 +1583,7 @@ function AllDispatchesHistory({ onRefill }) {
                   <button
                     type="button"
                     className="btn"
-                    style={{ flex: 1, background: '#ef4444', borderColor: '#dc2626', color: '#fff' }}
+                    style={{ flex: 1, background: '#dc2626', borderColor: '#dc2626', color: '#fff' }}
                     onClick={() => { setViewDc(null); handleDeleteDc(viewDc); }}
                   >
                     🗑️ Delete DC
@@ -1731,7 +1731,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
           }}>
             <span style={{ fontSize: '1.3rem' }}>🔄</span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#92400e' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#d97706' }}>
                 Editing Recalled DC #{form._recalledDcNo}
               </div>
               <div style={{ fontSize: '0.78rem', color: '#78350f', marginTop: '2px' }}>
@@ -1747,7 +1747,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
                 const { _recalledDcId, _recalledDcNo, _hasMergeRequests, ...rest } = f;
                 return rest;
               })}
-              style={{ background: 'none', border: '1px solid #b45309', borderRadius: '6px', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, color: '#92400e', cursor: 'pointer' }}
+              style={{ background: 'none', border: '1px solid #d97706', borderRadius: '6px', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, color: '#d97706', cursor: 'pointer' }}
               title="Cancel recall mode and create a fresh DC instead"
             >
               Cancel Recall
@@ -1857,7 +1857,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
 
         <div style={{
           padding: 'var(--space-3) var(--space-4)',
-          background: form.isFragile ? '#ffffe0' : 'var(--color-surface-2)',
+          background: form.isFragile ? '#fdf5e6' : 'var(--color-surface-2)',
           border: `1.5px dashed ${form.isFragile ? '#d97706' : 'var(--color-border)'}`,
           borderRadius: 'var(--radius-md)',
           transition: 'all 0.2s'
@@ -1869,7 +1869,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
               onChange={e => setForm(f => ({ ...f, isFragile: e.target.checked }))}
               style={{ width: 18, height: 18, accentColor: '#d97706' }}
             />
-            <span style={{ color: form.isFragile ? '#b45309' : 'var(--color-text)' }}>
+            <span style={{ color: form.isFragile ? '#d97706' : 'var(--color-text)' }}>
               ⚠️ Add Fragile Warning Label (Include Fragile graphic in parcel shipping label)
             </span>
           </label>
@@ -1888,7 +1888,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
                 <input type="text" className="form-input" placeholder="Weight (optional)" value={bx.weight || ''}
                   onChange={e => { const arr = [...boxes]; arr[idx].weight = e.target.value; updateBoxes(arr); }} style={{ flex: 1 }} />
                 {boxes.length > 1 && (
-                  <button type="button" onClick={() => updateBoxes(boxes.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.4rem', fontSize: '1.2rem', lineHeight: 1 }}>&times;</button>
+                  <button type="button" onClick={() => updateBoxes(boxes.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: '0.4rem', fontSize: '1.2rem', lineHeight: 1 }}>&times;</button>
                 )}
               </div>
             ))}

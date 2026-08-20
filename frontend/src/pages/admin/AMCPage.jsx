@@ -174,7 +174,7 @@ export function AMCPage() {
         />
         <div className="card">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-5)' }}>
-            <div style={{ background: '#f8fafc', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px solid #e2e8f0' }}>
+            <div style={{ background: '#f9f9fb', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px solid #e4e4e7' }}>
               <h4 style={{ color: 'var(--color-primary-dark)', marginBottom: 'var(--space-3)', fontSize: '0.95rem' }}>📄 Contract Specifications</h4>
               <div style={{ fontSize: '0.88rem', lineHeight: 1.8 }}>
                 <div><strong>Doc No:</strong> {viewModal.doc_no || '-'}</div>
@@ -187,34 +187,34 @@ export function AMCPage() {
               </div>
             </div>
             
-            <div style={{ background: '#f8fafc', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px solid #e2e8f0' }}>
+            <div style={{ background: '#f9f9fb', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px solid #e4e4e7' }}>
               <h4 style={{ color: 'var(--color-primary-dark)', marginBottom: 'var(--space-3)', fontSize: '0.95rem' }}>📞 Vendor & Contact Info</h4>
               <div style={{ fontSize: '0.88rem', lineHeight: 1.8 }}>
                 <div><strong>Vendor Contact:</strong> {viewModal.vendor_contact || '-'}</div>
                 <div><strong>Contact Phone:</strong> {viewModal.vendor_phone || '-'}</div>
               </div>
               <h4 style={{ color: 'var(--color-primary-dark)', margin: 'var(--space-4) 0 var(--space-2)', fontSize: '0.95rem' }}>Coverage Scope:</h4>
-              <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', background: '#fff', padding: 'var(--space-2)', border: '1px solid #e2e8f0', borderRadius: 4, minHeight: 60 }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', background: '#fff', padding: 'var(--space-2)', border: '1px solid #e4e4e7', borderRadius: 4, minHeight: 60 }}>
                 {viewModal.coverage_specs || 'No coverage details provided.'}
               </div>
             </div>
           </div>
 
-          <h4 style={{ fontSize: '1rem', color: '#0f172a', marginBottom: 'var(--space-4)', borderBottom: '2px solid #e2e8f0', paddingBottom: 'var(--space-2)' }}>
+          <h4 style={{ fontSize: '1rem', color: '#172025', marginBottom: 'var(--space-4)', borderBottom: '2px solid #e4e4e7', paddingBottom: 'var(--space-2)' }}>
             🛠️ Service Visits History Logs ({viewModal.visits?.length || 0})
           </h4>
           
-          <div style={{ maxHeight: 300, overflowY: 'auto', marginBottom: 'var(--space-5)', border: '1px solid #e2e8f0', borderRadius: 'var(--radius)', padding: 'var(--space-3)', background: '#f1f5f9' }}>
+          <div style={{ maxHeight: 300, overflowY: 'auto', marginBottom: 'var(--space-5)', border: '1px solid #e4e4e7', borderRadius: 'var(--radius)', padding: 'var(--space-3)', background: '#f9f9fb' }}>
             {(!viewModal.visits || viewModal.visits.length === 0) ? (
               <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 'var(--space-4)' }}>No visits logged yet.</div>
             ) : (
               viewModal.visits.map((v, i) => (
-                <div key={v.id} style={{ background: '#fff', border: '1px solid #cbd5e1', borderRadius: 'var(--radius)', padding: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
+                <div key={v.id} style={{ background: '#fff', border: '1px solid #e4e4e7', borderRadius: 'var(--radius)', padding: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
                     <div style={{ fontWeight: 600 }}>Visit #{v.visit_no || (i + 1)} <Badge status={v.status === 'Completed' ? 'success' : 'warning'} label={v.status || 'Pending'} /></div>
-                    <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Scheduled: {v.scheduled_date || v.last_service_date || '-'}</div>
+                    <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Scheduled: {v.scheduled_date || v.last_service_date || '-'}</div>
                   </div>
-                  <div style={{ fontSize: '0.85rem', lineHeight: 1.6, color: '#334155' }}>
+                  <div style={{ fontSize: '0.85rem', lineHeight: 1.6, color: '#172025' }}>
                     <div><strong>Technician:</strong> {v.service_person || '-'} ({v.contact_number || '-'})</div>
                     <div><strong>Service No:</strong> {v.service_no || '-'}</div>
                     {v.remarks && <div><strong>Remarks:</strong> {v.remarks}</div>}
@@ -225,7 +225,7 @@ export function AMCPage() {
           </div>
 
           <h4 style={{ fontSize: '1rem', color: 'var(--color-primary-dark)', marginBottom: 'var(--space-4)', marginTop: 'var(--space-5)' }}>➕ Log New Visit</h4>
-          <form onSubmit={handleLogVisit} style={{ background: '#f8fafc', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px dashed #cbd5e1' }}>
+          <form onSubmit={handleLogVisit} style={{ background: '#f9f9fb', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px dashed #e4e4e7' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 'var(--space-4)' }}>
               <FormField label="Scheduled Date"><input type="date" className="form-input" value={visitForm.scheduled_date} onChange={e=>setVisitForm(f=>({...f, scheduled_date: e.target.value}))} /></FormField>
               <FormField label="Actual Visit Date"><input type="date" className="form-input" value={visitForm.last_service_date} onChange={e=>setVisitForm(f=>({...f, last_service_date: e.target.value}))} /></FormField>
@@ -312,8 +312,8 @@ export function AMCPage() {
       sections: [{
         customHtml: `
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-            <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid #e2e8f0;">
-              <h4 style="color: #0f172a; margin-bottom: 0.75rem; font-size: 0.95rem;">📄 Contract Specifications</h4>
+            <div style="background: #f9f9fb; padding: 1rem; border-radius: 6px; border: 1px solid #e4e4e7;">
+              <h4 style="color: #172025; margin-bottom: 0.75rem; font-size: 0.95rem;">📄 Contract Specifications</h4>
               <div style="font-size: 0.88rem; line-height: 1.8;">
                 <div><strong>Doc No:</strong> ${c.doc_no || '-'}</div>
                 <div><strong>Units / Location:</strong> ${c.units_location || '-'}</div>
@@ -324,14 +324,14 @@ export function AMCPage() {
                 <div><strong>Next Overall Service:</strong> ${c.next_service || 'N/A'}</div>
               </div>
             </div>
-            <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid #e2e8f0;">
-              <h4 style="color: #0f172a; margin-bottom: 0.75rem; font-size: 0.95rem;">📞 Vendor & Contact Info</h4>
+            <div style="background: #f9f9fb; padding: 1rem; border-radius: 6px; border: 1px solid #e4e4e7;">
+              <h4 style="color: #172025; margin-bottom: 0.75rem; font-size: 0.95rem;">📞 Vendor & Contact Info</h4>
               <div style="font-size: 0.88rem; line-height: 1.8;">
                 <div><strong>Vendor Contact:</strong> ${c.vendor_contact || '-'}</div>
                 <div><strong>Contact Phone:</strong> ${c.vendor_phone || '-'}</div>
               </div>
-              <h4 style="color: #0f172a; margin: 1rem 0 0.5rem; font-size: 0.95rem;">Coverage Scope:</h4>
-              <div style="font-size: 0.85rem; color: #475569; background: #fff; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 4px; min-height: 60px;">
+              <h4 style="color: #172025; margin: 1rem 0 0.5rem; font-size: 0.95rem;">Coverage Scope:</h4>
+              <div style="font-size: 0.85rem; color: #6b7280; background: #fff; padding: 0.5rem; border: 1px solid #e4e4e7; border-radius: 4px; min-height: 60px;">
                 ${c.coverage_specs || 'No coverage details provided.'}
               </div>
             </div>
@@ -423,7 +423,7 @@ export function AMCPage() {
       {viewModal && (
         <Modal isOpen={!!viewModal} onClose={() => setViewModal(null)} title={`📋 ${viewModal.amc_name || viewModal.equipment_name} Details`} size="lg">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-5)' }}>
-            <div style={{ background: '#f8fafc', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px solid #e2e8f0' }}>
+            <div style={{ background: '#f9f9fb', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px solid #e4e4e7' }}>
               <h4 style={{ color: 'var(--color-primary-dark)', marginBottom: 'var(--space-3)', fontSize: '0.95rem' }}>📄 Contract Specifications</h4>
               <div style={{ fontSize: '0.88rem', lineHeight: 1.8 }}>
                 <div><strong>Doc No:</strong> {viewModal.doc_no || '-'}</div>
@@ -436,34 +436,34 @@ export function AMCPage() {
               </div>
             </div>
             
-            <div style={{ background: '#f8fafc', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px solid #e2e8f0' }}>
+            <div style={{ background: '#f9f9fb', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px solid #e4e4e7' }}>
               <h4 style={{ color: 'var(--color-primary-dark)', marginBottom: 'var(--space-3)', fontSize: '0.95rem' }}>📞 Vendor & Contact Info</h4>
               <div style={{ fontSize: '0.88rem', lineHeight: 1.8 }}>
                 <div><strong>Vendor Contact:</strong> {viewModal.vendor_contact || '-'}</div>
                 <div><strong>Contact Phone:</strong> {viewModal.vendor_phone || '-'}</div>
               </div>
               <h4 style={{ color: 'var(--color-primary-dark)', margin: 'var(--space-4) 0 var(--space-2)', fontSize: '0.95rem' }}>Coverage Scope:</h4>
-              <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', background: '#fff', padding: 'var(--space-2)', border: '1px solid #e2e8f0', borderRadius: 4, minHeight: 60 }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', background: '#fff', padding: 'var(--space-2)', border: '1px solid #e4e4e7', borderRadius: 4, minHeight: 60 }}>
                 {viewModal.coverage_specs || 'No coverage details provided.'}
               </div>
             </div>
           </div>
 
-          <h4 style={{ fontSize: '1rem', color: '#0f172a', marginBottom: 'var(--space-4)', borderBottom: '2px solid #e2e8f0', paddingBottom: 'var(--space-2)' }}>
+          <h4 style={{ fontSize: '1rem', color: '#172025', marginBottom: 'var(--space-4)', borderBottom: '2px solid #e4e4e7', paddingBottom: 'var(--space-2)' }}>
             🛠️ Service Visits History Logs ({viewModal.visits?.length || 0})
           </h4>
           
-          <div style={{ maxHeight: 300, overflowY: 'auto', marginBottom: 'var(--space-5)', border: '1px solid #e2e8f0', borderRadius: 'var(--radius)', padding: 'var(--space-3)', background: '#f1f5f9' }}>
+          <div style={{ maxHeight: 300, overflowY: 'auto', marginBottom: 'var(--space-5)', border: '1px solid #e4e4e7', borderRadius: 'var(--radius)', padding: 'var(--space-3)', background: '#f9f9fb' }}>
             {(!viewModal.visits || viewModal.visits.length === 0) ? (
               <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 'var(--space-4)' }}>No visits logged yet.</div>
             ) : (
               viewModal.visits.map((v, i) => (
-                <div key={v.id} style={{ background: '#fff', border: '1px solid #cbd5e1', borderRadius: 'var(--radius)', padding: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
+                <div key={v.id} style={{ background: '#fff', border: '1px solid #e4e4e7', borderRadius: 'var(--radius)', padding: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
                     <strong style={{ color: 'var(--color-primary)' }}>Visit #{v.visit_no || (i + 1)}</strong>
                     <Badge status={v.status === 'Completed' ? 'success' : 'warning'} label={v.status || 'Pending'} />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'var(--space-2)', fontSize: '0.85rem', color: '#475569' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'var(--space-2)', fontSize: '0.85rem', color: '#6b7280' }}>
                     <div><strong>Scheduled:</strong> {v.scheduled_date || '-'}</div>
                     <div><strong>Last Service:</strong> {v.last_service_date || '-'}</div>
                     <div><strong>Next Service:</strong> {v.next_service_date || '-'}</div>
@@ -472,7 +472,7 @@ export function AMCPage() {
                     <div><strong>Contact:</strong> {v.contact_number || '-'}</div>
                   </div>
                   {v.remarks && (
-                    <div style={{ marginTop: 'var(--space-2)', fontSize: '0.85rem', background: '#f8fafc', padding: 'var(--space-2)', borderRadius: 4 }}>
+                    <div style={{ marginTop: 'var(--space-2)', fontSize: '0.85rem', background: '#f9f9fb', padding: 'var(--space-2)', borderRadius: 4 }}>
                       <strong>Remarks:</strong> {v.remarks}
                     </div>
                   )}
@@ -481,7 +481,7 @@ export function AMCPage() {
             )}
           </div>
 
-          <div style={{ background: '#fff', border: '1px dashed #94a3b8', borderRadius: 'var(--radius)', padding: 'var(--space-4)' }}>
+          <div style={{ background: '#fff', border: '1px dashed #aab2b2', borderRadius: 'var(--radius)', padding: 'var(--space-4)' }}>
             <h5 style={{ margin: '0 0 var(--space-3) 0', color: 'var(--color-primary-dark)' }}>📝 Log New Visit</h5>
             <form onSubmit={handleLogVisit}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>

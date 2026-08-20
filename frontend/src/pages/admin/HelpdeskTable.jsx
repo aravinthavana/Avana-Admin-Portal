@@ -161,7 +161,7 @@ export function HelpdeskTable({ categoryFilter }) {
       subtitle: fromDate || toDate ? `Date range: ${fromDate || 'Start'} to ${toDate || 'Today'}` : 'All Help Desk Requests',
       summary: [
         { label: 'Total Requests', value: `${filtered.length} Requests` },
-        { label: 'Pending Requests', value: `${filtered.filter(r => (r.status || '').toLowerCase() === 'pending').length}`, color: '#ea580c' },
+        { label: 'Pending Requests', value: `${filtered.filter(r => (r.status || '').toLowerCase() === 'pending').length}`, color: '#d97706' },
         { label: 'Completed', value: `${filtered.filter(r => (r.status || '').toLowerCase() === 'completed').length}`, color: '#16a34a' },
       ],
       headers: [
@@ -181,7 +181,7 @@ export function HelpdeskTable({ categoryFilter }) {
           idx + 1,
           formatDateTime(req.created_at || req.createdAt),
           CATEGORY_LABELS[req.category] || req.category || 'General',
-          `${req.name || req.full_name || req.requester_name || req.requesterName || 'Employee'}<br/><span style="font-size:0.75rem;color:#64748b">${req.email || req.requester_email || req.requesterEmail || ''}</span>`,
+          `${req.name || req.full_name || req.requester_name || req.requesterName || 'Employee'}<br/><span style="font-size:0.75rem;color:#6b7280">${req.email || req.requester_email || req.requesterEmail || ''}</span>`,
           req.floor_no || req.floorNo || req.location || req.floor || 'N/A',
           `${details}${itemStr}`,
           req.status || 'Pending',
@@ -553,7 +553,7 @@ export function HelpdeskTable({ categoryFilter }) {
                 <span>{r.location || r.floor || '—'}</span>
               </div>
 
-              <div style={{ background: '#f8fafc', padding: 'var(--space-3)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
+              <div style={{ background: '#f9f9fb', padding: 'var(--space-3)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
                 <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 6 }}>Request Details</strong>
                 <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5, color: 'var(--color-text-primary)' }}>
                   {meta && meta.request_type ? <strong>[{meta.request_type}] </strong> : ''}

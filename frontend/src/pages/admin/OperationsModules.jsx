@@ -130,17 +130,17 @@ export function AssetTrackerPage() {
         <head>
           <title>Asset Handover - ${selectedHandover.name}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 40px; color: #1c1c1e; }
-            .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #c17f24; padding-bottom: 20px; margin-bottom: 30px; }
+            body { font-family: Arial, sans-serif; padding: 40px; color: #172025; }
+            .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #b27f0d; padding-bottom: 20px; margin-bottom: 30px; }
             .logo { max-height: 50px; }
-            .title { font-size: 24px; font-weight: bold; color: #c17f24; }
+            .title { font-size: 24px; font-weight: bold; color: #b27f0d; }
             .details { margin-bottom: 30px; }
             .details p { margin: 5px 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { padding: 12px; border: 1px solid #e4e4e7; text-align: left; }
             th { background-color: #f9f9fb; }
             .signature-box { margin-top: 60px; display: flex; justify-content: space-between; }
-            .sign-line { border-top: 1px solid #000; padding-top: 10px; width: 250px; text-align: center; }
+            .sign-line { border-top: 1px solid #172025; padding-top: 10px; width: 250px; text-align: center; }
           </style>
         </head>
         <body>

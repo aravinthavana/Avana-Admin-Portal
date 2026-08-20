@@ -50,7 +50,7 @@ const CATEGORIES = [
     label: 'Admin Support',
     icon: '💼',
     desc: 'Get assistance from the admin team',
-    color: '#c17f24',
+    color: '#b27f0d',
   },
   {
     key: 'maintenance',

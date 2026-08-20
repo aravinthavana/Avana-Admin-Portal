@@ -85,7 +85,7 @@
 
 .sidebar {
   width: var(--current-sidebar-width);
-  background: #000000;
+  background: var(--brand-charcoal);
   color: #ffffff;
   display: flex;
   flex-direction: column;
@@ -104,7 +104,7 @@
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid rgba(255,255,255,0.1);
   flex-shrink: 0;
-  background: #000000;
+  background: var(--brand-charcoal);
 }
 
 /* Invert logo on dark sidebar */
@@ -158,7 +158,7 @@
 }
 
 .sidebar__link--active {
-  background: rgba(193,127,36,0.25);
+  background: rgba(178,127,13,0.25);
   color: var(--brand-amber-light);
 }
 
@@ -191,7 +191,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #fdfcfb 0%, #f5f0e8 100%);
+  background: linear-gradient(135deg, #fdfcfb 0%, var(--brand-beige) 100%);
   background-attachment: fixed;
   transition: margin-left var(--transition-slow);
 }

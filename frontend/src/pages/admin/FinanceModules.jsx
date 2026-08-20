@@ -408,9 +408,9 @@ export function TaxPaymentsPage({ api }) {
                     <tr key={r.id}>
                       <td style={{ fontWeight: 600 }}>{r.location}</td>
                       <td>{r.bill_no}</td>
-                      <td style={{ color: '#000' }}>{r.year} - {r.term}</td>
-                      <td style={{ color: '#000' }}>{r.due_date}</td>
-                      <td style={{ color: '#000' }}>₹{Number(r.amount).toLocaleString()}</td>
+                      <td style={{ color: '#172025' }}>{r.year} - {r.term}</td>
+                      <td style={{ color: '#172025' }}>{r.due_date}</td>
+                      <td style={{ color: '#172025' }}>₹{Number(r.amount).toLocaleString()}</td>
                       <td><Badge status={r.status === 'Paid' ? 'success' : 'warning'} label={r.status || 'Unpaid'} /></td>
                       <td>
                         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>

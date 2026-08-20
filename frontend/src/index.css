@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=Fira+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=Fira+Sans:wght@400;500;600;700&family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap');
 
 /* ============================================================
    AVANA PORTAL — Design System
@@ -69,7 +69,7 @@
   /* Typography */
   --font-body:    'Arimo', system-ui, -apple-system, sans-serif;
   --font-heading: 'Fira Sans', system-ui, -apple-system, sans-serif;
-  --font-subtitle: 'Zalando Sans Medium', 'Arimo', sans-serif;
+  --font-subtitle: 'Zalando Sans', 'Arimo', sans-serif;
   --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
 
   /* Spacing Scale */

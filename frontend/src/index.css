@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=Fira+Sans:wght@400;500;600;700&display=swap');
 
 /* ============================================================
    AVANA PORTAL — Design System
@@ -26,11 +26,14 @@
 /* ── CSS Custom Properties ── */
 :root {
   /* Brand */
-  --brand-amber:       #c17f24;
-  --brand-amber-dark:  #9e6418;
-  --brand-amber-light: #e8a83e;
+  --brand-amber:       #b27f0d;
+  --brand-amber-dark:  #8b6209;
+  --brand-amber-light: #d6980f;
   --brand-amber-bg:    #fdf5e6;
-  --brand-charcoal:    #1c1c1e;
+  --brand-charcoal:    #172025;
+  --brand-olive:       #404131;
+  --brand-beige:       #d7d0bc;
+  --brand-grey:        #aab2b2;
 
   /* Neutral Palette */
   --color-bg:          #f5f5f7;
@@ -40,7 +43,7 @@
   --color-border-light:#f0f0f2;
 
   /* Text */
-  --color-text-primary:   #1c1c1e;
+  --color-text-primary:   #172025;
   --color-text-secondary: #6b7280;
   --color-text-muted:     #9ca3af;
   --color-text-inverse:   #ffffff;
@@ -64,8 +67,9 @@
   --color-pending-bg:     #f5f3ff;
 
   /* Typography */
-  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-body:    'Arimo', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Fira Sans', system-ui, -apple-system, sans-serif;
+  --font-subtitle: 'Zalando Sans Medium', 'Arimo', sans-serif;
   --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
 
   /* Spacing Scale */

@@ -7,27 +7,55 @@ exports.getHelpdeskRequests = async (req, res, next) => {
     const bookingsService = require('../services/bookings.service');
     const bookings = await bookingsService.getAllBookings();
 
-    const conferenceRequests = bookings.map(b => ({
-      id: b.id,
-      category: 'conference',
-      categoryTitle: 'Conference Room Booking',
-      submittedAt: b.createdAt || b.submittedAt || new Date(b.startDate || b.date).toISOString(),
-      subcategory: b.bookingType === 'full' ? 'Full Day' : `${b.startTime} - ${b.endTime}`,
-      floor: 'Conference Room',
-      exact_issue: `Reason: ${b.reason || 'N/A'} | Date: ${b.startDate || b.date}` + (b.endDate && b.endDate !== b.startDate ? ` to ${b.endDate}` : '') + (b.attendees ? ` | Attendees: ${b.attendees}` : '') + (b.food && b.food !== 'none' ? ` | Food: ${b.food}` : ''),
-      reason: b.reason || 'N/A',
-      attendees: b.attendees || 'None',
-      food: b.food || 'none',
-      foodCount: b.foodCount || 0,
-      foodSpecify: b.foodSpecify || '',
-      startDate: b.startDate || b.date,
-      endDate: b.endDate || b.date,
-      remarks: b.remarks || 'None',
-      status: b.status || 'pending',
-      requester_name: b.name,
-      requester_phone: b.phone || b.email,
-      createdAt: b.createdAt || new Date().toISOString()
-    }));
+    const conferenceRequests = bookings.map(b => {
+      let parsedAttendees = [];
+      try {
+        parsedAttendees = Array.isArray(b.attendees) ? b.attendees : JSON.parse(b.attendees || '[]');
+      } catch {
+        parsedAttendees = b.attendees ? [b.attendees] : [];
+      }
+      const attendeesStr = parsedAttendees.length > 0 ? parsedAttendees.join(', ') : 'None';
+      const foodName = b.food === 'others' && b.foodSpecify ? b.foodSpecify : b.food;
+      const foodStr = (b.food && b.food !== 'none')
+        ? `${foodName}${b.foodCount ? ` (Qty: ${b.foodCount})` : ''}`
+        : 'None';
+
+      const timingStr = b.bookingType === 'full' ? 'Full Day (09:00 - 18:00)' : `${b.startTime || '09:00'} - ${b.endTime || '18:00'}`;
+      const dateRangeStr = `${b.startDate || b.date}${b.endDate && b.endDate !== (b.startDate || b.date) ? ` to ${b.endDate}` : ''}`;
+
+      return {
+        id: b.id,
+        category: 'conference',
+        categoryTitle: 'Conference Room Booking',
+        submittedAt: b.createdAt || b.submittedAt || new Date(b.startDate || b.date).toISOString(),
+        subcategory: b.bookingType === 'full' ? 'Full Day' : `${b.startTime} - ${b.endTime}`,
+        floor: 'Conference Room',
+        location: 'Conference Room',
+        exact_issue: `Reason: ${b.reason || 'N/A'} | Date: ${dateRangeStr} (${timingStr}) | Attendees: ${attendeesStr}${b.food && b.food !== 'none' ? ` | Food: ${foodStr}` : ''}`,
+        reason: b.reason || 'N/A',
+        attendees: parsedAttendees,
+        attendeesStr,
+        bookingType: b.bookingType,
+        startTime: b.startTime,
+        endTime: b.endTime,
+        food: b.food || 'none',
+        foodCount: b.foodCount || 0,
+        foodSpecify: b.foodSpecify || '',
+        foodStr,
+        startDate: b.startDate || b.date,
+        endDate: b.endDate || b.date,
+        remarks: b.remarks || 'None',
+        status: b.status || 'pending',
+        requester_name: b.name,
+        requester_phone: b.phone || b.email,
+        requester_email: b.email || '',
+        email: b.email || '',
+        name: b.name || '',
+        phone: b.phone || '',
+        createdAt: b.createdAt || new Date().toISOString()
+      };
+    });
+
 
     const allCombined = [...requests, ...conferenceRequests];
     const sorted = allCombined.sort((a, b) => new Date(b.createdAt || b.submittedAt) - new Date(a.createdAt || a.submittedAt));

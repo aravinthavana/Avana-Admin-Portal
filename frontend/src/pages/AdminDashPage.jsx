@@ -173,6 +173,61 @@ function ChangePasswordPanel() {
 }
 
 /* ─── Main AdminDashPage ──────────────────────────────────── */
+
+function parseAttendeesList(att) {
+  if (!att) return [];
+  if (Array.isArray(att)) return att.filter(Boolean);
+  if (typeof att === 'string') {
+    const trimmed = att.trim();
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed.filter(Boolean);
+      } catch {}
+    }
+    if (trimmed.includes(',')) {
+      return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    if (trimmed !== 'None' && trimmed !== '—') return [trimmed];
+  }
+  return [];
+}
+
+function printSingleBooking(b) {
+  const attendeesList = parseAttendeesList(b.attendees);
+  const foodName = b.food === 'others' && b.foodSpecify ? b.foodSpecify : b.food;
+  const foodDisplay = (b.food && b.food !== 'none') ? `${foodName}${b.foodCount ? ` (Qty: ${b.foodCount})` : ''}` : 'None';
+  const timeDisplay = b.bookingType === 'full' ? 'Full Day (09:00 - 18:00)' : `${b.startTime || '09:00'} - ${b.endTime || '18:00'}`;
+  const dateDisplay = `${formatDate(b.startDate || b.date)}${b.endDate && b.endDate !== (b.startDate || b.date) ? ` to ${formatDate(b.endDate)}` : ''}`;
+
+  openLegacyPrintReport({
+    title: 'Conference Room Reservation Slip',
+    subtitle: `Reservation Details for ${b.name || 'Organizer'}`,
+    docNo: `CONF-${String(b.id).slice(0, 8).toUpperCase()}`,
+    details: [
+      { label: 'Booking ID', value: b.id },
+      { label: 'Status', value: (b.status || 'Pending').toUpperCase() },
+      { label: 'Submitted Date', value: b.createdAt ? formatDate(b.createdAt.slice(0, 10)) : '—' },
+      { label: 'Meeting Date(s)', value: dateDisplay },
+      { label: 'Booking Type', value: b.bookingType === 'full' ? 'Full Day' : 'Time Slot' },
+      { label: 'Reserved Time', value: timeDisplay },
+      { label: 'Organizer Name', value: b.name || '—' },
+      { label: 'Contact Phone', value: b.phone || '—' },
+      { label: 'Contact Email', value: b.email || '—' },
+      { label: 'Meeting Purpose', value: b.reason || '—' },
+      { label: 'Food Arrangement', value: foodDisplay },
+      { label: 'Special Remarks', value: b.remarks || 'None' },
+    ],
+    headers: [
+      { title: '#', align: 'center' },
+      { title: 'Attendee Name', align: 'left' }
+    ],
+    rows: attendeesList.length > 0
+      ? attendeesList.map((att, idx) => [idx + 1, att])
+      : [[1, 'No individual attendee names listed']],
+  });
+}
+
 export default function AdminDashPage() {
   const toast = useToast();
 
@@ -184,7 +239,8 @@ export default function AdminDashPage() {
   const [filterMonth, setFilterMonth] = useState('all');
   const [filterYear, setFilterYear] = useState(String(nowYear));
 
-  const [confirmDelete, setConfirmDelete] = useState(null); // booking id
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [activeDetailBooking, setActiveDetailBooking] = useState(null); // booking id
   const [deleting, setDeleting] = useState(false);
   const [rejectBookingId, setRejectBookingId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -457,6 +513,14 @@ export default function AdminDashPage() {
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            className="btn btn--secondary btn--sm"
+                            onClick={() => setActiveDetailBooking(b)}
+                            aria-label={`View details for booking by ${b.name}`}
+                          >
+                            🔍 Details
+                          </button>
                           {(b.status || 'pending') === 'pending' && (
                             <>
                               <button
@@ -514,6 +578,142 @@ export default function AdminDashPage() {
         confirmLabel="Delete"
         dangerous
       />
+
+
+      {/* ── Active Detail Booking Modal ── */}
+      <Modal
+        isOpen={!!activeDetailBooking}
+        onClose={() => setActiveDetailBooking(null)}
+        title="📅 Conference Room Reservation Details"
+        footer={
+          activeDetailBooking && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => printSingleBooking(activeDetailBooking)}
+              >
+                🖨️ Print Slip
+              </button>
+              <button type="button" className="btn btn--secondary" onClick={() => setActiveDetailBooking(null)}>
+                Close
+              </button>
+            </div>
+          )
+        }
+      >
+        {activeDetailBooking && (() => {
+          const b = activeDetailBooking;
+          const atts = parseAttendeesList(b.attendees);
+          const foodName = b.food === 'others' && b.foodSpecify ? b.foodSpecify : b.food;
+          const hasFood = b.food && b.food !== 'none';
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+                <div>
+                  <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Booking ID</strong>
+                  <span style={{ fontWeight: 600, color: 'var(--color-info)' }}>#{String(b.id).slice(0, 8).toUpperCase()}</span>
+                </div>
+                <div>
+                  <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Status</strong>
+                  <Badge
+                    status={b.status === 'confirmed' ? 'approved' : b.status === 'rejected' ? 'rejected' : 'pending'}
+                    label={b.status || 'pending'}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+                <div>
+                  <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Meeting Date(s)</strong>
+                  <span style={{ fontWeight: 600, color: '#172025' }}>
+                    {formatDate(b.startDate || b.date)} {b.endDate && b.endDate !== (b.startDate || b.date) ? `→ ${formatDate(b.endDate)}` : ''}
+                  </span>
+                </div>
+                <div>
+                  <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Timing & Type</strong>
+                  <span style={{ fontWeight: 600, color: '#172025' }}>
+                    {b.bookingType === 'full' ? 'Full Day (09:00 - 18:00)' : `${b.startTime || '09:00'} – ${b.endTime || '18:00'}`}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+                <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Organizer Information</strong>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'var(--space-3)' }}>
+                  <div>
+                    <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Name:</span> <strong style={{ fontWeight: 600 }}>{b.name || '—'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Phone:</span> <strong>{b.phone || '—'}</strong>
+                  </div>
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Email:</span> <span>{b.email || '—'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ background: '#f9f9fb', padding: 'var(--space-3)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
+                <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Meeting Purpose</strong>
+                <p style={{ margin: 0, fontSize: '0.92rem', lineHeight: 1.5, color: '#172025', fontWeight: 500 }}>
+                  {b.reason || 'No specific purpose provided'}
+                </p>
+              </div>
+
+              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+                <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 6 }}>
+                  List of Attendees ({atts.length})
+                </strong>
+                <div style={{ border: '1px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ background: '#f9f9fb', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>
+                        <th style={{ padding: '6px 12px', width: '40px' }}>#</th>
+                        <th style={{ padding: '6px 12px' }}>Attendee Name</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {atts.length > 0 ? atts.map((att, idx) => (
+                        <tr key={idx} style={{ borderBottom: idx < atts.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                          <td style={{ padding: '6px 12px', color: 'var(--color-text-muted)' }}>{idx + 1}</td>
+                          <td style={{ padding: '6px 12px', fontWeight: 500 }}>{att}</td>
+                        </tr>
+                      )) : (
+                        <tr><td colSpan={2} style={{ padding: '8px 12px', color: 'var(--color-text-muted)' }}>No attendees listed</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+                <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
+                  Food & Refreshment Arrangement
+                </strong>
+                {hasFood ? (
+                  <div style={{ background: '#fdf5e6', border: '1px solid #b27f0d', borderRadius: '8px', padding: '0.75rem 1rem' }}>
+                    <div style={{ fontWeight: 700, color: '#b27f0d', fontSize: '0.9rem', marginBottom: 2 }}>
+                      🍽️ Food Selected: {foodName}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#172025' }}>
+                      <strong>Quantity:</strong> {b.foodCount || 1} portions
+                    </div>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>None requested</span>
+                )}
+              </div>
+
+              {b.remarks && (
+                <div>
+                  <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Remarks</strong>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>{b.remarks}</p>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+      </Modal>
 
       {/* ── Reject Booking Modal ── */}
       <Modal

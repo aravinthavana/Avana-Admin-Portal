@@ -404,6 +404,19 @@ export const purchaseApi = {
     request(`/purchase/${id}/purchased`, { method: 'POST', body: JSON.stringify(data) }, 'admin'),
 };
 
+// ─── Office Locations ──────────────────────────────────────
+export const locationsApi = {
+  getLocations: () =>
+    request('/locations'),
+
+  createLocation: (name) =>
+    request('/admin/locations', { method: 'POST', body: JSON.stringify({ name }) }, 'admin'),
+
+  deleteLocation: (id) =>
+    request(`/admin/locations/${id}`, { method: 'DELETE' }, 'admin'),
+};
+
+
 
 
 

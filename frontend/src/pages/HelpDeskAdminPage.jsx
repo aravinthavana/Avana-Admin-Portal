@@ -8,7 +8,8 @@ import { StationeryAudit, HousekeepingAudit } from './admin/Audits';
 import { AMCPage } from './admin/AMCPage';
 import { UtilityPaymentsPage, TaxPaymentsPage, PettyCashPage, TravelExpensePage } from './admin/FinanceModules';
 import { AssetTrackerPage, CourierDispatchPage, BillWarrantyPage, OtherStockPage, RemindersPage } from './admin/OperationsModules';
-import { LoginAuditPage, AdminSettings } from './admin/AdminSettingsPage';
+import { LoginAuditPage, AdminSettings, LocationsManagementPage } from './admin/AdminSettingsPage';
+
 
 import { stationeryApi, housekeepingApi, utilityApi, taxApi } from '../lib/api';
 
@@ -217,9 +218,10 @@ function RequestCategoriesSubView() {
 /* ─── 2B. Security & System Logs Sub-View Card Grid ──────────────────────── */
 function SecuritySubView() {
   const modules = [
-
+    { icon: '🏢', title: 'Office Locations', desc: 'Add or remove office floors and building locations for request routing', link: '/helpdesk-admin/locations', color: '#b27f0d' },
     { icon: '⚙️', title: 'Portal Settings', desc: 'Change administrator credentials and configure portal defaults', link: '/helpdesk-admin/settings', color: '#b27f0d' },
   ];
+
 
   return (
     <div style={{ padding: '1rem 0' }}>
@@ -399,7 +401,7 @@ export default function HelpDeskAdminPage() {
         <Route path="tax-payments" element={<TaxPaymentsPage api={taxApi} />} />
 
         {/* Admin */}
-
+        <Route path="locations" element={<LocationsManagementPage />} />
         <Route path="settings" element={<AdminSettings />} />
       </Routes>
     </div>

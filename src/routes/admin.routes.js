@@ -118,4 +118,11 @@ router.post('/reminders', remindersController.create);
 router.post('/reminders/trigger', remindersController.triggerScan);
 router.delete('/reminders/:id', remindersController.delete);
 
+// Office Locations Management
+const locationController = require('../controllers/location.controller');
+router.get('/locations', locationController.getLocations);
+router.post('/locations', locationController.createLocation);
+router.delete('/locations/:id', locationController.deleteLocation);
+
 module.exports = router;
+

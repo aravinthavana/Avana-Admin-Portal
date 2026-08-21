@@ -44,6 +44,95 @@ export function Pagination({ page, total, onPage }) {
 }
 
 /* ─── Helpdesk Table (shared for all categories + all) ────── */
+
+function parseAttendeesList(att) {
+  if (!att) return [];
+  if (Array.isArray(att)) return att.filter(Boolean);
+  if (typeof att === 'string') {
+    const trimmed = att.trim();
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed.filter(Boolean);
+      } catch {}
+    }
+    if (trimmed.includes(',')) {
+      return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    if (trimmed !== 'None' && trimmed !== '—') return [trimmed];
+  }
+  return [];
+}
+
+function printConferenceBooking(b) {
+  const attendeesList = parseAttendeesList(b.attendees);
+  const foodName = b.food === 'others' && b.foodSpecify ? b.foodSpecify : b.food;
+  const foodDisplay = (b.food && b.food !== 'none') ? (foodName + (b.foodCount ? ' (Qty: ' + b.foodCount + ')' : '')) : 'None';
+  const timeDisplay = b.bookingType === 'full' ? 'Full Day (09:00 - 18:00)' : ((b.startTime || '09:00') + ' - ' + (b.endTime || '18:00'));
+  const dateDisplay = formatDate(b.startDate || b.date) + (b.endDate && b.endDate !== (b.startDate || b.date) ? (' to ' + formatDate(b.endDate)) : '');
+
+  openLegacyPrintReport({
+    title: 'Conference Room Reservation Slip',
+    subtitle: 'Reservation Details for ' + (b.name || b.requester_name || 'Organizer'),
+    docNo: 'CONF-' + String(b.id).slice(0, 8).toUpperCase(),
+    details: [
+      { label: 'Booking ID', value: b.id },
+      { label: 'Status', value: (b.status || 'Pending').toUpperCase() },
+      { label: 'Submitted Date', value: formatDateTime(b.createdAt || b.created_at) },
+      { label: 'Meeting Date(s)', value: dateDisplay },
+      { label: 'Booking Type', value: b.bookingType === 'full' ? 'Full Day' : 'Time Slot' },
+      { label: 'Reserved Time', value: timeDisplay },
+      { label: 'Organizer Name', value: b.name || b.requester_name || '—' },
+      { label: 'Contact Phone', value: b.phone || b.requester_phone || '—' },
+      { label: 'Contact Email', value: b.email || b.requester_email || '—' },
+      { label: 'Meeting Purpose', value: b.reason || '—' },
+      { label: 'Food Arrangement', value: foodDisplay },
+      { label: 'Special Remarks', value: b.remarks || 'None' },
+    ],
+    headers: [
+      { title: '#', align: 'center' },
+      { title: 'Attendee Name', align: 'left' }
+    ],
+    rows: attendeesList.length > 0
+      ? attendeesList.map((att, idx) => [idx + 1, att])
+      : [[1, 'No individual attendee names listed']],
+  });
+}
+
+function printGeneralServiceRequest(r) {
+  const itemsList = parseItems(r.items);
+  const meta = parseItemsData(r.items);
+
+  openLegacyPrintReport({
+    title: (CATEGORY_LABELS[r.category] || 'Helpdesk') + ' Service Ticket',
+    subtitle: 'Service Request Details for ' + (r.name || r.requester_name || 'Employee'),
+    docNo: 'HD-' + String(r.id).slice(0, 8).toUpperCase(),
+    details: [
+      { label: 'Ticket ID', value: r.id },
+      { label: 'Category', value: CATEGORY_LABELS[r.category] || r.category },
+      { label: 'Status', value: (r.status || 'Pending').toUpperCase() },
+      { label: 'Submitted On', value: formatDateTime(r.createdAt || r.created_at) },
+      { label: 'Requester Name', value: r.name || r.requester_name || '—' },
+      { label: 'Phone Number', value: r.phone || r.requester_phone || '—' },
+      { label: 'Email Address', value: r.email || r.requester_email || '—' },
+      { label: 'Location', value: r.location || r.floor || '—' },
+      { label: 'Request Details', value: r.description || r.issue || r.exact_query || r.exact_issue || '—' },
+      { label: 'Remarks', value: r.remarks || (meta && meta.remarks) || 'None' },
+      { label: 'Resolution', value: r.resolution || 'Pending' }
+    ],
+    headers: itemsList.length > 0 ? [
+      { title: '#', align: 'center' },
+      { title: 'Item Name', align: 'left' },
+      { title: 'Quantity', align: 'right' }
+    ] : [],
+    rows: itemsList.length > 0 ? itemsList.map((it, idx) => [
+      idx + 1,
+      it.item || it.name,
+      it.qty || it.quantity || 1
+    ]) : []
+  });
+}
+
 export function HelpdeskTable({ categoryFilter }) {
   const toast = useToast();
   const [requests, setRequests] = useState([]);

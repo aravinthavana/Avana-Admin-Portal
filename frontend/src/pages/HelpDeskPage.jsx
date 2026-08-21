@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Routes, Route, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { employeeApi, helpdeskApi, courierApi } from '../lib/api';
+import { employeeApi, helpdeskApi, courierApi, locationsApi } from '../lib/api';
 import {
   Badge, Spinner, EmptyState, Alert, Modal, ConfirmModal,
   FormField, PageHeader, StatCard, Breadcrumbs
@@ -19,7 +19,7 @@ const HK_ITEMS = [
   'Handwash Tissue Roll','Handwash Liquid','Other',
 ];
 
-const FLOORS = ['Ground','1st','2nd','3rd','Other'];
+const DEFAULT_LOCATIONS = ['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', 'Other'];
 
 const CATEGORIES = [
   {
@@ -622,7 +622,7 @@ function HkMaterialForm({ form, setForm, errors }) {
   );
 }
 
-function StationeryForm({ form, setForm, errors }) {
+function StationeryForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }) {
   const [tab, setTab] = useState('stationery');
   const [stationeryItems, setStationeryItems] = useState([]);
   const [printingItems, setPrintingItems] = useState([]);
@@ -679,7 +679,7 @@ function StationeryForm({ form, setForm, errors }) {
   );
 }
 
-function OfficeAssetForm({ form, setForm, errors }) {
+function OfficeAssetForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }) {
   return (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
@@ -741,7 +741,7 @@ function PrintScanForm({ form, setForm, errors }) {
   );
 }
 
-function AdminSupportForm({ form, setForm, errors }) {
+function AdminSupportForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }) {
   return (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
@@ -2060,24 +2060,24 @@ function HelpdeskRequestView() {
 
     if (category === 'maintenance') {
       if (!form.issue_type) e.issue_type = 'Issue type is required';
-      if (!form.floor) e.floor = 'Floor is required';
+      if (!form.location && !form.floor) e.location = 'Location is required';
       if (!form.description?.trim()) e.description = 'Exact issue is required';
     } else if (category === 'housekeeping') {
       if (!form.request_type) e.request_type = 'Request type is required';
-      if (!form.floor) e.floor = 'Floor is required';
+      if (!form.location && !form.floor) e.location = 'Location is required';
       if (!form.description?.trim()) e.description = 'Exact query is required';
     } else if (category === 'hk_material') {
       if (!form.items?.length) e.items = 'Select at least one item';
-      if (!form.floor) e.floor = 'Floor is required';
+      if (!form.location && !form.floor) e.location = 'Location is required';
       if (form.items?.some(s => s.name === 'Other') && !form.remarks?.trim()) {
         e.remarks = 'Remarks required when Other is selected';
       }
     } else if (category === 'stationery') {
       if (!form.items?.length) e.items = 'Select at least one item';
-      if (!form.floor) e.floor = 'Floor is required';
+      if (!form.location && !form.floor) e.location = 'Location is required';
     } else if (category === 'office_asset') {
       if (!form.request_type) e.request_type = 'Request type is required';
-      if (!form.floor) e.floor = 'Floor is required';
+      if (!form.location && !form.floor) e.location = 'Location is required';
       if (!form.description?.trim()) e.description = 'Exact query is required';
     } else if (category === 'print_scan') {
       if (!form.service_type) e.service_type = 'Service type is required';
@@ -2146,7 +2146,7 @@ function HelpdeskRequestView() {
   }
 
   function renderForm() {
-    const props = { form: formData, setForm: setFormData, errors };
+    const props = { form: formData, setForm: setFormData, errors, locations };
     switch (categoryKey) {
       case 'maintenance':      return <MaintenanceForm {...props} />;
       case 'housekeeping':     return <HousekeepingForm {...props} />;

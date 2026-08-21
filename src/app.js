@@ -36,12 +36,16 @@ app.get('/api/courier-dispatch/merge/reject-page', courierController.serveReject
 app.post('/api/courier-dispatch/merge/reject', courierController.rejectMergeRequest);
 
 // Mount routes
+const locationController = require('./controllers/location.controller');
+app.get('/api/locations', locationController.getLocations);
+
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/helpdesk', helpdeskRoutes);
 app.use('/api/employee', employeeAuthRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', inventoryRoutes);
 app.use('/api/purchase', purchaseRoutes);
+
 
 // Serve static frontend files (React SPA)
 app.use(express.static(path.join(__dirname, '../frontend/dist')));

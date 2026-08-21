@@ -340,6 +340,13 @@ model AddressBook {
   createdAt String
 }
 
+model Location {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt String?
+}
+
+
 
 
 

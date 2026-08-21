@@ -190,12 +190,12 @@ export function EmployeeLayout() {
   };
 
   return (
-    <div className="layout layout--employee" style={{ background: 'linear-gradient(135deg, #f9f9fb 0%, #d7d0bc 100%)', minHeight: '100vh' }}>
+    <div className="layout layout--employee" style={{ background: '#d7d0bc', minHeight: '100vh' }}>
       {/* Header matching login page aesthetic */}
       <header
         role="banner"
         style={{
-          background: 'linear-gradient(135deg, #f9f9fb 0%, #d7d0bc 100%)',
+          background: '#d7d0bc',
           borderBottom: '3px solid #b27f0d',
           boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
           padding: '1.2rem 2rem',
@@ -282,7 +282,7 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="layout layout--admin" style={{ display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, #f9f9fb 0%, #d7d0bc 100%)', minHeight: '100vh' }}>
+    <div className="layout layout--admin" style={{ display: 'flex', flexDirection: 'column', background: '#d7d0bc', minHeight: '100vh' }}>
       {/* Top header bar — matching employee layout aesthetic */}
       <header
         role="banner"
@@ -377,12 +377,12 @@ export function ConferenceAdminLayout() {
   };
 
   return (
-    <div className="layout layout--employee" style={{ background: 'linear-gradient(135deg, #f9f9fb 0%, #d7d0bc 100%)', minHeight: '100vh' }}>
+    <div className="layout layout--employee" style={{ background: '#d7d0bc', minHeight: '100vh' }}>
       {/* Header matching login page aesthetic */}
       <header
         role="banner"
         style={{
-          background: 'linear-gradient(135deg, #f9f9fb 0%, #d7d0bc 100%)',
+          background: '#d7d0bc',
           borderBottom: '3px solid #b27f0d',
           boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
           padding: '1rem 2rem',

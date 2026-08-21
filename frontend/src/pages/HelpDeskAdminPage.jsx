@@ -139,7 +139,7 @@ function MainDashboardView() {
           description="Manage and process all employee requests including Conference Room Bookings, Stationery, Maintenance, Housekeeping, and Asset Requests."
           badge="8 Categories"
           link="/helpdesk-admin/requests"
-          color="#d97706"
+          color="#b27f0d"
         />
 
         <NavCard
@@ -148,7 +148,7 @@ function MainDashboardView() {
           description="Audit employee login and logout activity, track authentication histories, and manage administrator portal credentials."
           badge="2 Modules"
           link="/helpdesk-admin/security"
-          color="#2563eb"
+          color="#b27f0d"
         />
 
         <NavCard
@@ -157,7 +157,7 @@ function MainDashboardView() {
           description="Track stock levels, run monthly audits, manage courier dispatches, AMC contracts, bill warranties, tax & utility payments, and cash handling."
           badge="14 Modules"
           link="/helpdesk-admin/inventory"
-          color="#16a34a"
+          color="#b27f0d"
         />
       </div>
     </div>
@@ -168,14 +168,14 @@ function MainDashboardView() {
 function RequestCategoriesSubView() {
   const categories = [
     { icon: '📋', title: 'All Requests', desc: 'View and filter all incoming helpdesk tickets across all departments', link: '/helpdesk-admin/all-tickets', color: '#b27f0d' },
-    { icon: '📅', title: 'Conference Room', desc: 'Manage room bookings, approve schedules, and view calendar bookings', link: '/helpdesk-admin/conference', color: '#2563eb' },
-    { icon: '✏️', title: 'Stationery Requests', desc: 'Review employee stationery and office supply requests', link: '/helpdesk-admin/stationery', color: '#16a34a' },
-    { icon: '💼', title: 'Admin Support', desc: 'Assist employees with administrative and general office support requests', link: '/helpdesk-admin/admin-support', color: '#2563eb' },
-    { icon: '🔧', title: 'Maintenance Complaints', desc: 'Track facility maintenance, AC, electrical, and plumbing repairs', link: '/helpdesk-admin/maintenance', color: '#dc2626' },
-    { icon: '🧹', title: 'Housekeeping Requests', desc: 'Manage cleaning requests and floor hygiene operations', link: '/helpdesk-admin/housekeeping', color: '#d97706' },
-    { icon: '🖥️', title: 'Office Asset Requests', desc: 'Process requests for office equipment, furniture, and hardware', link: '/helpdesk-admin/office-asset', color: '#2563eb' },
-    { icon: '🖨️', title: 'Printing & Scanning', desc: 'Handle bulk document printing, scanning, binding, and lamination', link: '/helpdesk-admin/print-scan', color: '#7c3aed' },
-    { icon: '💡', title: 'App Feedback', desc: 'Review user feedback and improvement suggestions for the portal', link: '/helpdesk-admin/app-feedback', color: '#2563eb' },
+    { icon: '📅', title: 'Conference Room', desc: 'Manage room bookings, approve schedules, and view calendar bookings', link: '/helpdesk-admin/conference', color: '#b27f0d' },
+    { icon: '✏️', title: 'Stationery Requests', desc: 'Review employee stationery and office supply requests', link: '/helpdesk-admin/stationery', color: '#b27f0d' },
+    { icon: '💼', title: 'Admin Support', desc: 'Assist employees with administrative and general office support requests', link: '/helpdesk-admin/admin-support', color: '#b27f0d' },
+    { icon: '🔧', title: 'Maintenance Complaints', desc: 'Track facility maintenance, AC, electrical, and plumbing repairs', link: '/helpdesk-admin/maintenance', color: '#b27f0d' },
+    { icon: '🧹', title: 'Housekeeping Requests', desc: 'Manage cleaning requests and floor hygiene operations', link: '/helpdesk-admin/housekeeping', color: '#b27f0d' },
+    { icon: '🖥️', title: 'Office Asset Requests', desc: 'Process requests for office equipment, furniture, and hardware', link: '/helpdesk-admin/office-asset', color: '#b27f0d' },
+    { icon: '🖨️', title: 'Printing & Scanning', desc: 'Handle bulk document printing, scanning, binding, and lamination', link: '/helpdesk-admin/print-scan', color: '#b27f0d' },
+    { icon: '💡', title: 'App Feedback', desc: 'Review user feedback and improvement suggestions for the portal', link: '/helpdesk-admin/app-feedback', color: '#b27f0d' },
   ];
 
   return (
@@ -218,7 +218,7 @@ function RequestCategoriesSubView() {
 function SecuritySubView() {
   const modules = [
 
-    { icon: '⚙️', title: 'Portal Settings', desc: 'Change administrator credentials and configure portal defaults', link: '/helpdesk-admin/settings', color: '#6b7280' },
+    { icon: '⚙️', title: 'Portal Settings', desc: 'Change administrator credentials and configure portal defaults', link: '/helpdesk-admin/settings', color: '#b27f0d' },
   ];
 
   return (
@@ -261,20 +261,20 @@ function SecuritySubView() {
 /* ─── 2C. Inventory & Operations Sub-View Card Grid ─────────────────────── */
 function InventorySubView() {
   const modules = [
-    { icon: '✏️', title: 'Stationery Stock', desc: 'Monitor stationery inventory levels and restock items', link: '/helpdesk-admin/stationery-stock', color: '#16a34a' },
-    { icon: '📊', title: 'Stationery Audit', desc: 'Perform monthly physical stock reconciliations and overrides', link: '/helpdesk-admin/stationery-audit', color: '#d97706' },
-    { icon: '🧹', title: 'Housekeeping Stock', desc: 'Track housekeeping and cleaning item stock counts', link: '/helpdesk-admin/housekeeping-stock', color: '#404131' },
-    { icon: '🧴', title: 'Housekeeping Audit', desc: 'Run monthly audits for cleaning products and supplies', link: '/helpdesk-admin/housekeeping-audit', color: '#404131' },
-    { icon: '📦', title: 'Stationery Tracker', desc: 'Track stationery handovers and issuance history', link: '/helpdesk-admin/asset-tracker', color: '#16a34a' },
-    { icon: '📦', title: 'Other Stock', desc: 'Manage miscellaneous stock items and general inventory', link: '/helpdesk-admin/other-stock', color: '#2563eb' },
-    { icon: '📋', title: 'AMC Contracts', desc: 'Manage annual maintenance contracts, vendors, and renewal dates', link: '/helpdesk-admin/amc', color: '#2563eb' },
-    { icon: '🚚', title: 'Courier & Dispatch', desc: 'Manage outbound shipments, auto-generate Delivery Challans, and set Global Addresses', link: '/helpdesk-admin/courier', color: '#d97706' },
-    { icon: '💵', title: 'Cash Handling', desc: 'Log petty cash transactions, vouchers, and office expenditures', link: '/helpdesk-admin/cash-handling', color: '#d97706' },
-    { icon: '🚗', title: 'Travel Expenses', desc: 'Track employee travel claims, cab bookings, and reimbursements', link: '/helpdesk-admin/travel', color: '#2563eb' },
-    { icon: '📄', title: 'Bill & Warranty', desc: 'Store bills, invoices, and product warranty expiration dates', link: '/helpdesk-admin/bill-warranty', color: '#7c3aed' },
-    { icon: '⚡', title: 'Utility Payments', desc: 'Track electricity, water, internet, and office utility bills', link: '/helpdesk-admin/utility-payments', color: '#2563eb' },
-    { icon: '🏛️', title: 'Tax Payments', desc: 'Record property tax, municipal tax, and statutory payments', link: '/helpdesk-admin/tax-payments', color: '#7c3aed' },
-    { icon: '🔔', title: 'Reminder List', desc: 'Configure automatic email & system reminders for renewals', link: '/helpdesk-admin/reminders', color: '#7c3aed' },
+    { icon: '✏️', title: 'Stationery Stock', desc: 'Monitor stationery inventory levels and restock items', link: '/helpdesk-admin/stationery-stock', color: '#b27f0d' },
+    { icon: '📊', title: 'Stationery Audit', desc: 'Perform monthly physical stock reconciliations and overrides', link: '/helpdesk-admin/stationery-audit', color: '#b27f0d' },
+    { icon: '🧹', title: 'Housekeeping Stock', desc: 'Track housekeeping and cleaning item stock counts', link: '/helpdesk-admin/housekeeping-stock', color: '#b27f0d' },
+    { icon: '🧴', title: 'Housekeeping Audit', desc: 'Run monthly audits for cleaning products and supplies', link: '/helpdesk-admin/housekeeping-audit', color: '#b27f0d' },
+    { icon: '📦', title: 'Stationery Tracker', desc: 'Track stationery handovers and issuance history', link: '/helpdesk-admin/asset-tracker', color: '#b27f0d' },
+    { icon: '📦', title: 'Other Stock', desc: 'Manage miscellaneous stock items and general inventory', link: '/helpdesk-admin/other-stock', color: '#b27f0d' },
+    { icon: '📋', title: 'AMC Contracts', desc: 'Manage annual maintenance contracts, vendors, and renewal dates', link: '/helpdesk-admin/amc', color: '#b27f0d' },
+    { icon: '🚚', title: 'Courier & Dispatch', desc: 'Manage outbound shipments, auto-generate Delivery Challans, and set Global Addresses', link: '/helpdesk-admin/courier', color: '#b27f0d' },
+    { icon: '💵', title: 'Cash Handling', desc: 'Log petty cash transactions, vouchers, and office expenditures', link: '/helpdesk-admin/cash-handling', color: '#b27f0d' },
+    { icon: '🚗', title: 'Travel Expenses', desc: 'Track employee travel claims, cab bookings, and reimbursements', link: '/helpdesk-admin/travel', color: '#b27f0d' },
+    { icon: '📄', title: 'Bill & Warranty', desc: 'Store bills, invoices, and product warranty expiration dates', link: '/helpdesk-admin/bill-warranty', color: '#b27f0d' },
+    { icon: '⚡', title: 'Utility Payments', desc: 'Track electricity, water, internet, and office utility bills', link: '/helpdesk-admin/utility-payments', color: '#b27f0d' },
+    { icon: '🏛️', title: 'Tax Payments', desc: 'Record property tax, municipal tax, and statutory payments', link: '/helpdesk-admin/tax-payments', color: '#b27f0d' },
+    { icon: '🔔', title: 'Reminder List', desc: 'Configure automatic email & system reminders for renewals', link: '/helpdesk-admin/reminders', color: '#b27f0d' },
     
   ];
 

@@ -46,8 +46,10 @@ exports.deleteRequest = async (id) => {
   }
 };
 
+const NOTIFICATION_CC = 'aravinth@avanamedical.com';
+
 exports.sendHelpdeskNotification = async (request, host) => {
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+  const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
   const catTitle = request.categoryTitle || request.category;
   const emailSubject = `Help Desk Request #${request.id}: ${catTitle}`;
   const employeeHtml = templates.helpdeskSubmission(request);
@@ -56,9 +58,19 @@ exports.sendHelpdeskNotification = async (request, host) => {
   try {
     const sends = [];
     if (request.requester_email || request.email) {
-      sends.push(sendEmail({ to: request.requester_email || request.email, subject: emailSubject, htmlBody: employeeHtml }));
+      sends.push(sendEmail({
+        to: request.requester_email || request.email,
+        cc: NOTIFICATION_CC,
+        subject: emailSubject,
+        htmlBody: employeeHtml
+      }));
     }
-    sends.push(sendEmail({ to: adminEmail, subject: `ACTION REQUIRED: New Help Desk Request #${request.id}`, htmlBody: adminHtml }));
+    sends.push(sendEmail({
+      to: adminEmail,
+      cc: NOTIFICATION_CC,
+      subject: `ACTION REQUIRED: New Help Desk Request #${request.id}`,
+      htmlBody: adminHtml
+    }));
     await Promise.all(sends);
   } catch (error) {
     console.error('Background sendHelpdeskEmailNotification failed:', error);
@@ -74,7 +86,12 @@ exports.sendHelpdeskCompletionEmailNotification = async (request, host) => {
   const emailHtml = templates.helpdeskCompleted(request);
 
   try {
-    await sendEmail({ to: emailToSend, subject: emailSubject, htmlBody: emailHtml });
+    await sendEmail({
+      to: emailToSend,
+      cc: NOTIFICATION_CC,
+      subject: emailSubject,
+      htmlBody: emailHtml
+    });
   } catch (error) {
     console.error('Background sendHelpdeskCompletionEmailNotification failed:', error);
   }
@@ -89,7 +106,12 @@ exports.sendHelpdeskRejectionEmailNotification = async (request, host, rejection
   const emailHtml = templates.helpdeskRejected(request, rejectionReason);
 
   try {
-    await sendEmail({ to: emailToSend, subject: emailSubject, htmlBody: emailHtml });
+    await sendEmail({
+      to: emailToSend,
+      cc: NOTIFICATION_CC,
+      subject: emailSubject,
+      htmlBody: emailHtml
+    });
   } catch (error) {
     console.error('Background sendHelpdeskRejectionEmailNotification failed:', error);
   }

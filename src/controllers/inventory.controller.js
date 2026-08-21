@@ -3,6 +3,10 @@ const inventoryService = require('../services/inventory.service');
 exports.getStationeryCatalog = async (req, res, next) => {
   try {
     const catalog = await inventoryService.getStationeryCatalog();
+    const stationeryStock = await inventoryService.getStock('stationery');
+    const printingStock = await inventoryService.getStock('printing');
+    const housekeepingStock = await inventoryService.getStock('housekeeping');
+
     const stationery = [];
     const printing = [];
     for (const [name, type] of Object.entries(catalog || {})) {
@@ -12,8 +16,12 @@ exports.getStationeryCatalog = async (req, res, next) => {
         printing.push(name);
       }
     }
+
+    // Merge stationery and printing stock into a unified stock map
+    const stock = { ...stationeryStock, ...printingStock };
+
     res.setHeader('Cache-Control', 'no-store');
-    res.status(200).json({ stationery, printing });
+    res.status(200).json({ stationery, printing, stock, housekeepingStock });
   } catch (error) {
     next(error);
   }

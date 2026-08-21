@@ -369,11 +369,15 @@ function RequestTracker() {
   );
 }
 
-/* ─── Item Selector (multi-item with quantity) ────────────── */
-function ItemSelector({ items, selected, onChange, label = 'Select items' }) {
+/* ─── Item Selector (multi-item with quantity & stock validation) ─── */
+function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Select items' }) {
   const [search, setSearch] = useState('');
 
   function toggleItem(item) {
+    const hasStock = stockMap && stockMap[item] !== undefined;
+    const isOutOfStock = hasStock && stockMap[item] <= 0 && item !== 'Other';
+    if (isOutOfStock) return;
+
     const exists = selected.find(s => s.name === item);
     if (exists) {
       onChange(selected.filter(s => s.name !== item));
@@ -381,6 +385,7 @@ function ItemSelector({ items, selected, onChange, label = 'Select items' }) {
       onChange([...selected, { name: item, qty: 1 }]);
     }
   }
+
   function updateQty(item, val) {
     const qty = parseInt(val, 10);
     onChange(selected.map(s => s.name === item ? { ...s, qty: isNaN(qty) || qty < 1 ? 1 : qty } : s));
@@ -406,31 +411,60 @@ function ItemSelector({ items, selected, onChange, label = 'Select items' }) {
       <div style={{
         border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius-md)',
-        maxHeight: 180,
+        maxHeight: 200,
         overflowY: 'auto',
         background: 'var(--color-surface)',
         marginBottom: 'var(--space-3)'
       }}>
         {filteredItems.map(item => {
           const sel = selected.find(s => s.name === item);
+          const hasStock = stockMap && stockMap[item] !== undefined;
+          const available = hasStock ? stockMap[item] : null;
+          const isOutOfStock = hasStock && available <= 0 && item !== 'Other';
+
           return (
-            <div key={item} style={{
-              display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
-              padding: 'var(--space-2) var(--space-4)',
-              borderBottom: '1px solid var(--color-border-light)',
-              background: sel ? 'var(--brand-amber-bg)' : 'transparent',
-              transition: 'background var(--transition-fast)',
-              cursor: 'pointer'
-            }} onClick={() => toggleItem(item)}>
+            <div
+              key={item}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-3)',
+                padding: 'var(--space-2) var(--space-4)',
+                borderBottom: '1px solid var(--color-border-light)',
+                background: isOutOfStock ? 'rgba(0,0,0,0.03)' : (sel ? 'var(--brand-amber-bg)' : 'transparent'),
+                opacity: isOutOfStock ? 0.45 : 1,
+                cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                transition: 'background var(--transition-fast)'
+              }}
+              onClick={() => { if (!isOutOfStock) toggleItem(item); }}
+            >
               <input
                 type="checkbox"
                 checked={!!sel}
+                disabled={isOutOfStock}
                 onChange={() => {}} /* Handled by parent div onClick */
-                style={{ accentColor: 'var(--brand-amber)', cursor: 'pointer' }}
+                style={{ accentColor: 'var(--brand-amber)', cursor: isOutOfStock ? 'not-allowed' : 'pointer' }}
               />
-              <span style={{ flex: 1, fontSize: '0.9rem' }}>
+              <span style={{
+                flex: 1,
+                fontSize: '0.9rem',
+                color: isOutOfStock ? 'var(--color-text-muted)' : 'inherit',
+                textDecoration: isOutOfStock ? 'line-through' : 'none'
+              }}>
                 {item}
               </span>
+              {hasStock && item !== 'Other' && (
+                <span style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  background: isOutOfStock ? 'rgba(220, 38, 38, 0.12)' : (available <= 5 ? 'rgba(217, 119, 6, 0.12)' : 'rgba(22, 163, 74, 0.12)'),
+                  color: isOutOfStock ? 'var(--color-danger)' : (available <= 5 ? 'var(--color-warning)' : 'var(--color-success)')
+                }}>
+                  {isOutOfStock ? 'Out of Stock (0)' : `Available: ${available}`}
+                </span>
+              )}
             </div>
           );
         })}
@@ -442,37 +476,63 @@ function ItemSelector({ items, selected, onChange, label = 'Select items' }) {
       </div>
 
       {selected.length > 0 && (
-        <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2)' }}>
+        <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', display: 'block', marginBottom: 'var(--space-2)' }}>
             Selected Items & Quantities
           </label>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
-                <th style={{ padding: 'var(--space-1)', textAlign: 'left' }}>Item Name</th>
-                <th style={{ padding: 'var(--space-1)', width: 80, textAlign: 'center' }}>Qty</th>
+                <th style={{ padding: 'var(--space-1) var(--space-2)', textAlign: 'left' }}>Item Name</th>
+                <th style={{ padding: 'var(--space-1)', width: 90, textAlign: 'center' }}>Qty</th>
                 <th style={{ padding: 'var(--space-1)', width: 40, textAlign: 'center' }}>Action</th>
               </tr>
             </thead>
             <tbody>
-              {selected.map(sel => (
-                <tr key={sel.name} style={{ borderBottom: '1px solid var(--color-border-light)' }}>
-                  <td style={{ padding: 'var(--space-1)' }}>{sel.name}</td>
-                  <td style={{ padding: 'var(--space-1)', textAlign: 'center' }}>
-                    <input 
-                      type="number" 
-                      className="form-input" 
-                      style={{ width: '100%', padding: '0.2rem 0.4rem', textAlign: 'center' }} 
-                      value={sel.qty} 
-                      min="1"
-                      onChange={e => updateQty(sel.name, e.target.value)} 
-                    />
-                  </td>
-                  <td style={{ padding: 'var(--space-1)', textAlign: 'center' }}>
-                    <button type="button" onClick={() => toggleItem(sel.name)} style={{ background: 'none', border: 'none', color: 'var(--color-danger)', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1 }}>&times;</button>
-                  </td>
-                </tr>
-              ))}
+              {selected.map(sel => {
+                const hasStock = stockMap && stockMap[sel.name] !== undefined;
+                const available = hasStock ? stockMap[sel.name] : null;
+                const isOverStock = hasStock && available !== null && sel.qty > available && sel.name !== 'Other';
+
+                return (
+                  <tr key={sel.name} style={{ borderBottom: '1px solid var(--color-border-light)' }}>
+                    <td style={{ padding: 'var(--space-2)' }}>
+                      <div style={{ fontWeight: 500 }}>{sel.name}</div>
+                      {isOverStock && (
+                        <div style={{ color: 'var(--color-danger)', fontSize: '0.78rem', fontWeight: 600, marginTop: '3px' }}>
+                          ⚠️ Low stock, order below the available stock (Available: {available})
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ padding: 'var(--space-1)', textAlign: 'center', verticalAlign: 'top' }}>
+                      <input 
+                        type="number" 
+                        className={`form-input${isOverStock ? ' form-input--error' : ''}`} 
+                        style={{
+                          width: '100%',
+                          padding: '0.3rem 0.4rem',
+                          textAlign: 'center',
+                          borderColor: isOverStock ? 'var(--color-danger)' : undefined
+                        }} 
+                        value={sel.qty} 
+                        min="1"
+                        max={available !== null && available > 0 && sel.name !== 'Other' ? available : undefined}
+                        onChange={e => updateQty(sel.name, e.target.value)} 
+                      />
+                    </td>
+                    <td style={{ padding: 'var(--space-1)', textAlign: 'center', verticalAlign: 'top' }}>
+                      <button
+                        type="button"
+                        onClick={() => toggleItem(sel.name)}
+                        style={{ background: 'none', border: 'none', color: 'var(--color-danger)', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: '4px' }}
+                        title="Remove item"
+                      >
+                        &times;
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -585,17 +645,34 @@ function HousekeepingForm({ form, setForm, errors }) {
 }
 
 function HkMaterialForm({ form, setForm, errors }) {
+  const [hkStock, setHkStock] = useState({});
+  const [loadingStock, setLoadingStock] = useState(true);
+
+  useEffect(() => {
+    employeeApi.getStationeryItems()
+      .then(data => {
+        setHkStock(data?.housekeepingStock || {});
+      })
+      .catch(() => {})
+      .finally(() => setLoadingStock(false));
+  }, []);
+
   const selectedItems = form.items || [];
   const hasOther = selectedItems.some(s => s.name === 'Other');
   return (
     <>
       <div style={{ marginBottom: 'var(--space-4)' }}>
-        <ItemSelector
-          items={HK_ITEMS}
-          selected={selectedItems}
-          onChange={items => setForm(f => ({ ...f, items }))}
-          label="Select Items (required)"
-        />
+        {loadingStock ? (
+          <div style={{ textAlign: 'center', padding: 'var(--space-4)' }}><Spinner size="sm" /></div>
+        ) : (
+          <ItemSelector
+            items={HK_ITEMS}
+            selected={selectedItems}
+            stockMap={hkStock}
+            onChange={items => setForm(f => ({ ...f, items }))}
+            label="Select Items (required)"
+          />
+        )}
         {errors.items && <span className="form-error" role="alert">⚠ {errors.items}</span>}
       </div>
       <div style={{ marginBottom: 'var(--space-4)' }}>
@@ -626,6 +703,7 @@ function StationeryForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }
   const [tab, setTab] = useState('stationery');
   const [stationeryItems, setStationeryItems] = useState([]);
   const [printingItems, setPrintingItems] = useState([]);
+  const [stockMap, setStockMap] = useState({});
   const [loadingItems, setLoadingItems] = useState(true);
 
   useEffect(() => {
@@ -633,6 +711,7 @@ function StationeryForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }
       .then(data => {
         setStationeryItems(data?.stationery || []);
         setPrintingItems(data?.printing || []);
+        setStockMap(data?.stock || {});
       })
       .catch(() => {})
       .finally(() => setLoadingItems(false));
@@ -656,6 +735,7 @@ function StationeryForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }
           <ItemSelector
             items={displayItems}
             selected={selectedItems}
+            stockMap={stockMap}
             onChange={items => setForm(f => ({ ...f, items, item_type: tab }))}
             label="Select Items (required)"
           />
@@ -2033,6 +2113,7 @@ function HelpdeskRequestView() {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [courierTab, setCourierTab] = useState('challan'); // tracks tab inside CourierDispatchForm
+  const [stockData, setStockData] = useState(null);
 
   const activeCat = CATEGORIES.find(c => c.key === categoryKey);
 
@@ -2042,6 +2123,14 @@ function HelpdeskRequestView() {
       navigate('/helpdesk', { replace: true });
     }
   }, [activeCat, employeeEmail, navigate, toast]);
+
+  useEffect(() => {
+    if (categoryKey === 'stationery' || categoryKey === 'hk_material') {
+      employeeApi.getStationeryItems()
+        .then(data => setStockData(data))
+        .catch(() => {});
+    }
+  }, [categoryKey]);
 
   if (!activeCat) {
     return <div style={{ padding: 'var(--space-6)', textAlign: 'center' }}>Category not found.</div>;
@@ -2072,9 +2161,35 @@ function HelpdeskRequestView() {
       if (form.items?.some(s => s.name === 'Other') && !form.remarks?.trim()) {
         e.remarks = 'Remarks required when Other is selected';
       }
+      if (stockData?.housekeepingStock) {
+        for (const it of form.items || []) {
+          if (it.name === 'Other') continue;
+          const avail = stockData.housekeepingStock[it.name];
+          if (avail !== undefined && avail <= 0) {
+            e.items = `"${it.name}" is out of stock.`;
+            break;
+          } else if (avail !== undefined && it.qty > avail) {
+            e.items = `Low stock for "${it.name}", order below the available stock (Available: ${avail}).`;
+            break;
+          }
+        }
+      }
     } else if (category === 'stationery') {
       if (!form.items?.length) e.items = 'Select at least one item';
       if (!form.location && !form.floor) e.location = 'Location is required';
+      if (stockData?.stock) {
+        for (const it of form.items || []) {
+          if (it.name === 'Other') continue;
+          const avail = stockData.stock[it.name];
+          if (avail !== undefined && avail <= 0) {
+            e.items = `"${it.name}" is out of stock.`;
+            break;
+          } else if (avail !== undefined && it.qty > avail) {
+            e.items = `Low stock for "${it.name}", order below the available stock (Available: ${avail}).`;
+            break;
+          }
+        }
+      }
     } else if (category === 'office_asset') {
       if (!form.request_type) e.request_type = 'Request type is required';
       if (!form.location && !form.floor) e.location = 'Location is required';

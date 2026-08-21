@@ -222,6 +222,9 @@ exports.updateStatus = async (req, res, next) => {
                     remarks: `Auto-deducted from completed Request #${request.id}`
                   });
                   await inventoryService.saveTransactions(type, logs);
+                  if (newStock < previousStock) {
+                    inventoryService.checkLowStockAlert(name, newStock, type).catch(console.error);
+                  }
                 }
               }
               await inventoryService.saveStock(type, stock);

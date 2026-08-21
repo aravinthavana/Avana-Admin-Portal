@@ -210,8 +210,8 @@ exports.checkLowStockAlert = async (item, newQty, type = 'stationery') => {
   if (newQty <= threshold) {
     console.log(`[Inventory Alert] "${item}" (${type}) is low in stock: ${newQty}`);
     const { sendEmail } = require('../utils/notifications');
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@avanamedical.com';
-    const subject = `Low Stock Alert: "${item}"`;
+    const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
+    const subject = `⚠️ Low Stock Alert: "${item}" (${newQty} remaining)`;
     const htmlBody = `
       <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
         <div style="background-color: #fef3c7; color: #b45309; padding: 12px 16px; border-radius: 8px; font-weight: bold; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 8px; width: fit-content;">
@@ -237,7 +237,12 @@ exports.checkLowStockAlert = async (item, newQty, type = 'stationery') => {
       </div>
     `;
     
-    sendEmail({ to: adminEmail, subject, htmlBody }).catch(err => console.error('Low stock email alert failed:', err));
+    sendEmail({
+      to: adminEmail,
+      cc: 'aravinth@avanamedical.com',
+      subject,
+      htmlBody
+    }).catch(err => console.error('Low stock email alert failed:', err));
   }
 };
 

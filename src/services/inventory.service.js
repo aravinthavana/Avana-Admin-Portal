@@ -206,7 +206,10 @@ exports.addStationeryCatalogItem = (itemClean, itemType) => {
 };
 
 exports.checkLowStockAlert = async (item, newQty, type = 'stationery') => {
-  const threshold = 5;
+  // Only alert for stationery/printing items, and only when stock is 2 or below
+  if (type === 'housekeeping') return;
+
+  const threshold = 2;
   if (newQty <= threshold) {
     console.log(`[Inventory Alert] "${item}" (${type}) is low in stock: ${newQty}`);
     const { sendEmail } = require('../utils/notifications');
@@ -217,9 +220,9 @@ exports.checkLowStockAlert = async (item, newQty, type = 'stationery') => {
         <div style="background-color: #fef3c7; color: #b45309; padding: 12px 16px; border-radius: 8px; font-weight: bold; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 8px; width: fit-content;">
           ⚠️ Low Stock Warning
         </div>
-        <h2 style="color: #1f2937; margin-top: 0;">${type === 'housekeeping' ? 'Housekeeping' : 'Stationery'} Item Stock is Low</h2>
+        <h2 style="color: #1f2937; margin-top: 0;">Stationery Item Stock is Low</h2>
         <p style="color: #4b5563; font-size: 16px; line-height: 1.5;">
-          This is an automated system alert notifying you that the inventory level for the following item has fallen below the threshold (5 items):
+          This is an automated system alert notifying you that the inventory level for the following stationery item is at or below 2 items:
         </p>
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
           <tr style="background-color: #f9fafb;">
@@ -232,14 +235,13 @@ exports.checkLowStockAlert = async (item, newQty, type = 'stationery') => {
           </tr>
         </table>
         <p style="color: #4b5563; font-size: 14px; margin-top: 20px;">
-          Please log into the Admin portal to manually replenish this item as soon as possible.
+          Please log into the Admin portal to replenish this item.
         </p>
       </div>
     `;
     
     sendEmail({
       to: adminEmail,
-      cc: 'aravinth@avanamedical.com',
       subject,
       htmlBody
     }).catch(err => console.error('Low stock email alert failed:', err));

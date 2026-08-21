@@ -459,8 +459,8 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
                   fontWeight: 600,
                   padding: '2px 8px',
                   borderRadius: '12px',
-                  background: isOutOfStock ? 'rgba(220, 38, 38, 0.12)' : (available <= 5 ? 'rgba(217, 119, 6, 0.12)' : 'rgba(22, 163, 74, 0.12)'),
-                  color: isOutOfStock ? 'var(--color-danger)' : (available <= 5 ? 'var(--color-warning)' : 'var(--color-success)')
+                  background: isOutOfStock ? 'rgba(220, 38, 38, 0.12)' : (available <= 2 ? 'rgba(217, 119, 6, 0.12)' : 'rgba(22, 163, 74, 0.12)'),
+                  color: isOutOfStock ? 'var(--color-danger)' : (available <= 2 ? 'var(--color-warning)' : 'var(--color-success)')
                 }}>
                   {isOutOfStock ? 'Out of Stock (0)' : `Available: ${available}`}
                 </span>

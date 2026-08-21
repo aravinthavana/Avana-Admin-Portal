@@ -3,11 +3,31 @@ const crypto = require('crypto');
 
 const DEFAULT_LOCATIONS = ['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', 'Other'];
 
+async function ensureLocationTable() {
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "Location" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "name" TEXT NOT NULL,
+        "createdAt" TEXT
+      );
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE UNIQUE INDEX IF NOT EXISTS "Location_name_key" ON "Location"("name");
+    `);
+  } catch (e) {
+    console.error('ensureLocationTable error:', e);
+  }
+}
+
 exports.getLocations = async (req, res, next) => {
   try {
+    await ensureLocationTable();
+
     let locations = await prisma.location.findMany({
       orderBy: { name: 'asc' }
     });
+
 
     if (!locations || locations.length === 0) {
       // Seed default locations
@@ -39,6 +59,8 @@ exports.getLocations = async (req, res, next) => {
 
 exports.createLocation = async (req, res, next) => {
   try {
+    await ensureLocationTable();
+
     const { name } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Location name is required.' });
@@ -70,6 +92,8 @@ exports.createLocation = async (req, res, next) => {
 
 exports.deleteLocation = async (req, res, next) => {
   try {
+    await ensureLocationTable();
+
     const { id } = req.params;
     if (!id) {
       return res.status(400).json({ error: 'Location ID is required.' });

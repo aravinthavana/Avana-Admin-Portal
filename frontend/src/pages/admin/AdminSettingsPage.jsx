@@ -3,13 +3,14 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi, globalAddressApi,
-  assetTrackerApi, courierApi, pettyCashApi, travelApi, billWarrantyApi, otherStockApi, remindersApi,
+  assetTrackerApi, courierApi, pettyCashApi, travelApi, billWarrantyApi, otherStockApi, remindersApi, locationsApi,
 } from '../../lib/api';
 import {
   Badge, Spinner, EmptyState, Alert, Modal, ConfirmModal,
   FormField, PageHeader, StatCard,
 } from '../../components/ui';
 import { formatDate, formatDateTime, getStatusBadge, openLegacyPrintReport, CATEGORY_LABELS } from './utils';
+
 
 export function LoginAuditPage() {
   const [logins, setLogins] = useState([]);

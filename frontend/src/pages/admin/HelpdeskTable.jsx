@@ -589,21 +589,45 @@ export function HelpdeskTable({ categoryFilter }) {
       <Modal
         isOpen={!!activeDetailRequest}
         onClose={() => setActiveDetailRequest(null)}
-        title="📋 Service Request Details"
+        title={activeDetailRequest?.category === 'conference' ? '📅 Conference Room Reservation Details' : '📋 Service Request Details'}
         footer={
-          <button type="button" className="btn btn--secondary" onClick={() => setActiveDetailRequest(null)}>Close</button>
+          activeDetailRequest && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => {
+                  if (activeDetailRequest.category === 'conference') {
+                    printConferenceBooking(activeDetailRequest);
+                  } else {
+                    printGeneralServiceRequest(activeDetailRequest);
+                  }
+                }}
+              >
+                🖨️ Print Details
+              </button>
+              <button type="button" className="btn btn--secondary" onClick={() => setActiveDetailRequest(null)}>
+                Close
+              </button>
+            </div>
+          )
         }
       >
         {activeDetailRequest && (() => {
           const r = activeDetailRequest;
           const itemsList = parseItems(r.items);
           const meta = parseItemsData(r.items);
+          const isConference = r.category === 'conference';
+          const attendeesList = parseAttendeesList(r.attendees);
+          const foodName = r.food === 'others' && r.foodSpecify ? r.foodSpecify : r.food;
+          const hasFood = r.food && r.food !== 'none';
+
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
                 <div>
                   <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Request Number</strong>
-                  <span style={{ fontWeight: 600, color: 'var(--color-info)' }}>#{r.id}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--color-info)' }}>#{String(r.id).slice(0, 8).toUpperCase()}</span>
                 </div>
                 <div>
                   <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Status</strong>
@@ -623,10 +647,12 @@ export function HelpdeskTable({ categoryFilter }) {
               </div>
 
               <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
-                <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Requester Information</strong>
+                <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
+                  {isConference ? 'Organizer / Booked By' : 'Requester Information'}
+                </strong>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'var(--space-3)' }}>
                   <div>
-                    <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Name:</span> <strong style={{ fontWeight: 500 }}>{r.name || r.requester_name || r.full_name || '—'}</strong>
+                    <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Name:</span> <strong style={{ fontWeight: 600 }}>{r.name || r.requester_name || r.full_name || '—'}</strong>
                   </div>
                   <div>
                     <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Phone:</span> <strong>{r.phone || r.requester_phone || '—'}</strong>
@@ -637,50 +663,123 @@ export function HelpdeskTable({ categoryFilter }) {
                 </div>
               </div>
 
-              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
-                <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Location/Floor</strong>
-                <span>{r.location || r.floor || '—'}</span>
-              </div>
+              {isConference ? (
+                <>
+                  {/* Conference Room Specific Breakdown */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+                    <div>
+                      <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Meeting Date(s)</strong>
+                      <span style={{ fontWeight: 600, color: '#172025' }}>
+                        {formatDate(r.startDate || r.date)} {r.endDate && r.endDate !== (r.startDate || r.date) ? `→ ${formatDate(r.endDate)}` : ''}
+                      </span>
+                    </div>
+                    <div>
+                      <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Booking Type & Time</strong>
+                      <span style={{ fontWeight: 600, color: '#172025' }}>
+                        {r.bookingType === 'full' ? 'Full Day (09:00 - 18:00)' : `${r.startTime || '09:00'} – ${r.endTime || '18:00'}`}
+                      </span>
+                    </div>
+                  </div>
 
-              <div style={{ background: '#f9f9fb', padding: 'var(--space-3)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
-                <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 6 }}>Request Details</strong>
-                <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5, color: 'var(--color-text-primary)' }}>
-                  {meta && meta.request_type ? <strong>[{meta.request_type}] </strong> : ''}
-                  {r.description || r.issue || r.exact_query || r.exact_issue || 'No details provided'}
-                </p>
-                {meta && meta.remarks && (
-                  <p style={{ margin: '8px 0 0', fontSize: '0.9rem', lineHeight: 1.5, color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
-                    Remarks: {meta.remarks}
-                  </p>
-                )}
-              </div>
+                  <div style={{ background: '#f9f9fb', padding: 'var(--space-3)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
+                    <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Meeting Purpose / Reason</strong>
+                    <p style={{ margin: 0, fontSize: '0.92rem', lineHeight: 1.5, color: '#172025', fontWeight: 500 }}>
+                      {r.reason || 'No specific purpose provided'}
+                    </p>
+                  </div>
 
-              {itemsList.length > 0 && (
-                <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
-                  <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Requested Items</strong>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                    <thead>
-                      <tr style={{ background: 'var(--color-background-secondary)', textAlign: 'left' }}>
-                        <th style={{ padding: '6px 8px' }}>Item Name</th>
-                        <th style={{ padding: '6px 8px', textAlign: 'right' }}>Quantity</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {itemsList.map((i, idx) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                          <td style={{ padding: '6px 8px' }}>
-                            {i.item || i.name || 'Item'}
-                            {i.remarks && <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', display: 'block' }}>{i.remarks}</span>}
-                          </td>
-                          <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600 }}>{i.qty || i.quantity || 1}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                  <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+                    <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 6 }}>
+                      List of Attendees ({attendeesList.length})
+                    </strong>
+                    <div style={{ border: '1px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                        <thead>
+                          <tr style={{ background: '#f9f9fb', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>
+                            <th style={{ padding: '6px 12px', width: '40px' }}>#</th>
+                            <th style={{ padding: '6px 12px' }}>Attendee Name</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {attendeesList.length > 0 ? attendeesList.map((att, idx) => (
+                            <tr key={idx} style={{ borderBottom: idx < attendeesList.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                              <td style={{ padding: '6px 12px', color: 'var(--color-text-muted)' }}>{idx + 1}</td>
+                              <td style={{ padding: '6px 12px', fontWeight: 500 }}>{att}</td>
+                            </tr>
+                          )) : (
+                            <tr><td colSpan={2} style={{ padding: '8px 12px', color: 'var(--color-text-muted)' }}>No attendees listed</td></tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+                    <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
+                      Food & Refreshment Arrangement
+                    </strong>
+                    {hasFood ? (
+                      <div style={{ background: '#fdf5e6', border: '1px solid #b27f0d', borderRadius: '8px', padding: '0.75rem 1rem' }}>
+                        <div style={{ fontWeight: 700, color: '#b27f0d', fontSize: '0.9rem', marginBottom: 2 }}>
+                          🍽️ Food Selected: {foodName}
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: '#172025' }}>
+                          <strong>Quantity:</strong> {r.foodCount || 1} portions
+                        </div>
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>None requested</span>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+                    <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Location</strong>
+                    <span>{r.location || r.floor || '—'}</span>
+                  </div>
+
+                  <div style={{ background: '#f9f9fb', padding: 'var(--space-3)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
+                    <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 6 }}>Request Details</strong>
+                    <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5, color: 'var(--color-text-primary)' }}>
+                      {meta && meta.request_type ? <strong>[{meta.request_type}] </strong> : ''}
+                      {r.description || r.issue || r.exact_query || r.exact_issue || 'No details provided'}
+                    </p>
+                    {meta && meta.remarks && (
+                      <p style={{ margin: '8px 0 0', fontSize: '0.9rem', lineHeight: 1.5, color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+                        Remarks: {meta.remarks}
+                      </p>
+                    )}
+                  </div>
+
+                  {itemsList.length > 0 && (
+                    <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+                      <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Requested Items</strong>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                        <thead>
+                          <tr style={{ background: 'var(--color-background-secondary)', textAlign: 'left' }}>
+                            <th style={{ padding: '6px 8px' }}>Item Name</th>
+                            <th style={{ padding: '6px 8px', textAlign: 'right' }}>Quantity</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {itemsList.map((i, idx) => (
+                            <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                              <td style={{ padding: '6px 8px' }}>
+                                {i.item || i.name || 'Item'}
+                                {i.remarks && <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', display: 'block' }}>{i.remarks}</span>}
+                              </td>
+                              <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600 }}>{i.qty || i.quantity || 1}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
               )}
 
-              {r.remarks && (
+              {r.remarks && r.remarks !== 'None' && (
                 <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
                   <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Remarks</strong>
                   <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>{r.remarks}</p>

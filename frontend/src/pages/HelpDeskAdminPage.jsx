@@ -9,6 +9,7 @@ import { AMCPage } from './admin/AMCPage';
 import { UtilityPaymentsPage, TaxPaymentsPage, PettyCashPage, TravelExpensePage } from './admin/FinanceModules';
 import { AssetTrackerPage, CourierDispatchPage, BillWarrantyPage, OtherStockPage, RemindersPage } from './admin/OperationsModules';
 import { LoginAuditPage, AdminSettings, LocationsManagementPage } from './admin/AdminSettingsPage';
+import { AuditLogsPage } from './admin/AuditLogsPage';
 import PurchaseApprovalsPage from './admin/PurchaseApprovalsPage';
 
 
@@ -221,6 +222,7 @@ function SecuritySubView() {
   const modules = [
     { icon: '🏢', title: 'Office Locations', desc: 'Add or remove office floors and building locations for request routing', link: '/helpdesk-admin/locations', color: '#b27f0d' },
     { icon: '⚙️', title: 'Portal Settings', desc: 'Change administrator credentials and configure portal defaults', link: '/helpdesk-admin/settings', color: '#b27f0d' },
+    { icon: '📜', title: 'Admin Operations Audit', desc: 'Track all administrative changes across the portal', link: '/helpdesk-admin/audit-logs', color: '#b27f0d' },
   ];
 
 
@@ -405,6 +407,7 @@ export default function HelpDeskAdminPage() {
         {/* Admin */}
         <Route path="locations" element={<LocationsManagementPage />} />
         <Route path="settings" element={<AdminSettings />} />
+        <Route path="audit-logs" element={<AuditLogsPage />} />
       </Routes>
     </div>
   );

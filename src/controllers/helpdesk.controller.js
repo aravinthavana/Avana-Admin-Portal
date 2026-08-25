@@ -1,5 +1,7 @@
+const env = require('../config/env');
 const crypto = require('crypto');
 const helpdeskService = require('../services/helpdesk.service');
+const auditLogger = require('../utils/audit-logger');
 
 exports.getHelpdeskRequests = async (req, res, next) => {
   try {
@@ -103,7 +105,7 @@ exports.createRequest = async (req, res, next) => {
     }
 
     if (await helpdeskService.saveRequest(newRequest)) {
-      const host = req.headers.origin || (req.headers.host ? `${req.protocol}://${req.headers.host}` : 'http://localhost:5173');
+      const host = req.headers.origin || (req.headers.host ? `${req.protocol}://${req.headers.host}` : env.APP_URL);
       helpdeskService.sendHelpdeskNotification(newRequest, host).catch(console.error);
       res.status(201).json({ message: 'Request submitted successfully.', request: newRequest });
     } else {
@@ -261,7 +263,8 @@ exports.deleteRequest = async (req, res, next) => {
     }
 
     if (await helpdeskService.deleteRequest(id)) {
-      res.status(200).json({ message: 'Request deleted successfully.' });
+      await auditLogger.logAdminAction(req, 'DELETE_TICKET', 'HelpdeskRequest', req.params.id, null);
+    res.status(200).json({ message: 'Request deleted successfully.' });
     } else {
       res.status(500).json({ error: 'Failed to delete request.' });
     }

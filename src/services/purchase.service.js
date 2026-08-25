@@ -1,3 +1,4 @@
+const env = require('../config/env');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const xlsx = require('xlsx');
@@ -20,7 +21,7 @@ const transporter = nodemailer.createTransport({
 const sendMail = async (options) => {
     try {
         await transporter.sendMail({
-            from: process.env.SMTP_FROM || '"Avana Portal" <noreply@avanamedical.com>',
+            from: env.SMTP_FROM,
             ...options
         });
     } catch (e) {

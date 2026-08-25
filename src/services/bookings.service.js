@@ -1,3 +1,4 @@
+const env = require('../config/env');
 const crypto = require('crypto');
 const { sendEmail } = require('../utils/notifications');
 const { templates } = require('../utils/email-templates');
@@ -133,10 +134,16 @@ exports.getAllBookings = getBookings;
 exports.saveBooking = saveBooking;
 exports.deleteBooking = deleteBooking;
 
-const NOTIFICATION_CC = 'aravinth@avanamedical.com';
+const NOTIFICATION_CC = env.NOTIFICATION_CC;
+
+const getCancelSig = (id, email) => {
+  const secret = env.JWT_SECRET;
+  return crypto.createHmac('sha256', secret).update(`${id}:${email}`).digest('hex');
+};
 
 exports.sendBookingRequestToAdminNotification = async (booking, host) => {
-  const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
+  const adminEmail = env.ADMIN_EMAIL;
+  booking.cancelSig = getCancelSig(booking.id, booking.email);
   
   // 1. Separate confirmation email to Employee (NO CC to aravinth)
   if (booking.email) {
@@ -165,6 +172,7 @@ exports.sendBookingRequestToAdminNotification = async (booking, host) => {
 
 exports.sendBookingApprovalToEmployeeNotification = async (booking, host, approvalRemarks) => {
   if (!booking.email) return;
+  booking.cancelSig = getCancelSig(booking.id, booking.email);
   const subject = ` Conference Room Booking Confirmed`;
   const htmlBody = templates.bookingApproved({ booking, host, approvalRemarks });
   return sendEmail({
@@ -186,7 +194,7 @@ exports.sendBookingRejectionToEmployeeNotification = async (booking, reason) => 
 };
 
 exports.sendBookingCancellationNotification = async (booking) => {
-  const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
+  const adminEmail = env.ADMIN_EMAIL;
 
   if (booking.email) {
     const subject = `❌ CANCELLED: Conference Room Booking`;

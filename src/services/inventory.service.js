@@ -170,37 +170,50 @@ exports.calculateAuditForMonth = (stock, sortedLogs, month, overrides) => {
 
 exports.getStationeryCatalog = async () => {
   let catalog = {};
+  
+  // 1. One-time migration of legacy JSON to DB if it exists
   try {
     const p1 = path.join(__dirname, '../../stationery_catalog.json');
-    const p2 = path.join(__dirname, '../assets/stationery_catalog.json');
-    const p = fs.existsSync(p1) ? p1 : (fs.existsSync(p2) ? p2 : null);
-    if (p) catalog = JSON.parse(fs.readFileSync(p, 'utf8'));
+    if (fs.existsSync(p1)) {
+      const legacyCatalog = JSON.parse(fs.readFileSync(p1, 'utf8'));
+      for (const [name, catType] of Object.entries(legacyCatalog)) {
+        const existing = await prisma.inventoryItem.findFirst({ where: { name, category: { in: ['stationery', 'printing'] } } });
+        if (!existing) {
+          await prisma.inventoryItem.create({
+            data: { name, category: catType === 'printing' ? 'printing' : 'stationery', currentStock: 0, updatedAt: new Date().toISOString() }
+          });
+        }
+      }
+      fs.renameSync(p1, p1 + '.migrated');
+      console.log('Legacy stationery catalog migrated to DB successfully.');
+    }
   } catch(e) {}
 
+  // 2. Fetch all items from DB
   try {
     const dbItems = await prisma.inventoryItem.findMany({ where: { category: { in: ['stationery', 'printing'] } } });
     dbItems.forEach(i => {
-      if (!catalog[i.name]) {
-        catalog[i.name] = i.category === 'printing' ? 'printing' : 'stationery';
-      }
+      catalog[i.name] = i.category === 'printing' ? 'printing' : 'stationery';
     });
-  } catch(e) {}
+  } catch(e) {
+    console.error('Failed to fetch catalog from DB:', e);
+  }
 
   return catalog;
 };
 
-exports.addStationeryCatalogItem = (itemClean, itemType) => {
+exports.addStationeryCatalogItem = async (itemClean, itemType) => {
   try {
-    const p = path.join(__dirname, '../../stationery_catalog.json');
-    let catalog = {};
-    if (fs.existsSync(p)) {
-      catalog = JSON.parse(fs.readFileSync(p, 'utf8'));
+    const category = itemType === 'printing' ? 'printing' : 'stationery';
+    const existing = await prisma.inventoryItem.findFirst({ where: { name: itemClean, category: { in: ['stationery', 'printing'] } } });
+    if (!existing) {
+      await prisma.inventoryItem.create({
+        data: { name: itemClean, category, currentStock: 0, updatedAt: new Date().toISOString() }
+      });
     }
-    catalog[itemClean] = itemType === 'printing' ? 'printing' : 'stationery';
-    fs.writeFileSync(p, JSON.stringify(catalog, null, 2), 'utf8');
-    return catalog;
+    return await exports.getStationeryCatalog();
   } catch(e) {
-    console.error('Failed to update stationery catalog:', e);
+    console.error('Failed to update stationery catalog in DB:', e);
     return null;
   }
 };

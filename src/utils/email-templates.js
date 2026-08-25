@@ -1,3 +1,4 @@
+const env = require('../config/env');
 /**
  * email-templates.js
  * 
@@ -11,7 +12,7 @@
  *   const html = templates.bookingConfirmation(booking, host);
  */
 
-const APP_URL = process.env.APP_URL || 'http://localhost:3000';
+const APP_URL = env.APP_URL;
 
 // ── Branded Wrapper ──────────────────────────────────────────────────────────
 // Matches the legacy portal's gold gradient header with logo and footer.
@@ -162,7 +163,7 @@ const templates = {
     const foodText = booking.food === 'none' || !booking.food
       ? 'No Food'
       : `${booking.food === 'others' ? `Other (${booking.foodSpecify || ''})` : booking.food} (Count: ${booking.foodCount || 0})`;
-    const cancelUrl = `${host || APP_URL}/api/bookings/cancel?id=${booking.id}&email=${encodeURIComponent(booking.email)}`;
+    const cancelUrl = `${host || APP_URL}/api/bookings/cancel?id=${booking.id}&email=${encodeURIComponent(booking.email)}&sig=${booking.cancelSig || ''}`;
 
     return buildEmail({
       title: 'Conference Room Booking Request Received',
@@ -200,7 +201,7 @@ const templates = {
     const foodText = booking.food === 'none' || !booking.food
       ? 'No Food'
       : `${booking.food === 'others' ? `Other (${booking.foodSpecify || ''})` : booking.food} (Count: ${booking.foodCount || 0})`;
-    const cancelUrl = `${host || APP_URL}/api/bookings/cancel?id=${booking.id}&email=${encodeURIComponent(booking.email)}`;
+    const cancelUrl = `${host || APP_URL}/api/bookings/cancel?id=${booking.id}&email=${encodeURIComponent(booking.email)}&sig=${booking.cancelSig || ''}`;
 
     return buildEmail({
       title: 'Conference Room Booking Confirmed',
@@ -273,7 +274,7 @@ const templates = {
     const foodText = booking.food === 'none' || !booking.food
       ? 'No Food'
       : `${booking.food} (Count: ${booking.foodCount || 0})`;
-    const cancelUrl = `${host || APP_URL}/api/bookings/cancel?id=${booking.id}&email=${encodeURIComponent(booking.email)}`;
+    const cancelUrl = `${host || APP_URL}/api/bookings/cancel?id=${booking.id}&email=${encodeURIComponent(booking.email)}&sig=${booking.cancelSig || ''}`;
 
     return buildEmail({
       title: 'Conference Room Booking Confirmed',

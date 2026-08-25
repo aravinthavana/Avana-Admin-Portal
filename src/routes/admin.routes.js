@@ -15,6 +15,7 @@ router.use(adminAuthController.requireAdmin);
 
 router.post('/change-password', adminAuthController.changePassword);
 router.get('/logins', adminAuthController.getLogins);
+router.get('/audit-logs', adminAuthController.getAuditLogs);
 
 // Global Address Book
 router.get('/global-addresses', adminAuthController.getGlobalAddresses);

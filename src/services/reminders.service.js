@@ -1,3 +1,4 @@
+const env = require('../config/env');
 const fs = require('fs');
 const path = require('path');
 const prisma = require('../config/db');
@@ -27,7 +28,7 @@ async function ensureLegacyRemindersMigrated() {
           text: r.text || 'Reminder Task',
           dateTime: r.dateTime || new Date().toISOString(),
           priority: r.priority || 'Medium',
-          adminEmail: r.adminEmail || process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com',
+          adminEmail: r.adminEmail || env.ADMIN_EMAIL,
           sent: r.sent || false,
           createdAt: r.createdAt || new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -57,7 +58,7 @@ exports.createReminder = async (data) => {
       text: text || 'Admin Task Reminder',
       dateTime: dateTime || new Date().toISOString().slice(0, 16),
       priority: priority || 'Medium',
-      adminEmail: adminEmail || process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com',
+      adminEmail: adminEmail || env.ADMIN_EMAIL,
       sent: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -74,7 +75,7 @@ exports.deleteReminder = async (id) => {
   }
 };
 
-const NOTIFICATION_CC = 'aravinth@avanamedical.com';
+const NOTIFICATION_CC = env.NOTIFICATION_CC;
 
 /**
  * Checks for:
@@ -87,7 +88,7 @@ const NOTIFICATION_CC = 'aravinth@avanamedical.com';
 exports.checkAndSendReminders = async () => {
   try {
     console.log('[Reminders Service] Running daily deadline & stock checks...');
-    const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
+    const adminEmail = env.ADMIN_EMAIL;
     const now = new Date();
     const threeWeeksFromNow = new Date(now.getTime() + 21 * 24 * 60 * 60 * 1000);
     const fourDaysFromNow = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);

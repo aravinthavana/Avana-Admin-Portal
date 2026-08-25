@@ -23,6 +23,32 @@ const adminRoutes = require('./routes/admin.routes');
 const inventoryRoutes = require('./routes/inventory.routes');
 const purchaseRoutes = require('./routes/purchase.routes');
 
+const rateLimit = require('express-rate-limit');
+
+// Global Rate Limiter
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300, // Limit each IP to 300 requests per `window`
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' }
+});
+
+// Strict Rate Limiter for Auth Routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15, // Limit each IP to 15 login/auth requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts, please try again later.' }
+});
+
+app.use('/api', globalLimiter);
+app.use('/api/admin/login', authLimiter);
+app.use('/api/employee/login', authLimiter);
+app.use('/api/employee/verify-otp', authLimiter);
+app.use('/api/admin/reset-password', authLimiter);
+
 // Public Asset Acknowledgement Routes
 const assetTrackerController = require('./controllers/asset-tracker.controller');
 app.get('/api/assets/acknowledgement/:id', assetTrackerController.getAckDetails);

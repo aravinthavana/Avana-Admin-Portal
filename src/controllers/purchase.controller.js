@@ -1,4 +1,5 @@
 const purchaseService = require('../services/purchase.service');
+const auditLogger = require('../utils/audit-logger');
 const fs = require('fs');
 
 const createPurchaseRequest = async (req, res) => {

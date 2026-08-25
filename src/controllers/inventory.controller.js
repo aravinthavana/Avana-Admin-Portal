@@ -1,4 +1,5 @@
 const inventoryService = require('../services/inventory.service');
+const auditLogger = require('../utils/audit-logger');
 
 exports.getStationeryCatalog = async (req, res, next) => {
   try {
@@ -82,6 +83,7 @@ const handleUpdateStock = async (type, req, res, next) => {
       inventoryService.checkLowStockAlert(item, newStock, type).catch(console.error);
     }
 
+    await auditLogger.logAdminAction(req, 'UPDATE_STOCK', 'Inventory', item, { type, transactionType, quantity: qty, previousStock, newStock });
     res.status(200).json({ message: 'Stock updated successfully.', stock: newStock });
   } catch (error) {
     next(error);
@@ -137,6 +139,7 @@ const handleAuditOverride = async (type, req, res, next) => {
       await inventoryService.saveStock(type, stock);
     }
 
+    await auditLogger.logAdminAction(req, 'AUDIT_OVERRIDE', 'Inventory', item, { month, type, overrides: overrides[month] });
     res.status(200).json({ message: 'Audit overrides saved successfully.', overrides: overrides[month] });
   } catch (error) {
     next(error);
@@ -150,12 +153,12 @@ exports.addStationeryItemType = async (req, res, next) => {
       return res.status(400).json({ error: 'Missing item name.' });
     }
     const itemClean = item.trim();
-    const catalog = inventoryService.getStationeryCatalog();
+    const catalog = await inventoryService.getStationeryCatalog();
     if (catalog[itemClean]) {
       return res.status(400).json({ error: 'Item already exists in catalog.' });
     }
 
-    const updatedCatalog = inventoryService.addStationeryCatalogItem(itemClean, type || 'stationery');
+    const updatedCatalog = await inventoryService.addStationeryCatalogItem(itemClean, type || 'stationery');
     
     const qty = parseInt(initialStock, 10) || 0;
     const stock = await inventoryService.getStock('stationery');
@@ -176,6 +179,7 @@ exports.addStationeryItemType = async (req, res, next) => {
       await inventoryService.saveTransactions('stationery', logs);
     }
 
+    await auditLogger.logAdminAction(req, 'CREATE_ITEM', 'Inventory', itemClean, { type: type || 'stationery', initialStock: qty });
     res.status(200).json({ message: 'Stationery item added successfully.', catalog: updatedCatalog });
   } catch (error) {
     next(error);

@@ -375,3 +375,14 @@ model PurchaseRequest {
   createdAt           String
   updatedAt           String
 }
+
+model AuditLog {
+  id        String  @id @default(uuid())
+  admin     String  // Admin email or username
+  action    String  // Action taken (e.g. APPROVED_BOOKING)
+  entity    String  // Entity affected (e.g. Booking, Purchase)
+  entityId  String? // ID of the entity
+  details   String? // JSON string containing changes or context
+  ip        String? // IP address of the admin
+  timestamp String  // ISO string
+}

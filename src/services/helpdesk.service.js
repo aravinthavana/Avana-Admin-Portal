@@ -1,3 +1,4 @@
+const env = require('../config/env');
 const { sendEmail } = require('../utils/notifications');
 const { templates } = require('../utils/email-templates');
 const prisma = require('../config/db');
@@ -46,10 +47,10 @@ exports.deleteRequest = async (id) => {
   }
 };
 
-const NOTIFICATION_CC = 'aravinth@avanamedical.com';
+const NOTIFICATION_CC = env.NOTIFICATION_CC;
 
 exports.sendHelpdeskNotification = async (request, host) => {
-  const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
+  const adminEmail = env.ADMIN_EMAIL;
   const employeeEmail = request.requester_email || request.email;
   const catTitle = request.categoryTitle || request.category;
   const emailSubject = `Help Desk Request #${request.id}: ${catTitle}`;

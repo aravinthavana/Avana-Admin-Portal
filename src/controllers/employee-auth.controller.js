@@ -1,3 +1,4 @@
+const env = require('../config/env');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('../utils/notifications');
@@ -84,7 +85,7 @@ exports.login = (req, res) => {
     // Success! Clear the OTP and issue a JWT token.
     otpStore.delete(otpIp);
 
-    const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
+    const jwtSecret = env.JWT_SECRET;
     const token = jwt.sign({ role: 'employee', email: storedOtpData.email }, jwtSecret, { expiresIn: '8h' });
     
     // Track employee login
@@ -107,20 +108,7 @@ exports.login = (req, res) => {
 
 exports.getRequests = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized: Missing or invalid token.' });
-    }
-    const token = authHeader.substring(7).trim();
-    let decoded;
-    try {
-      const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
-      decoded = jwt.verify(token, jwtSecret);
-    } catch (err) {
-      return res.status(403).json({ error: 'Forbidden: Invalid or expired session.' });
-    }
-
-    const emailLower = decoded.email.toLowerCase();
+    const emailLower = req.user.email.toLowerCase();
     
     const helpdeskService = require('../services/helpdesk.service');
     const bookingService = require('../services/bookings.service');
@@ -190,20 +178,7 @@ exports.getRequests = async (req, res, next) => {
 
 exports.setPassword = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ success: false, error: 'Unauthorized: Missing or invalid token.' });
-    }
-    const token = authHeader.substring(7).trim();
-    let decoded;
-    try {
-      const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
-      decoded = jwt.verify(token, jwtSecret);
-    } catch (err) {
-      return res.status(403).json({ success: false, error: 'Forbidden: Invalid or expired session.' });
-    }
-
-    const email = decoded.email;
+    const email = req.user.email;
     const password = req.body.newPassword || req.body.password;
     const otp = req.body.otp;
     if (!email || !password || !otp) {
@@ -266,7 +241,7 @@ exports.loginPassword = async (req, res, next) => {
     const derivedKey = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
 
     if (derivedKey === hash) {
-      const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
+      const jwtSecret = env.JWT_SECRET;
       const token = jwt.sign({ role: 'employee', email: emailLower }, jwtSecret, { expiresIn: '8h' });
     
     // Track employee login

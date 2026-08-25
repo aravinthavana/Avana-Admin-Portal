@@ -177,6 +177,18 @@ exports.getLogins = async (req, res, next) => {
   }
 };
 
+exports.getAuditLogs = async (req, res, next) => {
+  try {
+    const logs = await prisma.auditLog.findMany({
+      orderBy: { timestamp: 'desc' },
+      take: 100
+    });
+    res.status(200).json(logs);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ─── Middleware ───────────────────────────────────────────────
 exports.requireAdmin = async (req, res, next) => {
   let token = req.cookies?.admin_token;

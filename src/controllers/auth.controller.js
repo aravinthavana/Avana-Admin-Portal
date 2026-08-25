@@ -1,3 +1,4 @@
+const env = require('../config/env');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
@@ -56,7 +57,7 @@ exports.login = async (req, res, next) => {
     }
 
     // Generate JWT Token (replacing the old random hex token)
-    const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
+    const jwtSecret = env.JWT_SECRET;
     const token = jwt.sign({ role: 'admin' }, jwtSecret, { expiresIn: '2h' });
 
     res.status(200).json({ success: true, token, message: 'Successfully logged in.' });

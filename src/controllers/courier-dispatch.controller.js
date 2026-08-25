@@ -36,7 +36,7 @@ exports.createDispatch = async (req, res, next) => {
     if (!dcNo || !String(dcNo).trim()) {
       return res.status(400).json({ error: 'Delivery Challan No is mandatory and required.' });
     }
-    const requesterEmail = req.user?.email || req.body.requesterEmail || '';
+    const requesterEmail = req.user.email;
     const host = req.protocol + '://' + req.get('host');
     const created = await courierService.createDispatch(req.body, requesterEmail, host);
 
@@ -61,7 +61,7 @@ exports.updateTrackingInfo = async (req, res, next) => {
 exports.mergeParcel = async (req, res, next) => {
   try {
     const { parentDispatchId, items, remarks } = req.body;
-    const requesterEmail = req.user?.email || req.body.requesterEmail || '';
+    const requesterEmail = req.user.email;
     if (!parentDispatchId || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Missing parent dispatch ID or items array.' });
     }
@@ -90,7 +90,7 @@ exports.deleteDispatch = async (req, res, next) => {
 exports.updateDispatchEmployee = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const requesterEmail = req.user?.email || req.body.requesterEmail || '';
+    const requesterEmail = req.user.email;
     const host = req.protocol + '://' + req.get('host');
     const updated = await courierService.updateDispatch(id, req.body, requesterEmail, host);
     if (!updated) return res.status(404).json({ error: 'Delivery Challan not found.' });
@@ -104,7 +104,6 @@ exports.updateDispatchEmployee = async (req, res, next) => {
 exports.deleteDispatchEmployee = async (req, res, next) => {
   try {
     const { id } = req.params;
-    // Just reuse the main delete service
     const success = await courierService.deleteDispatch(id);
     if (!success) return res.status(404).json({ error: 'Record not found or failed to delete.' });
 
@@ -200,7 +199,7 @@ exports.generateShippingLabel = async (req, res, next) => {
 exports.getDispatchesByDate = async (req, res, next) => {
   try {
     const date = req.query.date;
-    const requesterEmail = req.user?.email || '';
+    const requesterEmail = req.user.email;
     if (!date) return res.status(400).json({ error: 'Date is required.' });
     
     const list = await courierService.getDispatchesByDate(date, requesterEmail);
@@ -212,10 +211,9 @@ exports.getDispatchesByDate = async (req, res, next) => {
 
 exports.createMergeRequest = async (req, res, next) => {
   try {
-    // Employee routes have no JWT auth, so requesterEmail/Name come from frontend body
-    const { targetDispatchId, items, requesterEmail: bodyEmail, requesterName: bodyName } = req.body;
-    const requesterEmail = bodyEmail || req.user?.email || '';
-    const requesterName = bodyName || (requesterEmail ? requesterEmail.split('@')[0] : 'Employee');
+    const { targetDispatchId, items, requesterName: bodyName } = req.body;
+    const requesterEmail = req.user.email;
+    const requesterName = bodyName || requesterEmail.split('@')[0];
     const host = req.protocol + '://' + req.get('host');
 
     if (!targetDispatchId || !items || !items.length) {

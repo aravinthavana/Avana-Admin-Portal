@@ -48,6 +48,7 @@ app.use('/api/purchase', purchaseRoutes);
 
 
 // Serve static frontend files (React SPA)
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // 404 Handler

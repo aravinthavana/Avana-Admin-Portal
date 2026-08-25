@@ -766,31 +766,29 @@ const templates = {
     });
   },
 
-  purchaseApprovalRequest: (request, host) => {
-    const approveUrl = `${host}/api/purchase/approve/${request.approvalToken}/Approved`;
-    const rejectUrl = `${host}/api/purchase/approve/${request.approvalToken}/Rejected`;
-    const discussUrl = `${host}/api/purchase/approve/${request.approvalToken}/Need%20to%20Discuss`;
+  purchaseApprovalRequest: (request) => {
+    const loginUrl = `${APP_URL}/purchase-approvals`;
 
     const bodyHtml = `
       <h3 style="margin-top: 0; color: #1e293b; font-size: 18px;">Purchase Request Approval Required</h3>
-      <p>A new purchase request has been submitted by <strong>${request.requesterName}</strong> (${request.requesterEmail}).</p>
+      <p>A new purchase request (<strong>${request.requestId}</strong>) has been submitted by <strong>${request.requestedBy}</strong>.</p>
       
       <table style="${TABLE_WRAP}">
-        ${tableRow('Item Name', request.itemName)}
-        ${tableRow('Quantity', request.quantity, true)}
-        ${tableRow('Amount', '₹' + request.amount)}
-        ${tableRow('Total Amount', '<strong>₹' + request.totalAmount + '</strong>', true)}
+        ${tableRow('Request ID', request.requestId)}
+        ${tableRow('Item Name', request.itemName, true)}
+        ${tableRow('Quantity', request.quantity)}
+        ${tableRow('Unit Amount', '₹' + request.unitAmount, true)}
+        ${tableRow('GST Amount', '₹' + request.gstAmount)}
+        ${tableRow('Final Amount', '<strong>₹' + request.finalAmount + '</strong>', true)}
         ${tableRow('Mode', request.modeOfPurchase)}
-        ${tableRow('GST Status', request.gstStatus, true)}
-        ${tableRow('Link', request.link ? `<a href="${request.link}">View Link</a>` : 'N/A')}
+        ${tableRow('Link', request.purchaseLink ? `<a href="${request.purchaseLink}">View Link</a>` : 'N/A', true)}
       </table>
 
       ${highlightBox('<strong>Reason:</strong> ' + request.reason, '#0ea5e9', '#f0f9ff')}
 
       <div style="margin-top: 24px; text-align: center;">
-        <a href="${approveUrl}" style="display: inline-block; padding: 10px 20px; margin: 5px; background: #16a34a; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;">Approve</a>
-        <a href="${rejectUrl}" style="display: inline-block; padding: 10px 20px; margin: 5px; background: #dc2626; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;">Reject</a>
-        <a href="${discussUrl}" style="display: inline-block; padding: 10px 20px; margin: 5px; background: #f59e0b; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;">Need to Discuss</a>
+        <p style="margin-bottom: 16px; color: #374151;">Please login to the Admin Portal to Approve, Reject, or Discuss this request.</p>
+        ${actionButton('Review Purchase Request', loginUrl, '#16a34a')}
       </div>
     `;
     return buildEmail({
@@ -801,19 +799,24 @@ const templates = {
     });
   },
 
-  purchaseStatusUpdate: (request, host) => {
-    const statusColor = request.status === 'Approved' ? '#16a34a' : (request.status === 'Rejected' ? '#dc2626' : '#f59e0b');
+  purchaseStatusUpdate: (request) => {
+    let statusColor = '#f59e0b';
+    if (request.status === 'Approved') statusColor = '#16a34a';
+    if (request.status === 'Rejected') statusColor = '#dc2626';
+    if (request.status === 'Purchased') statusColor = '#9333ea';
     
     const bodyHtml = `
       <h3 style="margin-top: 0; color: #1e293b; font-size: 18px;">Purchase Request Update</h3>
-      <p>Your purchase request for <strong>${request.itemName}</strong> has been updated.</p>
+      <p>Your purchase request (<strong>${request.requestId}</strong>) for <strong>${request.itemName}</strong> has been updated.</p>
       
       ${highlightBox('<strong>Status:</strong> ' + request.status, statusColor, '#f8fafc')}
 
       <table style="${TABLE_WRAP}">
         ${tableRow('Item Name', request.itemName)}
-        ${tableRow('Total Amount', '₹' + request.totalAmount, true)}
-        ${tableRow('Approver', request.approvalEmail)}
+        ${tableRow('Final Amount', '₹' + request.finalAmount, true)}
+        ${tableRow('Approver', request.approvalPersonEmail)}
+        ${request.approverComments ? tableRow('Comments', request.approverComments, true) : ''}
+        ${request.rejectionReason ? tableRow('Rejection Reason', request.rejectionReason, true) : ''}
       </table>
       
       <p>Please log in to the admin portal to view complete details.</p>

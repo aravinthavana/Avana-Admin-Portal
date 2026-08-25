@@ -423,3 +423,29 @@ export const locationsApi = {
 
 
 
+
+export const apiFetch = async (path, options = {}, role = 'admin') => {
+  const token = getToken(role);
+  const headers = {
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...(options.headers || {}),
+  };
+
+  if (!options.isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const response = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    let errBody;
+    try { errBody = await response.json(); } catch { errBody = {}; }
+    const msg = errBody.error || errBody.message || `HTTP ${response.status}`;
+    throw new Error(msg);
+  }
+
+  return response.json();
+};

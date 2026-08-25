@@ -9,6 +9,7 @@ import { AMCPage } from './admin/AMCPage';
 import { UtilityPaymentsPage, TaxPaymentsPage, PettyCashPage, TravelExpensePage } from './admin/FinanceModules';
 import { AssetTrackerPage, CourierDispatchPage, BillWarrantyPage, OtherStockPage, RemindersPage } from './admin/OperationsModules';
 import { LoginAuditPage, AdminSettings, LocationsManagementPage } from './admin/AdminSettingsPage';
+import PurchaseApprovalsPage from './admin/PurchaseApprovalsPage';
 
 
 import { stationeryApi, housekeepingApi, utilityApi, taxApi } from '../lib/api';
@@ -263,21 +264,21 @@ function SecuritySubView() {
 /* ─── 2C. Inventory & Operations Sub-View Card Grid ─────────────────────── */
 function InventorySubView() {
   const modules = [
+    { icon: '🛒', title: 'Purchase Approvals', desc: 'Manage and approve purchase requests, workflows, and actual purchases', link: '/helpdesk-admin/purchases', color: '#b27f0d' },
     { icon: '✏️', title: 'Stationery Stock', desc: 'Monitor stationery inventory levels and restock items', link: '/helpdesk-admin/stationery-stock', color: '#b27f0d' },
-    { icon: '📊', title: 'Stationery Audit', desc: 'Perform monthly physical stock reconciliations and overrides', link: '/helpdesk-admin/stationery-audit', color: '#b27f0d' },
+    { icon: '📋', title: 'Stationery Audit', desc: 'Perform monthly physical stock reconciliations and overrides', link: '/helpdesk-admin/stationery-audit', color: '#b27f0d' },
     { icon: '🧹', title: 'Housekeeping Stock', desc: 'Track housekeeping and cleaning item stock counts', link: '/helpdesk-admin/housekeeping-stock', color: '#b27f0d' },
-    { icon: '🧴', title: 'Housekeeping Audit', desc: 'Run monthly audits for cleaning products and supplies', link: '/helpdesk-admin/housekeeping-audit', color: '#b27f0d' },
+    { icon: '🧼', title: 'Housekeeping Audit', desc: 'Run monthly audits for cleaning products and supplies', link: '/helpdesk-admin/housekeeping-audit', color: '#b27f0d' },
     { icon: '📦', title: 'Stationery Tracker', desc: 'Track stationery handovers and issuance history', link: '/helpdesk-admin/asset-tracker', color: '#b27f0d' },
-    { icon: '📦', title: 'Other Stock', desc: 'Manage miscellaneous stock items and general inventory', link: '/helpdesk-admin/other-stock', color: '#b27f0d' },
-    { icon: '📋', title: 'AMC Contracts', desc: 'Manage annual maintenance contracts, vendors, and renewal dates', link: '/helpdesk-admin/amc', color: '#b27f0d' },
+    { icon: '🗃️', title: 'Other Stock', desc: 'Manage miscellaneous stock items and general inventory', link: '/helpdesk-admin/other-stock', color: '#b27f0d' },
+    { icon: '🔧', title: 'AMC Contracts', desc: 'Manage annual maintenance contracts, vendors, and renewal dates', link: '/helpdesk-admin/amc', color: '#b27f0d' },
     { icon: '🚚', title: 'Courier & Dispatch', desc: 'Manage outbound shipments, auto-generate Delivery Challans, and set Global Addresses', link: '/helpdesk-admin/courier', color: '#b27f0d' },
-    { icon: '💵', title: 'Cash Handling', desc: 'Log petty cash transactions, vouchers, and office expenditures', link: '/helpdesk-admin/cash-handling', color: '#b27f0d' },
-    { icon: '🚗', title: 'Travel Expenses', desc: 'Track employee travel claims, cab bookings, and reimbursements', link: '/helpdesk-admin/travel', color: '#b27f0d' },
-    { icon: '📄', title: 'Bill & Warranty', desc: 'Store bills, invoices, and product warranty expiration dates', link: '/helpdesk-admin/bill-warranty', color: '#b27f0d' },
+    { icon: '💰', title: 'Cash Handling', desc: 'Log petty cash transactions, vouchers, and office expenditures', link: '/helpdesk-admin/cash-handling', color: '#b27f0d' },
+    { icon: '🚕', title: 'Travel Expenses', desc: 'Track employee travel claims, cab bookings, and reimbursements', link: '/helpdesk-admin/travel', color: '#b27f0d' },
+    { icon: '🧾', title: 'Bill & Warranty', desc: 'Store bills, invoices, and product warranty expiration dates', link: '/helpdesk-admin/bill-warranty', color: '#b27f0d' },
     { icon: '⚡', title: 'Utility Payments', desc: 'Track electricity, water, internet, and office utility bills', link: '/helpdesk-admin/utility-payments', color: '#b27f0d' },
-    { icon: '🏛️', title: 'Tax Payments', desc: 'Record property tax, municipal tax, and statutory payments', link: '/helpdesk-admin/tax-payments', color: '#b27f0d' },
+    { icon: '🏢', title: 'Tax Payments', desc: 'Record property tax, municipal tax, and statutory payments', link: '/helpdesk-admin/tax-payments', color: '#b27f0d' },
     { icon: '🔔', title: 'Reminder List', desc: 'Configure automatic email & system reminders for renewals', link: '/helpdesk-admin/reminders', color: '#b27f0d' },
-    
   ];
 
   return (
@@ -388,6 +389,7 @@ export default function HelpDeskAdminPage() {
         <Route path="other-stock" element={<OtherStockPage />} />
 
         {/* AMC & Operations */}
+        <Route path="purchases" element={<PurchaseApprovalsPage />} />
         <Route path="amc" element={<AMCPage />} />
         <Route path="courier" element={<CourierDispatchPage />} />
         <Route path="cash-handling" element={<PettyCashPage />} />

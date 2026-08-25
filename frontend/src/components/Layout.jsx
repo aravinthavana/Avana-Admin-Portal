@@ -75,6 +75,7 @@ function HeaderNavigation() {
     'asset-tracker': 'Stationery Tracker',
     'other-stock': 'Other Stock',
     'amc': 'AMC Contracts',
+    'purchases': 'Purchase Approvals',
     'utility-payments': 'Utility Payments',
     'tax-payments': 'Tax Payments',
     'courier': 'Courier & Dispatch',

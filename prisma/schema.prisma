@@ -11,7 +11,7 @@ datasource db {
 }
 
 model AdminLogin {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   username  String
   timestamp String
   ip        String?
@@ -24,7 +24,6 @@ model AdminSession {
   createdAt String
   lastUsed  String
 }
-
 
 model Booking {
   id          String  @id @default(uuid())
@@ -62,28 +61,28 @@ model HelpdeskRequest {
 }
 
 model AmcContract {
-  id              String     @id @default(uuid())
-  doc_no          String?
-  amc_name        String?
-  category        String?
-  no_of_visits    Int?
-  units_location  String?
-  pricing         Float?
-  frequency       String?
-  start_date      String?
-  end_date        String?
-  last_service    String?
-  next_service    String?
-  vendor_contact  String?
-  vendor_phone    String?
-  coverage_specs  String?
-  status          String?    @default("Active")
-  created_at      String?
-  visits          AmcVisit[]
+  id             String     @id @default(uuid())
+  doc_no         String?
+  amc_name       String?
+  category       String?
+  no_of_visits   Int?
+  units_location String?
+  pricing        Float?
+  frequency      String?
+  start_date     String?
+  end_date       String?
+  last_service   String?
+  next_service   String?
+  vendor_contact String?
+  vendor_phone   String?
+  coverage_specs String?
+  status         String?    @default("Active")
+  created_at     String?
+  visits         AmcVisit[]
 }
 
 model AmcVisit {
-  id                String       @id @default(uuid())
+  id                String      @id @default(uuid())
   amc_id            String
   visit_no          Int?
   scheduled_date    String?
@@ -93,9 +92,9 @@ model AmcVisit {
   service_person    String?
   contact_number    String?
   remarks           String?
-  status            String?      @default("Pending")
+  status            String?     @default("Pending")
   created_at        String?
-  contract          AmcContract  @relation(fields: [amc_id], references: [id], onDelete: Cascade)
+  contract          AmcContract @relation(fields: [amc_id], references: [id], onDelete: Cascade)
 }
 
 model UtilityPayment {
@@ -130,10 +129,10 @@ model TaxPayment {
 }
 
 model InventoryItem {
-  id           String                 @id @default(uuid())
-  category     String                 // 'stationery' or 'housekeeping'
+  id           String                   @id @default(uuid())
+  category     String // 'stationery' or 'housekeeping'
   name         String
-  currentStock Int                    @default(0)
+  currentStock Int                      @default(0)
   updatedAt    String?
   transactions InventoryTransaction[]
   overrides    InventoryAuditOverride[]
@@ -142,7 +141,7 @@ model InventoryItem {
 model InventoryTransaction {
   id            String        @id @default(uuid())
   itemId        String
-  type          String        // 'purchase' or 'use'
+  type          String // 'purchase' or 'use'
   quantity      Int
   previousStock Int
   newStock      Int
@@ -154,7 +153,7 @@ model InventoryTransaction {
 model InventoryAuditOverride {
   id            String        @id @default(uuid())
   itemId        String
-  month         String        // e.g. "2026-06"
+  month         String // e.g. "2026-06"
   startingStock Int?
   purchased     Int?
   used          Int?
@@ -254,46 +253,46 @@ model CourierMergeRequest {
 }
 
 model PettyCash {
-  id            String   @id @default(uuid())
+  id            String  @id @default(uuid())
   date          String
   reason        String
   company       String?
   expenseName   String?
   collectedFrom String?
-  amount        Float    @default(0)
-  type          String   @default("EXPENSE") // 'EXPENSE' or 'ADD_FUNDS'
+  amount        Float   @default(0)
+  type          String  @default("EXPENSE") // 'EXPENSE' or 'ADD_FUNDS'
   remarks       String?
-  cleared       Boolean  @default(false)
+  cleared       Boolean @default(false)
   clearedDate   String?
   createdAt     String
   updatedAt     String
 }
 
 model TravelExpense {
-  id           String   @id @default(uuid())
+  id           String  @id @default(uuid())
   date         String
   employeeName String?
   vehicleNo    String?
   fromLoc      String
   toLoc        String
-  mode         String   @default("Bike")
-  totalKm      Float    @default(0)
+  mode         String  @default("Bike")
+  totalKm      Float   @default(0)
   fuelLiters   Float?
   fuelCost     Float?
   tollParking  Float?
-  totalExpense Float    @default(0)
+  totalExpense Float   @default(0)
   remarks      String?
   createdAt    String
   updatedAt    String
 }
 
 model BillWarranty {
-  id               String   @id @default(uuid())
+  id               String  @id @default(uuid())
   date             String
   billNo           String
   vendorName       String?
   itemsJson        String?
-  totalAmount      Float    @default(0)
+  totalAmount      Float   @default(0)
   warrantyDate     String?
   billFileUrl      String?
   billFileName     String?
@@ -306,10 +305,10 @@ model BillWarranty {
 }
 
 model OtherStock {
-  id               String   @id @default(uuid())
+  id               String  @id @default(uuid())
   stockName        String
-  availableQty     Int      @default(0)
-  usedQty          Int      @default(0)
+  availableQty     Int     @default(0)
+  usedQty          Int     @default(0)
   subtitlesJson    String?
   location         String?
   remarks          String?
@@ -319,12 +318,12 @@ model OtherStock {
 }
 
 model Reminder {
-  id         String   @id @default(uuid())
+  id         String  @id @default(uuid())
   text       String
   dateTime   String
-  priority   String   @default("Medium")
+  priority   String  @default("Medium")
   adminEmail String
-  sent       Boolean  @default(false)
+  sent       Boolean @default(false)
   sentAt     String?
   createdAt  String
   updatedAt  String
@@ -333,7 +332,7 @@ model Reminder {
 model AddressBook {
   id        String  @id @default(uuid())
   userEmail String
-  label     String?  // Optional friendly label like "Home", "Office"
+  label     String? // Optional friendly label like "Home", "Office"
   name      String
   phone     String?
   address   String
@@ -341,15 +340,38 @@ model AddressBook {
 }
 
 model Location {
-  id        String   @id @default(uuid())
-  name      String   @unique
+  id        String  @id @default(uuid())
+  name      String  @unique
   createdAt String?
 }
 
-
-
-
-
-
-
-
+model PurchaseRequest {
+  id                  String  @id @default(uuid())
+  requestId           String  @unique
+  itemName            String
+  quantity            Int
+  unitAmount          Float
+  hasGst              Boolean
+  gstPercentage       Float?
+  gstAmount           Float   @default(0)
+  finalAmount         Float
+  modeOfPurchase      String
+  storeName           String?
+  purchaseLink        String?
+  itemImage           String?
+  reason              String
+  approvalPersonEmail String
+  requestedBy         String
+  status              String  @default("Pending Approval")
+  approverComments    String?
+  rejectionReason     String?
+  approvalDate        String?
+  orderId             String?
+  deliveryDate        String?
+  exactPurchaseAmount Float?
+  purchaseDate        String?
+  invoiceFile         String?
+  purchaseRemarks     String?
+  createdAt           String
+  updatedAt           String
+}

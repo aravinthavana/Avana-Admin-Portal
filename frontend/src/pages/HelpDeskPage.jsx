@@ -20,6 +20,7 @@ const HK_ITEMS = [
 ];
 
 const DEFAULT_LOCATIONS = ['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', 'Other'];
+const FLOORS = DEFAULT_LOCATIONS;
 
 const CATEGORIES = [
   {
@@ -573,7 +574,7 @@ function AppFeedbackForm({ form, setForm, errors }) {
   );
 }
 
-function MaintenanceForm({ form, setForm, errors }) {
+function MaintenanceForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }) {
   return (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
@@ -586,11 +587,11 @@ function MaintenanceForm({ form, setForm, errors }) {
             ))}
           </select>
         </FormField>
-        <FormField label="Floor" required htmlFor="maint-floor" error={errors.floor}>
-          <select id="maint-floor" className="form-select" value={form.floor || ''}
-            onChange={e => setForm(f => ({ ...f, floor: e.target.value }))}>
-            <option value="">Select floor</option>
-            {FLOORS.map(o => <option key={o} value={o}>{o}</option>)}
+        <FormField label="Location" required htmlFor="maint-floor" error={errors.floor || errors.location}>
+          <select id="maint-floor" className="form-select" value={form.location || form.floor || ''}
+            onChange={e => setForm(f => ({ ...f, floor: e.target.value, location: e.target.value }))}>
+            <option value="">Select location</option>
+            {locations.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
       </div>
@@ -610,7 +611,7 @@ function MaintenanceForm({ form, setForm, errors }) {
   );
 }
 
-function HousekeepingForm({ form, setForm, errors }) {
+function HousekeepingForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }) {
   return (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
@@ -621,11 +622,11 @@ function HousekeepingForm({ form, setForm, errors }) {
             {['Cleaning request','Waste removal', 'Other'].map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
-        <FormField label="Floor" required htmlFor="hk-floor" error={errors.floor}>
-          <select id="hk-floor" className="form-select" value={form.floor || ''}
-            onChange={e => setForm(f => ({ ...f, floor: e.target.value }))}>
-            <option value="">Select floor</option>
-            {FLOORS.map(o => <option key={o} value={o}>{o}</option>)}
+        <FormField label="Location" required htmlFor="hk-floor" error={errors.floor || errors.location}>
+          <select id="hk-floor" className="form-select" value={form.location || form.floor || ''}
+            onChange={e => setForm(f => ({ ...f, floor: e.target.value, location: e.target.value }))}>
+            <option value="">Select location</option>
+            {locations.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
       </div>
@@ -644,7 +645,7 @@ function HousekeepingForm({ form, setForm, errors }) {
   );
 }
 
-function HkMaterialForm({ form, setForm, errors }) {
+function HkMaterialForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }) {
   const [hkStock, setHkStock] = useState({});
   const [loadingStock, setLoadingStock] = useState(true);
 
@@ -676,11 +677,11 @@ function HkMaterialForm({ form, setForm, errors }) {
         {errors.items && <span className="form-error" role="alert">⚠ {errors.items}</span>}
       </div>
       <div style={{ marginBottom: 'var(--space-4)' }}>
-        <FormField label="Floor" required htmlFor="hkm-floor" error={errors.floor}>
-          <select id="hkm-floor" className="form-select" value={form.floor || ''}
-            onChange={e => setForm(f => ({ ...f, floor: e.target.value }))}>
-            <option value="">Select floor</option>
-            {FLOORS.map(o => <option key={o} value={o}>{o}</option>)}
+        <FormField label="Location" required htmlFor="hkm-floor" error={errors.floor || errors.location}>
+          <select id="hkm-floor" className="form-select" value={form.location || form.floor || ''}
+            onChange={e => setForm(f => ({ ...f, floor: e.target.value, location: e.target.value }))}>
+            <option value="">Select location</option>
+            {locations.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
       </div>
@@ -743,11 +744,11 @@ function StationeryForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }
         </div>
       )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginTop: 'var(--space-4)' }}>
-        <FormField label="Floor" required htmlFor="stat-floor" error={errors.floor}>
-          <select id="stat-floor" className="form-select" value={form.floor || ''}
-            onChange={e => setForm(f => ({ ...f, floor: e.target.value }))}>
-            <option value="">Select floor</option>
-            {FLOORS.map(o => <option key={o} value={o}>{o}</option>)}
+        <FormField label="Location" required htmlFor="stat-floor" error={errors.floor || errors.location}>
+          <select id="stat-floor" className="form-select" value={form.location || form.floor || ''}
+            onChange={e => setForm(f => ({ ...f, floor: e.target.value, location: e.target.value }))}>
+            <option value="">Select location</option>
+            {locations.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
         <FormField label="Remarks" htmlFor="stat-remarks">
@@ -771,11 +772,11 @@ function OfficeAssetForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS 
               <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
-        <FormField label="Floor" required htmlFor="oa-floor" error={errors.floor}>
-          <select id="oa-floor" className="form-select" value={form.floor || ''}
-            onChange={e => setForm(f => ({ ...f, floor: e.target.value }))}>
-            <option value="">Select floor</option>
-            {FLOORS.map(o => <option key={o} value={o}>{o}</option>)}
+        <FormField label="Location" required htmlFor="oa-floor" error={errors.floor || errors.location}>
+          <select id="oa-floor" className="form-select" value={form.location || form.floor || ''}
+            onChange={e => setForm(f => ({ ...f, floor: e.target.value, location: e.target.value }))}>
+            <option value="">Select location</option>
+            {locations.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
       </div>
@@ -833,11 +834,11 @@ function AdminSupportForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS
               <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
-        <FormField label="Floor" htmlFor="as-floor">
-          <select id="as-floor" className="form-select" value={form.floor || ''}
-            onChange={e => setForm(f => ({ ...f, floor: e.target.value }))}>
-            <option value="">Select floor</option>
-            {FLOORS.map(o => <option key={o} value={o}>{o}</option>)}
+        <FormField label="Location" htmlFor="as-floor">
+          <select id="as-floor" className="form-select" value={form.location || form.floor || ''}
+            onChange={e => setForm(f => ({ ...f, floor: e.target.value, location: e.target.value }))}>
+            <option value="">Select location</option>
+            {locations.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </FormField>
       </div>
@@ -2113,6 +2114,17 @@ function HelpdeskRequestView() {
   const [submitting, setSubmitting] = useState(false);
   const [courierTab, setCourierTab] = useState('challan'); // tracks tab inside CourierDispatchForm
   const [stockData, setStockData] = useState(null);
+  const [locations, setLocations] = useState(DEFAULT_LOCATIONS);
+
+  useEffect(() => {
+    locationsApi.getLocations()
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setLocations(data.map(l => l.name));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const activeCat = CATEGORIES.find(c => c.key === categoryKey);
 

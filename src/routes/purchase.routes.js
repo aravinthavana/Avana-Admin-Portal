@@ -4,7 +4,7 @@ const purchaseController = require('../controllers/purchase.controller');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { requireAdmin } = require('../middlewares/admin-auth.middleware');
+const { requireAdmin } = require('../controllers/admin-auth.controller');
 
 // Ensure upload directory exists
 const dataDir = path.join(__dirname, '../../data');

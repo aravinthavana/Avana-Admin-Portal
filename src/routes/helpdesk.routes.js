@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const helpdeskController = require('../controllers/helpdesk.controller');
-const { requireAdmin } = require('../middlewares/admin-auth.middleware');
+const { requireAdmin } = require('../controllers/admin-auth.controller');
 
 // Public Endpoints
 router.post('/', helpdeskController.createRequest);

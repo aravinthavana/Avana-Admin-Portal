@@ -384,7 +384,7 @@ export function AssetTrackerPage() {
       {/* Modal: New Handover */}
       {addModalOpen && (
         <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="➕ Create Asset Handover Record">
-          <form onSubmit={handleCreate}>
+          <form autoComplete="off" onSubmit={handleCreate}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <FormField label="Employee Name" required>
                 <input type="text" className="form-input" required value={addForm.name} onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" />
@@ -449,7 +449,7 @@ export function AssetTrackerPage() {
       {/* Modal: Append Items */}
       {appendModalOpen && selectedHandover && (
         <Modal isOpen={appendModalOpen} onClose={() => setAppendModalOpen(false)} title={`➕ Append Items for ${selectedHandover.name}`}>
-          <form onSubmit={handleAppend}>
+          <form autoComplete="off" onSubmit={handleAppend}>
             {appendItems.map((it, idx) => (
               <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', alignItems: 'center' }}>
                 <input type="text" className="form-input" placeholder="Item Name" required value={it.itemName} onChange={e => {
@@ -650,7 +650,7 @@ function GlobalAddressSettings() {
         {/* Add/Edit Form */}
         <div style={{ padding: 'var(--space-4)', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', position: 'sticky', top: 'var(--space-4)' }}>
           <h4 style={{ fontSize: '0.9rem', marginBottom: 'var(--space-4)' }}>{editingId ? 'Edit Address' : 'Add New Address'}</h4>
-          <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <form autoComplete="off" onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
             <FormField label="Label (e.g. Head Office)" htmlFor="ga-label">
               <input id="ga-label" type="text" className="form-input" value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))} />
             </FormField>
@@ -866,7 +866,7 @@ export function CourierDispatchPage() {
       <div>
         <PageHeader title="➕ Create New Delivery Challan (DC)" subtitle="Enter dispatch details" action={<button type="button" className="btn btn--outline btn--sm" onClick={() => setAddModalOpen(false)}>← Back</button>} />
         <div className="card">
-          <form onSubmit={handleCreate}>
+          <form autoComplete="off" onSubmit={handleCreate}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <FormField label="Delivery Challan No *" required>
                 <input 
@@ -1045,7 +1045,7 @@ export function CourierDispatchPage() {
       <div>
         <PageHeader title={`🚀 Send Tracking - DC #${selectedDispatch.dcNo}`} subtitle="Update tracking and notify sender" action={<button type="button" className="btn btn--outline btn--sm" onClick={() => setTrackingModalOpen(false)}>← Back</button>} />
         <div className="card">
-          <form onSubmit={handleUpdateTracking}>
+          <form autoComplete="off" onSubmit={handleUpdateTracking}>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-3)' }}>
               Entering tracking details and setting status to "Dispatched" will automatically send an email to {selectedDispatch.requesterEmail}.
             </p>
@@ -1512,7 +1512,7 @@ export function BillWarrantyPage() {
           }
         />
         <div className="card" style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--space-6)' }}>
-          <form onSubmit={handleCreate}>
+          <form autoComplete="off" onSubmit={handleCreate}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <FormField label="Bill Date" required>
                 <input type="date" className="form-input" value={addForm.date} onChange={e => setAddForm(f => ({ ...f, date: e.target.value }))} required />
@@ -1941,7 +1941,7 @@ export function OtherStockPage() {
           }
         />
         <div className="card" style={{ maxWidth: 850, margin: '0 auto', padding: 'var(--space-6)' }}>
-          <form onSubmit={handleSave}>
+          <form autoComplete="off" onSubmit={handleSave}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <FormField label="Stock Item Name *" required>
                 <input type="text" className="form-input" placeholder="e.g. Dell Monitor 24-inch, T-Shirt, Water Pump" value={addForm.stockName} onChange={e => setAddForm(f => ({ ...f, stockName: e.target.value }))} required />
@@ -2020,7 +2020,7 @@ export function OtherStockPage() {
           }
         />
         <div className="card" style={{ maxWidth: 650, margin: '0 auto', padding: 'var(--space-6)' }}>
-          <form onSubmit={handleUseSubmit}>
+          <form autoComplete="off" onSubmit={handleUseSubmit}>
             {hasVariants && (
               <FormField label="Select Size / Variation" required>
                 <select className="form-select" value={useForm.subtitleId} onChange={e => setUseForm(f => ({ ...f, subtitleId: e.target.value }))}>
@@ -2373,7 +2373,7 @@ export function RemindersPage() {
           }
         />
         <div className="card" style={{ maxWidth: 700, margin: '0 auto', padding: 'var(--space-6)' }}>
-          <form onSubmit={handleCreate}>
+          <form autoComplete="off" onSubmit={handleCreate}>
             <FormField label="Reminder Task / Description *" required>
               <textarea
                 className="form-textarea"

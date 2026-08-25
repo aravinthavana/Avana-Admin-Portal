@@ -185,7 +185,7 @@ function ChangePasswordPanel() {
         🔑 Set / Change Password
       </h3>
       {step === 'request' ? (
-        <form onSubmit={handleSendOtp} noValidate>
+        <form autoComplete="off" onSubmit={handleSendOtp} noValidate>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 'var(--space-4)' }}>
             <FormField label="New Password" required htmlFor="cp-new" error={errors.newPass}>
               <input id="cp-new" type="password" className={`form-input${errors.newPass ? ' form-input--error' : ''}`}
@@ -203,7 +203,7 @@ function ChangePasswordPanel() {
           </div>
         </form>
       ) : (
-        <form onSubmit={handleVerifySubmit} noValidate>
+        <form autoComplete="off" onSubmit={handleVerifySubmit} noValidate>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: 'var(--space-4)' }}>
             Enter the 6-digit OTP sent to <strong>{employeeEmail}</strong> to confirm your new password.
           </p>
@@ -1112,6 +1112,7 @@ function AddressInputSection({ title, nameKey, phoneKey, addressKey, form, setFo
             <input
               id={`${nameKey}-input`}
               type="text"
+              autoComplete="off"
               className={`form-input${errors && errors[nameKey] ? ' form-input--error' : ''}`}
               placeholder="Contact name"
               value={form[nameKey] || ''}
@@ -1122,6 +1123,7 @@ function AddressInputSection({ title, nameKey, phoneKey, addressKey, form, setFo
             <input
               id={`${phoneKey}-input`}
               type="tel"
+              autoComplete="off"
               className={`form-input${errors && errors[phoneKey] ? ' form-input--error' : ''}`}
               placeholder="Mobile number"
               value={form[phoneKey] || ''}
@@ -1132,6 +1134,7 @@ function AddressInputSection({ title, nameKey, phoneKey, addressKey, form, setFo
         <FormField label="Address" required htmlFor={`${addressKey}-input`} error={errors && errors[addressKey]}>
           <textarea
             id={`${addressKey}-input`}
+            autoComplete="off"
             className={`form-textarea${errors && errors[addressKey] ? ' form-input--error' : ''}`}
             rows="3"
             placeholder="Full address..."
@@ -1149,6 +1152,7 @@ function AddressInputSection({ title, nameKey, phoneKey, addressKey, form, setFo
               <div style={{ marginTop: 'var(--space-2)', display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
                 <input
                   type="text"
+                  autoComplete="off"
                   className="form-input"
                   placeholder='Label (optional) e.g. "Office", "Client"'
                   value={label}
@@ -1259,7 +1263,7 @@ function ShippingLabelForm({ userEmail }) {
       </div>
 
       <FormField label="Send label PDF to email" htmlFor="sl-email" hint="Leave empty to only download, or enter an email to also send it">
-        <input id="sl-email" type="email" className="form-input" placeholder="e.g. yourname@avanamedical.com"
+        <input id="sl-email" type="email" autoComplete="off" className="form-input" placeholder="e.g. yourname@avanamedical.com"
           value={form.recipientEmail} onChange={e => setForm(f => ({ ...f, recipientEmail: e.target.value }))} />
       </FormField>
 
@@ -1278,20 +1282,20 @@ function ItemsTable({ items, setItems, title = 'Dispatched Items' }) {
       <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-3)' }}>{title}</h4>
       {items.map((it, idx) => (
         <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', flexWrap: 'wrap' }}>
-          <input type="text" className="form-input" placeholder="Item Code" value={it.itemCode || ''}
+          <input type="text" autoComplete="off" className="form-input" placeholder="Item Code" value={it.itemCode || ''}
             onChange={e => { const arr = [...items]; arr[idx].itemCode = e.target.value; setItems(arr); }} style={{ width: '90px' }} />
-          <input type="text" className="form-input" placeholder="Item Description *" required value={it.description || ''}
+          <input type="text" autoComplete="off" className="form-input" placeholder="Item Description *" required value={it.description || ''}
             onChange={e => { const arr = [...items]; arr[idx].description = e.target.value; setItems(arr); }} style={{ flex: 2, minWidth: '150px' }} />
-          <input type="text" className="form-input" placeholder="S/N" value={it.serialNo || ''}
+          <input type="text" autoComplete="off" className="form-input" placeholder="S/N" value={it.serialNo || ''}
             onChange={e => { const arr = [...items]; arr[idx].serialNo = e.target.value; setItems(arr); }} style={{ flex: 1, minWidth: '90px' }} />
-          <input type="number" className="form-input" placeholder="Qty" min="1" value={it.qty || ''}
+          <input type="number" autoComplete="off" className="form-input" placeholder="Qty" min="1" value={it.qty || ''}
             onChange={e => {
               const arr = [...items];
               arr[idx].qty = parseInt(e.target.value, 10) || 0;
               arr[idx].value = arr[idx].qty * (parseFloat(arr[idx].rate) || 0);
               setItems(arr);
             }} style={{ width: '70px' }} />
-          <input type="number" step="any" className="form-input" placeholder="Rate" min="0" value={it.rate || ''}
+          <input type="number" step="any" autoComplete="off" className="form-input" placeholder="Rate" min="0" value={it.rate || ''}
             onChange={e => {
               const arr = [...items];
               arr[idx].rate = parseFloat(e.target.value) || 0;
@@ -1831,6 +1835,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
             <input 
               id="cd-dc-no" 
               type="text" 
+              autoComplete="off"
               className={`form-input${errors?.dcNo ? ' form-input--error' : ''}`} 
               style={{ fontWeight: 'bold' }}
               placeholder="Enter Delivery Challan No (Required)"
@@ -1840,7 +1845,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
             />
           </FormField>
           <FormField label="Delivery Challan Date" required htmlFor="cd-date">
-            <input id="cd-date" type="date" className="form-input" value={form.dcDate || new Date().toISOString().slice(0,10)}
+            <input id="cd-date" type="date" autoComplete="off" className="form-input" value={form.dcDate || new Date().toISOString().slice(0,10)}
               onChange={e => setForm(f => ({ ...f, dcDate: e.target.value }))} />
           </FormField>
         </div>
@@ -1856,7 +1861,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
               <option value="Others">Others (Specify)</option>
             </select>
             {form.remarksType === 'Others' && (
-              <input type="text" className="form-input" placeholder="Specify other remarks..." style={{ marginTop: '0.5rem' }}
+              <input type="text" autoComplete="off" className="form-input" placeholder="Specify other remarks..." style={{ marginTop: '0.5rem' }}
                 value={form.remarksOther || ''} onChange={e => setForm(f => ({ ...f, remarksOther: e.target.value }))} required />
             )}
           </FormField>
@@ -1879,13 +1884,13 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
               <option value="Other">Other (Specify)</option>
             </select>
             {form.transporterSelect === 'Other' && (
-              <input type="text" className="form-input" placeholder="Enter transporter name..." style={{ marginTop: '0.5rem' }}
+              <input type="text" autoComplete="off" className="form-input" placeholder="Enter transporter name..." style={{ marginTop: '0.5rem' }}
                 value={form.transporterName || ''} onChange={e => setForm(f => ({ ...f, transporterName: e.target.value }))} required />
             )}
             {form.transporterSelect && (
               <div style={{ marginTop: '0.5rem' }}>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: '0.25rem' }}>Transporter Amount (Optional)</label>
-                <input type="number" className="form-input" placeholder="e.g. 150" min="0" step="any"
+                <input type="number" autoComplete="off" className="form-input" placeholder="e.g. 150" min="0" step="any"
                   value={form.transporterAmount || ''} onChange={e => setForm(f => ({ ...f, transporterAmount: e.target.value }))} />
               </div>
             )}
@@ -2300,7 +2305,7 @@ function HelpdeskRequestView() {
       />
 
       <div className="card">
-        <form 
+        <form autoComplete="off" 
           onSubmit={handleSubmit} 
           onKeyDown={e => {
             if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
@@ -2308,6 +2313,7 @@ function HelpdeskRequestView() {
             }
           }} 
           noValidate
+          autoComplete="off"
         >
           {/* Requester info — hidden on shipping label tab */}
           {!isLabelTab && (
@@ -2338,6 +2344,7 @@ function HelpdeskRequestView() {
                   <input
                     id="hd-req-phone"
                     type="tel"
+                    autoComplete="off"
                     className={`form-input${errors.requester_phone ? ' form-input--error' : ''}`}
                     placeholder="e.g. 9876543210"
                     value={formData.requester_phone || ''}

@@ -143,7 +143,7 @@ export function LocationsManagementSection() {
         </div>
       </div>
 
-      <form onSubmit={handleAddLocation} style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-5)', flexWrap: 'wrap' }}>
+      <form autoComplete="off" onSubmit={handleAddLocation} style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-5)', flexWrap: 'wrap' }}>
         <input
           type="text"
           className="form-input"
@@ -258,7 +258,7 @@ export function AdminSettings() {
         <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1rem' }}>
           🔑 Change Admin Password
         </h3>
-        <form onSubmit={handleSubmit} noValidate>
+        <form autoComplete="off" onSubmit={handleSubmit} noValidate>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             <FormField label="Current Password" required htmlFor="set-curr" error={errors.current}>
               <input id="set-curr" type="password" className={`form-input${errors.current ? ' form-input--error' : ''}`}

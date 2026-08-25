@@ -148,7 +148,7 @@ export default function AssetAcknowledgementPage() {
             </div>
 
             {/* Acknowledgement Form */}
-            <form onSubmit={handleSubmit}>
+            <form autoComplete="off" onSubmit={handleSubmit}>
               <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', padding: 'var(--space-4)', borderRadius: 'var(--radius)', marginBottom: 'var(--space-5)' }}>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)', cursor: 'pointer' }}>
                   <input

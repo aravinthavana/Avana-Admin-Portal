@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
           <p className="login-page__subtitle">Manage bookings, helpdesk, inventory, and billing</p>
         </div>
 
-        <form onSubmit={handleLogin} noValidate>
+        <form autoComplete="off" onSubmit={handleLogin} noValidate>
           <div className="form-group" style={{ marginBottom: 'var(--space-5)' }}>
             <label className="form-label form-label--required" htmlFor="admin-password">Admin Password</label>
             <input

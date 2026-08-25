@@ -611,7 +611,7 @@ export default function BookingPage() {
           </>
         }
       >
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit} noValidate autoComplete="off">
           {/* Existing Bookings Warning Box */}
           {selectedDateBookings.length > 0 && (
             <div style={{
@@ -645,6 +645,7 @@ export default function BookingPage() {
               <input
                 id="booking-start-date"
                 type="date"
+                autoComplete="off"
                 className={`form-input${errors.start_date ? ' form-input--error' : ''}`}
                 value={form.start_date}
                 min={today}
@@ -656,6 +657,7 @@ export default function BookingPage() {
               <input
                 id="booking-end-date"
                 type="date"
+                autoComplete="off"
                 className={`form-input${errors.end_date ? ' form-input--error' : ''}`}
                 value={form.end_date}
                 min={form.start_date || today}
@@ -688,6 +690,7 @@ export default function BookingPage() {
               <FormField label="Start Time" error={errors.start_time} required>
                 <input
                   type="time"
+                  autoComplete="off"
                   value={form.start_time}
                   min={form.start_date === todayStr() ? `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}` : undefined}
                   onChange={e => setForm({ ...form, start_time: e.target.value })}
@@ -701,6 +704,7 @@ export default function BookingPage() {
                 <input
                   id="booking-end-time"
                   type="time"
+                  autoComplete="off"
                   className={`form-input${errors.end_time ? ' form-input--error' : ''}`}
                   value={form.end_time}
                   min="09:00" max="18:00" step="900"
@@ -756,6 +760,7 @@ export default function BookingPage() {
               <input
                 id="booking-name"
                 type="text"
+                autoComplete="off"
                 className={`form-input${errors.full_name ? ' form-input--error' : ''}`}
                 value={form.full_name}
                 placeholder="Your full name"
@@ -766,6 +771,7 @@ export default function BookingPage() {
             <FormField label="Email" error={errors.email} required>
             <input
               type="email"
+              autoComplete="off"
               value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
               readOnly={!!employeeEmail}
@@ -787,6 +793,7 @@ export default function BookingPage() {
               <input
                 id="booking-phone"
                 type="tel"
+                autoComplete="off"
                 className={`form-input${errors.phone ? ' form-input--error' : ''}`}
                 value={form.phone}
                 placeholder="+91 9876543210"
@@ -801,6 +808,7 @@ export default function BookingPage() {
             <FormField label="Reason for Booking" required htmlFor="booking-reason" error={errors.reason}>
               <textarea
                 id="booking-reason"
+                autoComplete="off"
                 className={`form-textarea${errors.reason ? ' form-textarea--error' : ''}`}
                 value={form.reason}
                 rows={3}
@@ -822,6 +830,7 @@ export default function BookingPage() {
                 <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
                   <input
                     type="text"
+                    autoComplete="off"
                     className="form-input"
                     value={a}
                     placeholder={`Attendee ${idx + 1} name`}
@@ -874,6 +883,7 @@ export default function BookingPage() {
                 <input
                   id="booking-food-count"
                   type="number"
+                  autoComplete="off"
                   className={`form-input${errors.food_count ? ' form-input--error' : ''}`}
                   value={form.food_count}
                   min={1}
@@ -889,6 +899,7 @@ export default function BookingPage() {
                 <input
                   id="booking-food-specify"
                   type="text"
+                  autoComplete="off"
                   className={`form-input${errors.food_specify ? ' form-input--error' : ''}`}
                   value={form.food_specify}
                   placeholder="Describe the food arrangement…"
@@ -903,6 +914,7 @@ export default function BookingPage() {
             <FormField label="Remarks (Optional)" htmlFor="booking-remarks">
               <textarea
                 id="booking-remarks"
+                autoComplete="off"
                 className="form-textarea"
                 value={form.remarks}
                 rows={2}

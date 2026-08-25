@@ -60,7 +60,7 @@ function OtpLoginPanel({ onSuccess }) {
 
   if (step === 'otp') {
     return (
-      <form onSubmit={handleVerifyOtp} noValidate>
+      <form autoComplete="off" onSubmit={handleVerifyOtp} noValidate>
         <div className="login-panel__otp-hint">
           OTP sent to <strong>{email}</strong>
           <button type="button" className="btn btn--ghost btn--sm" onClick={() => { setStep('email'); setOtp(''); setError(''); }}>
@@ -98,7 +98,7 @@ function OtpLoginPanel({ onSuccess }) {
   }
 
   return (
-    <form onSubmit={handleSendOtp} noValidate>
+    <form autoComplete="off" onSubmit={handleSendOtp} noValidate>
       <div className="form-group" style={{ marginBottom: 'var(--space-5)' }}>
         <label className="form-label form-label--required" htmlFor="otp-email">Work Email</label>
         <input
@@ -150,7 +150,7 @@ function PasswordLoginPanel({ onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form autoComplete="off" onSubmit={handleSubmit} noValidate>
       <div className="form-group" style={{ marginBottom: 'var(--space-4)' }}>
         <label className="form-label form-label--required" htmlFor="pass-email">Work Email</label>
         <input
@@ -215,7 +215,7 @@ function AdminLoginModal({ onClose, onAdminSuccess }) {
           <button type="button" className="modal__close" onClick={onClose} aria-label="Close">✕</button>
         </div>
         <div className="modal__body">
-          <form onSubmit={handleSubmit} noValidate>
+          <form autoComplete="off" onSubmit={handleSubmit} noValidate>
             <div className="form-group" style={{ marginBottom: 'var(--space-5)' }}>
               <label className="form-label form-label--required" htmlFor="admin-modal-pass">Admin Password</label>
               <input

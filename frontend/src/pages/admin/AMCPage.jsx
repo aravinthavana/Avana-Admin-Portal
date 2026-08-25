@@ -122,7 +122,7 @@ export function AMCPage() {
           <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1.1rem', color: 'var(--color-primary-dark)' }}>
             ➕ Add New AMC Contract
           </h3>
-          <form onSubmit={handleSaveContract}>
+          <form autoComplete="off" onSubmit={handleSaveContract}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: 'var(--space-4)' }}>
               <FormField label="Doc No"><input type="text" className="form-input" value={form.doc_no} onChange={e=>setForm(f=>({...f, doc_no: e.target.value}))} /></FormField>
               <FormField label="AMC Name *" required><input type="text" className="form-input" required value={form.amc_name} onChange={e=>setForm(f=>({...f, amc_name: e.target.value}))} /></FormField>
@@ -225,7 +225,7 @@ export function AMCPage() {
           </div>
 
           <h4 style={{ fontSize: '1rem', color: 'var(--color-primary-dark)', marginBottom: 'var(--space-4)', marginTop: 'var(--space-5)' }}>➕ Log New Visit</h4>
-          <form onSubmit={handleLogVisit} style={{ background: '#f9f9fb', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px dashed #e4e4e7' }}>
+          <form autoComplete="off" onSubmit={handleLogVisit} style={{ background: '#f9f9fb', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px dashed #e4e4e7' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 'var(--space-4)' }}>
               <FormField label="Scheduled Date"><input type="date" className="form-input" value={visitForm.scheduled_date} onChange={e=>setVisitForm(f=>({...f, scheduled_date: e.target.value}))} /></FormField>
               <FormField label="Actual Visit Date"><input type="date" className="form-input" value={visitForm.last_service_date} onChange={e=>setVisitForm(f=>({...f, last_service_date: e.target.value}))} /></FormField>
@@ -483,7 +483,7 @@ export function AMCPage() {
 
           <div style={{ background: '#fff', border: '1px dashed #aab2b2', borderRadius: 'var(--radius)', padding: 'var(--space-4)' }}>
             <h5 style={{ margin: '0 0 var(--space-3) 0', color: 'var(--color-primary-dark)' }}>📝 Log New Visit</h5>
-            <form onSubmit={handleLogVisit}>
+            <form autoComplete="off" onSubmit={handleLogVisit}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
                 <FormField label="Visit #"><input type="number" className="form-input" value={visitForm.visit_no} onChange={e=>setVisitForm(f=>({...f, visit_no: e.target.value}))} placeholder="e.g. 1" /></FormField>
                 <FormField label="Scheduled Date"><input type="date" className="form-input" value={visitForm.scheduled_date} onChange={e=>setVisitForm(f=>({...f, scheduled_date: e.target.value}))} /></FormField>

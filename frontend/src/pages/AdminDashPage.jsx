@@ -147,7 +147,7 @@ function ChangePasswordPanel() {
       <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1rem' }}>
         🔑 Change Admin Password
       </h3>
-      <form onSubmit={handleSubmit} noValidate>
+      <form autoComplete="off" onSubmit={handleSubmit} noValidate>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)' }}>
           <FormField label="Current Password" required htmlFor="adm-cp-curr" error={errors.current}>
             <input id="adm-cp-curr" type="password" className={`form-input${errors.current ? ' form-input--error' : ''}`}

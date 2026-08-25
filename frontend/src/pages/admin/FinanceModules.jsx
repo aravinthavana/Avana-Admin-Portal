@@ -77,7 +77,7 @@ export function UtilityPaymentsPage({ api }) {
       <div>
         <PageHeader title={editId ? 'Edit Utility Bill' : 'Add Utility Bill'} subtitle="Enter utility payment details" action={<button type="button" className="btn btn--outline btn--sm" onClick={() => setShowForm(false)}>← Back</button>} />
         <div className="card">
-          <form onSubmit={handleSave}>
+          <form autoComplete="off" onSubmit={handleSave}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 'var(--space-4)' }}>
               <FormField label="Utility Type">
                 <select className="form-select" value={form.utility_type} onChange={e=>setForm(f=>({...f, utility_type: e.target.value}))}>
@@ -297,7 +297,7 @@ export function TaxPaymentsPage({ api }) {
       <div>
         <PageHeader title={editId ? 'Edit Tax Entry' : 'Add Tax Entry'} subtitle="Enter tax payment details" action={<button type="button" className="btn btn--outline btn--sm" onClick={() => setShowForm(false)}>← Back</button>} />
         <div className="card">
-          <form onSubmit={handleSave}>
+          <form autoComplete="off" onSubmit={handleSave}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 'var(--space-4)' }}>
               <FormField label="Service Type"><select className="form-select" value={form.tax_type} onChange={e=>setForm(f=>({...f, tax_type: e.target.value}))}><option value="Property Tax">Property Tax</option><option value="Water Tax">Water Tax</option></select></FormField>
               <FormField label="Location *" required><input type="text" className="form-input" required value={form.location||''} onChange={e=>setForm(f=>({...f, location: e.target.value}))}/></FormField>
@@ -564,7 +564,7 @@ export function PettyCashPage() {
           }
         />
         <div className="card" style={{ maxWidth: 800, margin: '0 auto', padding: 'var(--space-6)' }}>
-          <form onSubmit={handleCreate}>
+          <form autoComplete="off" onSubmit={handleCreate}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <FormField label="Date" required>
                 <input type="date" className="form-input" value={addForm.date} onChange={e => setAddForm(f => ({ ...f, date: e.target.value }))} required />
@@ -626,7 +626,7 @@ export function PettyCashPage() {
           }
         />
         <div className="card" style={{ maxWidth: 650, margin: '0 auto', padding: 'var(--space-6)' }}>
-          <form onSubmit={handleClearSubmit}>
+          <form autoComplete="off" onSubmit={handleClearSubmit}>
             <p style={{ fontSize: '0.92rem', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
               Clear cash advance for <strong>{selectedEntry.reason}</strong> (Issued to: <strong>{selectedEntry.collectedFrom || 'N/A'}</strong>).
             </p>
@@ -915,7 +915,7 @@ export function TravelExpensePage() {
           }
         />
         <div className="card" style={{ maxWidth: 800, margin: '0 auto', padding: 'var(--space-6)' }}>
-          <form onSubmit={handleCreate}>
+          <form autoComplete="off" onSubmit={handleCreate}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <FormField label="Travel Date" required>
                 <input type="date" className="form-input" value={addForm.date} onChange={e => setAddForm(f => ({ ...f, date: e.target.value }))} required />
@@ -1366,7 +1366,7 @@ export function PurchaseApprovalPage() {
 
       {/* Add Purchase Modal */}
       <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add Purchase Request">
-        <form onSubmit={handleAddSubmit}>
+        <form autoComplete="off" onSubmit={handleAddSubmit}>
           <FormField label="Item Name" required>
             <input type="text" className="form-input" value={addForm.itemName} onChange={e => setAddForm(f => ({ ...f, itemName: e.target.value }))} required />
           </FormField>
@@ -1427,7 +1427,7 @@ export function PurchaseApprovalPage() {
 
       {/* Mark Purchased Modal */}
       <Modal isOpen={showPurchasedModal} onClose={() => setShowPurchasedModal(false)} title="Mark as Purchased">
-        <form onSubmit={handlePurchasedSubmit}>
+        <form autoComplete="off" onSubmit={handlePurchasedSubmit}>
           <FormField label="Order ID / Order Number" required>
             <input type="text" className="form-input" value={purchasedForm.orderId} onChange={e => setPurchasedForm(f => ({ ...f, orderId: e.target.value }))} required />
           </FormField>

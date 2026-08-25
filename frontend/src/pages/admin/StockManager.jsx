@@ -121,7 +121,7 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
       <PrintHeader title={`${title} Inventory Report`} subtitle="Current Stock Levels" />
       {error && <Alert type="error" onClose={() => setError(null)}>{error}</Alert>}
       {addItem && (
-        <form onSubmit={handleAddItem} className="card" style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+        <form autoComplete="off" onSubmit={handleAddItem} className="card" style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
           <div style={{ fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>➕ Add New {type === 'housekeeping' ? 'Housekeeping Item' : 'Item'}:</div>
           <input
             type="text"

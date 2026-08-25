@@ -165,6 +165,7 @@ exports.createDispatch = async (data, requesterEmail, host) => {
         { filename: `Address_Label_${created.dcNo}.pdf`, content: Buffer.from(labelBytes), contentType: 'application/pdf' }
       ];
 
+      // 1. Separate confirmation email to Employee (NO CC to aravinth)
       if (requesterEmail) {
         await sendEmail({
           to: requesterEmail,
@@ -173,9 +174,17 @@ exports.createDispatch = async (data, requesterEmail, host) => {
           attachments
         });
       }
-      // Admin Alert
+      
+      // 2. Alert email to Admin (with aravinth@avanamedical.com + requester in CC)
+      const NOTIFICATION_CC = 'aravinth@avanamedical.com';
+      const adminCcList = [NOTIFICATION_CC];
+      if (requesterEmail && !adminCcList.includes(requesterEmail)) {
+        adminCcList.push(requesterEmail);
+      }
+
       await sendEmail({
-        to: process.env.ADMIN_EMAIL || 'admin@avanamedical.com',
+        to: process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com',
+        cc: adminCcList.join(', '),
         subject: `New Courier Dispatch (#${created.dcNo})`,
         htmlBody: templates.courierDispatchAdminAlert(created, host),
         attachments

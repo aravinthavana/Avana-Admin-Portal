@@ -50,6 +50,7 @@ const NOTIFICATION_CC = 'aravinth@avanamedical.com';
 
 exports.sendHelpdeskNotification = async (request, host) => {
   const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
+  const employeeEmail = request.requester_email || request.email;
   const catTitle = request.categoryTitle || request.category;
   const emailSubject = `Help Desk Request #${request.id}: ${catTitle}`;
   const employeeHtml = templates.helpdeskSubmission(request);
@@ -57,17 +58,24 @@ exports.sendHelpdeskNotification = async (request, host) => {
 
   try {
     const sends = [];
-    if (request.requester_email || request.email) {
+    // 1. Separate confirmation email to Employee (NO CC to aravinth)
+    if (employeeEmail) {
       sends.push(sendEmail({
-        to: request.requester_email || request.email,
-        cc: NOTIFICATION_CC,
+        to: employeeEmail,
         subject: emailSubject,
         htmlBody: employeeHtml
       }));
     }
+
+    // 2. Alert email to Admin (with aravinth@avanamedical.com + Employee in CC)
+    const adminCcList = [NOTIFICATION_CC];
+    if (employeeEmail && !adminCcList.includes(employeeEmail)) {
+      adminCcList.push(employeeEmail);
+    }
+
     sends.push(sendEmail({
       to: adminEmail,
-      cc: NOTIFICATION_CC,
+      cc: adminCcList.join(', '),
       subject: `ACTION REQUIRED: New Help Desk Request #${request.id}`,
       htmlBody: adminHtml
     }));
@@ -88,7 +96,6 @@ exports.sendHelpdeskCompletionEmailNotification = async (request, host) => {
   try {
     await sendEmail({
       to: emailToSend,
-      cc: NOTIFICATION_CC,
       subject: emailSubject,
       htmlBody: emailHtml
     });
@@ -108,7 +115,6 @@ exports.sendHelpdeskRejectionEmailNotification = async (request, host, rejection
   try {
     await sendEmail({
       to: emailToSend,
-      cc: NOTIFICATION_CC,
       subject: emailSubject,
       htmlBody: emailHtml
     });

@@ -107,6 +107,22 @@ function formatDate(dateStr) {
   } catch { return dateStr; }
 }
 
+function formatDateTime(dateStr) {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  } catch { return dateStr; }
+}
+
 function getStatusBadge(status) {
   const map = {
     pending: 'pending',
@@ -308,7 +324,7 @@ function RequestTracker() {
             <thead>
               <tr>
                 <th scope="col">#</th>
-                <th scope="col">Date</th>
+                <th scope="col">Request Date & Time</th>
                 <th scope="col">Category</th>
                 <th scope="col">Details</th>
                 <th scope="col">Status</th>
@@ -320,17 +336,26 @@ function RequestTracker() {
                 const canCancel = r.category === 'conference' && 
                   (r.status === 'pending' || r.status === 'confirmed');
 
+                const catLabel = r.categoryTitle || 
+                  CATEGORIES.find(c => c.key === r.category)?.label || 
+                  (r.category === 'courier_dispatch' ? 'Courier & Dispatch' : 
+                  (r.category === 'conference' ? 'Conference Room Booking' : r.category));
+
+                const reqDate = r.submittedAt || r.createdAt || r.created_at;
+
                 return (
                   <tr key={r.id}>
                     <td style={{ color: 'var(--color-text-muted)' }}>{idx + 1}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>{formatDate(r.created_at)}</td>
+                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.85rem', fontWeight: 500 }}>
+                      {formatDateTime(reqDate)}
+                    </td>
                     <td>
-                      <span style={{ fontWeight: 500 }}>
-                        {CATEGORIES.find(c => c.key === r.category)?.label || r.category}
+                      <span style={{ fontWeight: 600 }}>
+                        {catLabel}
                       </span>
                     </td>
                     <td style={{ maxWidth: 260, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                      {r.description || r.issue || '—'}
+                      {r.description || r.details || r.issue || '—'}
                     </td>
                     <td>
                       <Badge status={getStatusBadge(r.status)} label={r.status || 'Pending'} />

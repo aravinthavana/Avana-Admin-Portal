@@ -124,21 +124,62 @@ exports.getRequests = async (req, res, next) => {
     
     const helpdeskService = require('../services/helpdesk.service');
     const bookingService = require('../services/bookings.service');
+    const courierService = require('../services/courier-dispatch.service');
 
     const requests = await helpdeskService.getAllRequests();
-    const myRequests = requests.filter(r => r.email && r.email.toLowerCase() === emailLower);
+    const myRequests = requests
+      .filter(r => r.email && r.email.toLowerCase() === emailLower)
+      .map(r => ({
+        ...r,
+        submittedAt: r.createdAt || r.submittedAt || new Date().toISOString(),
+        createdAt: r.createdAt || r.submittedAt || new Date().toISOString(),
+        created_at: r.createdAt || r.submittedAt || new Date().toISOString(),
+      }));
 
     const bookings = await bookingService.getAllBookings();
-    const myBookings = bookings.filter(b => b.email && b.email.toLowerCase() === emailLower).map(b => ({
-      id: b.id,
-      submittedAt: b.createdAt || (b.startDate + 'T09:00:00.000Z'),
-      category: 'conference',
-      categoryTitle: 'Conference Room Booking',
-      status: b.status,
-      details: `Date: ${b.startDate}, Time: ${b.startTime} - ${b.endTime}, Reason: ${b.reason}`
-    }));
+    const myBookings = bookings
+      .filter(b => b.email && b.email.toLowerCase() === emailLower)
+      .map(b => {
+        const dateStr = b.createdAt || (b.startDate ? `${b.startDate}T09:00:00.000Z` : new Date().toISOString());
+        return {
+          id: b.id,
+          submittedAt: dateStr,
+          createdAt: dateStr,
+          created_at: dateStr,
+          category: 'conference',
+          categoryTitle: 'Conference Room Booking',
+          status: b.status,
+          description: `Date: ${b.startDate || b.date}, Time: ${b.bookingType === 'full' ? 'Full Day' : `${b.startTime} - ${b.endTime}`}, Reason: ${b.reason || 'N/A'}`,
+          details: `Date: ${b.startDate || b.date}, Time: ${b.bookingType === 'full' ? 'Full Day' : `${b.startTime} - ${b.endTime}`}, Reason: ${b.reason || 'N/A'}`
+        };
+      });
 
-    const consolidated = [...myRequests, ...myBookings].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+    let myDispatches = [];
+    try {
+      const dispatches = await courierService.getAllDispatches();
+      myDispatches = dispatches
+        .filter(d => d.requesterEmail && d.requesterEmail.toLowerCase() === emailLower)
+        .map(d => {
+          const dateStr = d.submittedAt || d.createdAt || (d.dcDate ? `${d.dcDate}T09:00:00.000Z` : new Date().toISOString());
+          return {
+            id: d.id,
+            submittedAt: dateStr,
+            createdAt: dateStr,
+            created_at: dateStr,
+            category: 'courier_dispatch',
+            categoryTitle: 'Courier & Dispatch',
+            status: d.status || 'approved',
+            description: `DC #${d.dcNo} | To: ${d.receiverName || 'Receiver'} | Transporter: ${d.transporterName || 'N/A'}`,
+            details: `DC #${d.dcNo} | To: ${d.receiverName || 'Receiver'} | Transporter: ${d.transporterName || 'N/A'}`
+          };
+        });
+    } catch (dErr) {
+      console.error('Error fetching employee dispatches:', dErr);
+    }
+
+    const consolidated = [...myRequests, ...myBookings, ...myDispatches].sort(
+      (a, b) => new Date(b.submittedAt || b.createdAt) - new Date(a.submittedAt || a.createdAt)
+    );
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json(consolidated);
   } catch (error) {

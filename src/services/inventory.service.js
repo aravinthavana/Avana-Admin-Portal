@@ -206,39 +206,17 @@ exports.addStationeryCatalogItem = (itemClean, itemType) => {
 };
 
 exports.checkLowStockAlert = async (item, newQty, type = 'stationery') => {
-  // Only alert for stationery/printing items, and only when stock is 2 or below
+  // Only alert for stationery/printing items, and only when stock goes below 6
   if (type === 'housekeeping') return;
 
-  const threshold = 2;
-  if (newQty <= threshold) {
-    console.log(`[Inventory Alert] "${item}" (${type}) is low in stock: ${newQty}`);
+  const threshold = 6;
+  if (newQty < threshold) {
+    console.log(`[Inventory Alert] "${item}" (${type}) is low in stock: ${newQty} (below ${threshold})`);
     const { sendEmail } = require('../utils/notifications');
+    const { templates } = require('../utils/email-templates');
     const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
     const subject = `⚠️ Low Stock Alert: "${item}" (${newQty} remaining)`;
-    const htmlBody = `
-      <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-        <div style="background-color: #fef3c7; color: #b45309; padding: 12px 16px; border-radius: 8px; font-weight: bold; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 8px; width: fit-content;">
-          ⚠️ Low Stock Warning
-        </div>
-        <h2 style="color: #1f2937; margin-top: 0;">Stationery Item Stock is Low</h2>
-        <p style="color: #4b5563; font-size: 16px; line-height: 1.5;">
-          This is an automated system alert notifying you that the inventory level for the following stationery item is at or below 2 items:
-        </p>
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-          <tr style="background-color: #f9fafb;">
-            <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold; color: #4b5563;">Item Name:</td>
-            <td style="padding: 10px; border: 1px solid #e5e7eb; color: #1f2937; font-weight: bold;">${item}</td>
-          </tr>
-          <tr>
-            <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold; color: #4b5563;">Current Stock:</td>
-            <td style="padding: 10px; border: 1px solid #e5e7eb; color: #dc2626; font-weight: bold; font-size: 18px;">${newQty}</td>
-          </tr>
-        </table>
-        <p style="color: #4b5563; font-size: 14px; margin-top: 20px;">
-          Please log into the Admin portal to replenish this item.
-        </p>
-      </div>
-    `;
+    const htmlBody = templates.lowStockAlert({ item, currentQty: newQty, threshold: 5 });
     
     sendEmail({
       to: adminEmail,

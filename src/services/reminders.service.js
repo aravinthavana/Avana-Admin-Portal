@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const prisma = require('../config/db');
 const { sendEmail } = require('../utils/notifications');
+const { templates } = require('../utils/email-templates');
 
 // Seed legacy reminders.json if table is empty
 async function ensureLegacyRemindersMigrated() {
@@ -77,10 +78,10 @@ const NOTIFICATION_CC = 'aravinth@avanamedical.com';
 
 /**
  * Checks for:
- * 1. AMC contracts expiring within 3 weeks (21 days) -> CC aravinth@avanamedical.com
- * 2. Utility payments due within 4 days -> CC aravinth@avanamedical.com
- * 3. Tax payments due within 1 month (30 days) -> CC aravinth@avanamedical.com
- * 4. Low stationery stocks (stock <= 2) -> Admin ONLY (no CC)
+ * 1. AMC contracts expiring within 3 weeks (21 days) -> Separate email per AMC + CC aravinth@avanamedical.com
+ * 2. Utility payments due within 4 days -> Separate email per payment + CC aravinth@avanamedical.com
+ * 3. Tax payments due within 1 month (30 days) -> Separate email per tax + CC aravinth@avanamedical.com
+ * 4. Low stationery stocks (stock < 6) -> Separate email per item to Admin ONLY (no CC)
  * 5. Due custom reminders -> Admin ONLY (no CC)
  */
 exports.checkAndSendReminders = async () => {
@@ -120,7 +121,7 @@ exports.checkAndSendReminders = async () => {
       });
     }
 
-    // 2. Fetch active AMC contracts expiring within 3 weeks (21 days)
+    // 2. Fetch active AMC contracts expiring within 3 weeks (21 days) -> Separate email per AMC
     const amcs = await prisma.amcContract.findMany({
       where: { status: 'active' }
     });
@@ -131,7 +132,17 @@ exports.checkAndSendReminders = async () => {
       return endDate >= now && endDate <= threeWeeksFromNow;
     });
 
-    // 3. Fetch unpaid/overdue Utility payments due within 4 days
+    for (const amc of expiringAmcs) {
+      console.log(`[Reminders Service] Sending individual AMC reminder for: ${amc.equipment_name}`);
+      await sendEmail({
+        to: adminEmail,
+        cc: NOTIFICATION_CC,
+        subject: `🛠️ AMC Renewal Reminder: ${amc.equipment_name} (${amc.vendor_name || 'Vendor'}) - Expiring ${amc.end_date}`,
+        htmlBody: templates.amcIndividualReminder({ amc })
+      });
+    }
+
+    // 3. Fetch unpaid/overdue Utility payments due within 4 days -> Separate email per utility bill
     const utilities = await prisma.utilityPayment.findMany({
       where: {
         status: { in: ['Unpaid', 'unpaid', 'Overdue', 'overdue'] }
@@ -144,7 +155,17 @@ exports.checkAndSendReminders = async () => {
       return dueDate >= now && dueDate <= fourDaysFromNow;
     });
 
-    // 4. Fetch unpaid/overdue Tax payments due within 1 month (30 days)
+    for (const utility of dueUtilities) {
+      console.log(`[Reminders Service] Sending individual Utility reminder for: ${utility.utility_type} (${utility.provider_name})`);
+      await sendEmail({
+        to: adminEmail,
+        cc: NOTIFICATION_CC,
+        subject: `⚡ Utility Payment Reminder: ${utility.utility_type} (${utility.provider_name || 'Provider'}) - Due on ${utility.due_date}`,
+        htmlBody: templates.utilityIndividualReminder({ utility })
+      });
+    }
+
+    // 4. Fetch unpaid/overdue Tax payments due within 1 month (30 days) -> Separate email per tax payment
     const taxes = await prisma.taxPayment.findMany({
       where: {
         status: { in: ['Unpaid', 'unpaid', 'Overdue', 'overdue'] }
@@ -157,94 +178,50 @@ exports.checkAndSendReminders = async () => {
       return dueDate >= now && dueDate <= oneMonthFromNow;
     });
 
-    // Send the 3 Deadline Reminders (AMC, Utility, Tax) with CC to aravinth@avanamedical.com
-    const deadlineCount = expiringAmcs.length + dueUtilities.length + dueTaxes.length;
-    if (deadlineCount > 0) {
-      console.log(`[Reminders Service] Deadline alerts found: AMCs(${expiringAmcs.length}), Utilities(${dueUtilities.length}), Taxes(${dueTaxes.length}). Sending with CC to ${NOTIFICATION_CC}.`);
-
-      let html = `<div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-        <h2 style="color: #172025; margin-top: 0;">📋 Admin Portal Expiry & Payment Deadline Summary</h2>
-        <p style="color: #4b5563;">Automated reminder for upcoming contract renewals and scheduled payment due dates:</p>`;
-
-      if (expiringAmcs.length > 0) {
-        html += `<div style="margin-top: 15px; padding: 12px; background: #eff6ff; border-radius: 6px; border-left: 4px solid #2563eb;">
-          <h3 style="color: #1e40af; margin: 0 0 8px 0;">🛠️ AMC Contracts Expiring (within 3 weeks) (${expiringAmcs.length}):</h3>
-          <ul style="margin: 0; padding-left: 20px; color: #172025;">`;
-        expiringAmcs.forEach(a => {
-          html += `<li><strong>${a.equipment_name}</strong> (${a.vendor_name}) — End Date: <strong>${a.end_date}</strong></li>`;
-        });
-        html += `</ul></div>`;
-      }
-
-      if (dueUtilities.length > 0) {
-        html += `<div style="margin-top: 15px; padding: 12px; background: #fef2f2; border-radius: 6px; border-left: 4px solid #dc2626;">
-          <h3 style="color: #991b1b; margin: 0 0 8px 0;">⚡ Utility Payments Due (within 4 days) (${dueUtilities.length}):</h3>
-          <ul style="margin: 0; padding-left: 20px; color: #172025;">`;
-        dueUtilities.forEach(u => {
-          html += `<li><strong>${u.utility_type}</strong> (${u.provider_name}) — Amount: ₹${u.amount} — Due Date: <strong>${u.due_date}</strong></li>`;
-        });
-        html += `</ul></div>`;
-      }
-
-      if (dueTaxes.length > 0) {
-        html += `<div style="margin-top: 15px; padding: 12px; background: #fdf4ff; border-radius: 6px; border-left: 4px solid #a855f7;">
-          <h3 style="color: #6b21a8; margin: 0 0 8px 0;">🏛️ Tax Payments Due (within 1 month) (${dueTaxes.length}):</h3>
-          <ul style="margin: 0; padding-left: 20px; color: #172025;">`;
-        dueTaxes.forEach(t => {
-          html += `<li><strong>${t.tax_type}</strong> (${t.authority_name}) — Amount: ₹${t.amount} — Due Date: <strong>${t.due_date}</strong></li>`;
-        });
-        html += `</ul></div>`;
-      }
-
-      html += `</div>`;
-
+    for (const tax of dueTaxes) {
+      console.log(`[Reminders Service] Sending individual Tax reminder for: ${tax.tax_type}`);
       await sendEmail({
         to: adminEmail,
         cc: NOTIFICATION_CC,
-        subject: `🚨 Admin Portal Alert: ${deadlineCount} Deadlines (${expiringAmcs.length} AMCs, ${dueUtilities.length} Utilities, ${dueTaxes.length} Taxes)`,
-        htmlBody: html,
+        subject: `🏛️ Tax Payment Reminder: ${tax.tax_type} (${tax.authority_name || 'Authority'}) - Due on ${tax.due_date}`,
+        htmlBody: templates.taxIndividualReminder({ tax })
       });
     }
 
-    // 5. Fetch low stationery stock items (<= 2 items) - Send to Admin ONLY (NO CC)
+    // 5. Fetch low stationery stock items (strictly below 6 items) -> Separate email per item (Admin ONLY, no CC)
     let lowStationeryItems = [];
     try {
       lowStationeryItems = await prisma.inventoryItem.findMany({
         where: {
           category: { in: ['stationery', 'printing'] },
-          currentStock: { lte: 2 }
+          currentStock: { lt: 6 }
         }
       });
     } catch (e) {
       console.error('[Reminders Service] Error fetching inventory items:', e);
     }
 
-    if (lowStationeryItems.length > 0) {
-      console.log(`[Reminders Service] Low stationery stock items found: ${lowStationeryItems.length}. Sending to admin only.`);
-      let stockHtml = `<div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-        <h2 style="color: #172025; margin-top: 0;">⚠️ Low Stationery Stock Warning</h2>
-        <p style="color: #4b5563;">The following stationery items are at or below 2 items in stock:</p>
-        <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; border-left: 4px solid #b45309;">
-          <ul style="margin: 0; padding-left: 20px; color: #172025;">`;
-      lowStationeryItems.forEach(i => {
-        stockHtml += `<li><strong>${i.name}</strong> — <span style="color: #dc2626; font-weight: bold;">Current Stock: ${i.currentStock}</span></li>`;
-      });
-      stockHtml += `</ul></div>
-        <p style="color: #4b5563; font-size: 14px; margin-top: 20px;">Please log into the Admin portal to replenish these items.</p>
-      </div>`;
-
+    for (const item of lowStationeryItems) {
+      console.log(`[Reminders Service] Sending individual Low Stock alert for: ${item.name} (${item.currentStock} remaining)`);
       await sendEmail({
         to: adminEmail,
-        subject: `⚠️ Low Stationery Stock Alert: ${lowStationeryItems.length} items at or below 2 count`,
-        htmlBody: stockHtml,
+        subject: `⚠️ Low Stock Alert: "${item.name}" (${item.currentStock} remaining)`,
+        htmlBody: templates.lowStockAlert({ item: item.name, currentQty: item.currentStock, threshold: 5 })
       });
     }
 
-    if (deadlineCount === 0 && readyReminders.length === 0 && lowStationeryItems.length === 0) {
+    const totalDeadlines = expiringAmcs.length + dueUtilities.length + dueTaxes.length;
+    if (totalDeadlines === 0 && readyReminders.length === 0 && lowStationeryItems.length === 0) {
       console.log('[Reminders Service] No upcoming deadlines or low stock alerts found today.');
     }
 
-    return { amcCount: expiringAmcs.length, utilityCount: dueUtilities.length, taxCount: dueTaxes.length, customCount: readyReminders.length, lowStockCount: lowStationeryItems.length };
+    return { 
+      amcCount: expiringAmcs.length, 
+      utilityCount: dueUtilities.length, 
+      taxCount: dueTaxes.length, 
+      customCount: readyReminders.length, 
+      lowStockCount: lowStationeryItems.length 
+    };
   } catch (err) {
     console.error('[Reminders Service] Error running checkAndSendReminders:', err);
     throw err;

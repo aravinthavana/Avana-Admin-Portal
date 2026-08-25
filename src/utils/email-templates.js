@@ -646,6 +646,92 @@ const templates = {
     });
   },
 
+  // 13.1 AMC Contract Renewal Reminder — to Admin & CC
+  amcIndividualReminder({ amc }) {
+    return buildEmail({
+      title: `AMC Renewal Reminder: ${amc.equipment_name}`,
+      subtitle: 'Annual Maintenance Contract Renewal (3 Weeks Notice)',
+      accentColor: '#2563eb',
+      bodyHtml: `
+        ${highlightBox('🛠️ AMC Contract Expiration Notice — Renewal Action Required', '#2563eb', '#eff6ff')}
+        <p style="margin: 0 0 16px 0; color: #374151;">
+          This is an automated reminder that the following Annual Maintenance Contract (AMC) is scheduled to expire in approximately <strong>3 weeks</strong>:
+        </p>
+        <table style="${TABLE_WRAP}">
+          ${tableRow('Equipment Name', `<strong>${amc.equipment_name}</strong>`)}
+          ${tableRow('Vendor / Service Provider', amc.vendor_name || 'N/A', true)}
+          ${tableRow('Contact Person / Phone', `${amc.contact_person || 'N/A'} ${amc.phone ? `(${amc.phone})` : ''}`)}
+          ${tableRow('Contract Period', `${amc.start_date || 'N/A'} to <strong style="color:#dc2626;">${amc.end_date || 'N/A'}</strong>`, true)}
+          ${tableRow('Annual Cost', amc.cost ? `₹${amc.cost}` : 'N/A')}
+          ${tableRow('Current Status', `<strong style="color:#2563eb;">${amc.status || 'Active'}</strong>`, true)}
+          ${tableRow('Remarks / Notes', amc.remarks || 'None')}
+        </table>
+        <p style="margin: 16px 0 0 0; color: #374151;">
+          Please review the contract terms with the vendor and initiate renewal proceedings before the expiry date.
+        </p>
+        ${actionButton('View AMC Contracts', `${APP_URL}/helpdesk-admin/amc`, '#2563eb')}
+      `,
+    });
+  },
+
+  // 13.2 Utility Payment Due Reminder — to Admin & CC
+  utilityIndividualReminder({ utility }) {
+    return buildEmail({
+      title: `Utility Bill Due Reminder: ${utility.utility_type} (${utility.provider_name})`,
+      subtitle: 'Utility Payment Deadline (4 Days Notice)',
+      accentColor: '#dc2626',
+      bodyHtml: `
+        ${highlightBox('⚡ Utility Payment Deadline Reminder — Due in 4 Days', '#dc2626', '#fef2f2')}
+        <p style="margin: 0 0 16px 0; color: #374151;">
+          This is an automated reminder that the following utility bill payment is due in <strong>4 days</strong>:
+        </p>
+        <table style="${TABLE_WRAP}">
+          ${tableRow('Utility Service Type', `<strong>${utility.utility_type}</strong>`)}
+          ${tableRow('Provider Name', utility.provider_name || 'N/A', true)}
+          ${tableRow('Account / Consumer No', utility.account_number || 'N/A')}
+          ${tableRow('Billing Cycle', utility.billing_cycle || 'N/A', true)}
+          ${tableRow('Payment Due Date', `<strong style="color:#dc2626; font-size:16px;">${utility.due_date}</strong>`)}
+          ${tableRow('Amount Payable', `<strong style="color:#111827; font-size:18px;">₹${utility.amount}</strong>`, true)}
+          ${tableRow('Payment Status', `<strong style="color:#d97706;">${utility.status || 'Unpaid'}</strong>`)}
+          ${tableRow('Remarks / Notes', utility.remarks || 'None', true)}
+        </table>
+        <p style="margin: 16px 0 0 0; color: #374151;">
+          Please ensure the payment is processed before the due date to avoid service disruption or late penalty fees.
+        </p>
+        ${actionButton('Go to Utility Payments', `${APP_URL}/helpdesk-admin/utility-payments`, '#dc2626')}
+      `,
+    });
+  },
+
+  // 13.3 Tax Payment Due Reminder — to Admin & CC
+  taxIndividualReminder({ tax }) {
+    return buildEmail({
+      title: `Tax Payment Due Reminder: ${tax.tax_type} (${tax.authority_name || tax.location || 'Municipal'})`,
+      subtitle: 'Tax Payment Deadline (1 Month Notice)',
+      accentColor: '#7c3aed',
+      bodyHtml: `
+        ${highlightBox('🏛️ Tax Payment Deadline Reminder — Due in 1 Month', '#7c3aed', '#f5f3ff')}
+        <p style="margin: 0 0 16px 0; color: #374151;">
+          This is an automated reminder that the following statutory / property tax payment is due in <strong>1 month</strong>:
+        </p>
+        <table style="${TABLE_WRAP}">
+          ${tableRow('Tax Type', `<strong>${tax.tax_type}</strong>`)}
+          ${tableRow('Authority / Location', tax.authority_name || tax.location || 'N/A', true)}
+          ${tableRow('Assessment Year / Term', `${tax.year || tax.assessment_year || ''} ${tax.term ? `(${tax.term})` : ''}`.trim() || 'N/A')}
+          ${tableRow('Bill / Challan No', tax.bill_no || 'N/A', true)}
+          ${tableRow('Due Date', `<strong style="color:#7c3aed; font-size:16px;">${tax.due_date}</strong>`)}
+          ${tableRow('Amount Payable', `<strong style="color:#111827; font-size:18px;">₹${tax.amount}</strong>`, true)}
+          ${tableRow('Status', `<strong style="color:#d97706;">${tax.status || 'Unpaid'}</strong>`)}
+          ${tableRow('Remarks / Notes', tax.remarks || 'None', true)}
+        </table>
+        <p style="margin: 16px 0 0 0; color: #374151;">
+          Please review the assessment details and schedule the tax payment in advance.
+        </p>
+        ${actionButton('Go to Tax Payments', `${APP_URL}/helpdesk-admin/tax-payments`, '#7c3aed')}
+      `,
+    });
+  },
+
   // 14. Asset Handover — to Employee
   assetHandover({ handover, assetName, items }) {
     const itemRows = (items || []).map((it, i) => tableRow(

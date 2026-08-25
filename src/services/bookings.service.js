@@ -138,22 +138,26 @@ const NOTIFICATION_CC = 'aravinth@avanamedical.com';
 exports.sendBookingRequestToAdminNotification = async (booking, host) => {
   const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
   
-  // 1. Confirmation email to Employee (Pending Approval)
+  // 1. Separate confirmation email to Employee (NO CC to aravinth)
   if (booking.email) {
     const employeeSubject = `Conference Room Request Received: ${(() => { const s = booking.startDate || booking.date; const e = booking.endDate || booking.date; return s === e ? s : `${s} to ${e}`; })()} (${booking.bookingType === 'full' ? 'Full Day' : `${booking.startTime} to ${booking.endTime}`})`;
     sendEmail({
       to: booking.email,
-      cc: NOTIFICATION_CC,
       subject: employeeSubject,
       htmlBody: templates.bookingSubmitted({ booking, host })
     }).catch(console.error);
   }
 
-  // 2. Alert email to Admin
+  // 2. Alert email to Admin (with aravinth@avanamedical.com + employee in CC)
+  const adminCcList = [NOTIFICATION_CC];
+  if (booking.email && !adminCcList.includes(booking.email)) {
+    adminCcList.push(booking.email);
+  }
+
   const adminSubject = ` ACTION REQUIRED: New Conference Room Request - ${booking.name}`;
   sendEmail({
     to: adminEmail,
-    cc: NOTIFICATION_CC,
+    cc: adminCcList.join(', '),
     subject: adminSubject,
     htmlBody: templates.bookingAdminAlert({ booking, host })
   }).catch(console.error);
@@ -165,7 +169,6 @@ exports.sendBookingApprovalToEmployeeNotification = async (booking, host, approv
   const htmlBody = templates.bookingApproved({ booking, host, approvalRemarks });
   return sendEmail({
     to: booking.email,
-    cc: NOTIFICATION_CC,
     subject,
     htmlBody
   }).catch(console.error);
@@ -177,7 +180,6 @@ exports.sendBookingRejectionToEmployeeNotification = async (booking, reason) => 
   const htmlBody = templates.bookingRejected({ booking, reason });
   return sendEmail({
     to: booking.email,
-    cc: NOTIFICATION_CC,
     subject,
     htmlBody
   }).catch(console.error);
@@ -190,16 +192,20 @@ exports.sendBookingCancellationNotification = async (booking) => {
     const subject = `❌ CANCELLED: Conference Room Booking`;
     sendEmail({
       to: booking.email,
-      cc: NOTIFICATION_CC,
       subject,
       htmlBody: templates.bookingCancelled({ booking })
     }).catch(console.error);
   }
 
+  const adminCcList = [NOTIFICATION_CC];
+  if (booking.email && !adminCcList.includes(booking.email)) {
+    adminCcList.push(booking.email);
+  }
+
   const adminSubject = `❌ Room Booking Cancelled - ${booking.name}`;
   sendEmail({
     to: adminEmail,
-    cc: NOTIFICATION_CC,
+    cc: adminCcList.join(', '),
     subject: adminSubject,
     htmlBody: templates.bookingCancelledAdminAlert({ booking })
   }).catch(console.error);

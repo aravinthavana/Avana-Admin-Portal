@@ -8,7 +8,7 @@ RUN npm run build
 
 # ---------- 2. Build backend ----------
 FROM node:20-alpine AS backend
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl python3 make g++
 WORKDIR /app
 
 # Install production dependencies (backend only)

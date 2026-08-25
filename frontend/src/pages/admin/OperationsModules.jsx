@@ -742,6 +742,7 @@ export function CourierDispatchPage() {
 
   // New DC Form State
   const [addForm, setAddForm] = useState({
+    dcNo: '',
     dcDate: new Date().toISOString().slice(0,10),
     remarksType: 'Service',
     remarksOther: '',
@@ -786,6 +787,7 @@ export function CourierDispatchPage() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!addForm.dcNo?.trim()) { toast.warning('Delivery Challan No is mandatory.'); return; }
     if (!addForm.receiverName || !addForm.toAddress) { toast.warning('Receiver name and destination address required.'); return; }
     setSubmitting(true);
     try {
@@ -866,8 +868,19 @@ export function CourierDispatchPage() {
         <div className="card">
           <form onSubmit={handleCreate}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
-              <FormField label="Challan Date">
-                <input type="date" className="form-input" value={addForm.dcDate} onChange={e => setAddForm(f => ({ ...f, dcDate: e.target.value }))} />
+              <FormField label="Delivery Challan No *" required>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  style={{ fontWeight: 'bold' }} 
+                  placeholder="Enter Delivery Challan No (e.g. DC-101)" 
+                  value={addForm.dcNo} 
+                  onChange={e => setAddForm(f => ({ ...f, dcNo: e.target.value }))} 
+                  required 
+                />
+              </FormField>
+              <FormField label="Challan Date" required>
+                <input type="date" className="form-input" value={addForm.dcDate} onChange={e => setAddForm(f => ({ ...f, dcDate: e.target.value }))} required />
               </FormField>
               <FormField label="Billing Entity">
                 <select className="form-select" value={addForm.courierBilling} onChange={e => setAddForm(f => ({ ...f, courierBilling: e.target.value }))}>

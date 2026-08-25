@@ -32,6 +32,10 @@ exports.getDispatchById = async (req, res, next) => {
 
 exports.createDispatch = async (req, res, next) => {
   try {
+    const { dcNo } = req.body;
+    if (!dcNo || !String(dcNo).trim()) {
+      return res.status(400).json({ error: 'Delivery Challan No is mandatory and required.' });
+    }
     const requesterEmail = req.user?.email || req.body.requesterEmail || '';
     const host = req.protocol + '://' + req.get('host');
     const created = await courierService.createDispatch(req.body, requesterEmail, host);

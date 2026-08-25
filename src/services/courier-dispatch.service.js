@@ -98,7 +98,10 @@ exports.getDispatchById = async (id) => {
 };
 
 exports.createDispatch = async (data, requesterEmail, host) => {
-  const nextDcNo = data.dcNo || await getNextDcNumber();
+  const dcNo = data.dcNo ? String(data.dcNo).trim() : '';
+  if (!dcNo) {
+    throw new Error('Delivery Challan No is mandatory and required.');
+  }
   
   let totalAmount = 0;
   const itemsData = (data.items || []).map(it => {
@@ -118,7 +121,7 @@ exports.createDispatch = async (data, requesterEmail, host) => {
 
   const created = await prisma.courierDispatch.create({
     data: {
-      dcNo: nextDcNo,
+      dcNo,
       dcDate: data.dcDate || new Date().toISOString().slice(0,10),
       remarksType: data.remarksType || 'Service',
       remarksOther: data.remarksOther || '',

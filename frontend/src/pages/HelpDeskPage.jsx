@@ -1756,15 +1756,6 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
     switchTab('challan');
   }
 
-  useEffect(() => {
-    if (!form.dcNo) {
-      fetch('/api/employee/courier-dispatch/next-dc')
-        .then(res => res.json())
-        .then(data => { if (data.dcNo) setForm(f => ({ ...f, dcNo: data.dcNo })); })
-        .catch(err => console.error(err));
-    }
-  }, []);
-
   const updateItems = (newItems) => { setItems(newItems); setForm(f => ({ ...f, items: newItems })); };
   const updateBoxes = (newBoxes) => { setBoxes(newBoxes); setForm(f => ({ ...f, boxes: newBoxes, noOfBoxes: newBoxes.length })); };
 
@@ -1835,9 +1826,17 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
           </div>
         )}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
-          <FormField label="Delivery Challan No" required htmlFor="cd-dc-no">
-            <input id="cd-dc-no" type="text" className="form-input" style={{ fontWeight: 'bold' }}
-              value={form.dcNo || ''} onChange={e => setForm(f => ({ ...f, dcNo: e.target.value }))} required />
+          <FormField label="Delivery Challan No *" required htmlFor="cd-dc-no" error={errors?.dcNo}>
+            <input 
+              id="cd-dc-no" 
+              type="text" 
+              className={`form-input${errors?.dcNo ? ' form-input--error' : ''}`} 
+              style={{ fontWeight: 'bold' }}
+              placeholder="Enter Delivery Challan No (Required)"
+              value={form.dcNo || ''} 
+              onChange={e => setForm(f => ({ ...f, dcNo: e.target.value }))} 
+              required 
+            />
           </FormField>
           <FormField label="Delivery Challan Date" required htmlFor="cd-date">
             <input id="cd-date" type="date" className="form-input" value={form.dcDate || new Date().toISOString().slice(0,10)}
@@ -2201,7 +2200,7 @@ function HelpdeskRequestView() {
       if (!form.support_type) e.support_type = 'Support type is required';
       if (!form.description?.trim()) e.description = 'Description is required';
     } else if (category === 'courier_dispatch') {
-      if (!form.dcNo?.trim()) e.dcNo = 'Challan Number is required';
+      if (!form.dcNo?.trim()) e.dcNo = 'Delivery Challan No is mandatory and required';
       if (!form.senderName?.trim()) e.senderName = 'Sender name is required';
       if (!form.senderPhone?.trim()) {
         e.senderPhone = 'Sender phone is required';

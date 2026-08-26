@@ -441,7 +441,7 @@ export default function HelpDeskAdminPage() {
         {/* Admin */}
         <Route path="locations" element={<LocationsManagementPage />} />
         <Route path="settings" element={<AdminSettings />} />
-        <Route path="audit-logs" element={<AuditLogsPage />} />
+        
       </Routes>
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
-import { Modal } from '../ui'; // <-- ADDED THIS
+ // <-- ADDED THIS
 
 export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkPurchased }) {
   const toast = useToast();
@@ -21,23 +21,27 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
     }
   };
 
-  const footer = (
-    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-      <div>
-        {purchase.status === 'Approved' && (
-          <button className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} onClick={onMarkPurchased}>
-            Rs. Rs. Rs.  Mark as Purchased
-          </button>
-        )}
-      </div>
-      <div>
-        <button className="btn btn--outline" onClick={onClose}>Close</button>
-      </div>
-    </div>
-  );
-
   return (
-    <Modal isOpen={true} onClose={onClose} title={<div style={{display:'flex', alignItems:'center', gap:'1rem'}}><span>Purchase Details</span><span style={{fontSize:'0.9rem', color:'#64748b', fontWeight:'normal'}}>{purchase.requestId}</span><button className="btn btn--outline btn--sm" onClick={handleDownloadPdf} style={{marginLeft:'auto', fontWeight:'normal'}}>Rs. Rs.  Download PDF</button></div>} size="xl" footer={footer}>
+    
+<div style={{ padding: '0', background: '#fff', minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <button className="btn btn--outline" onClick={onClose}>&larr; Back</button>
+      <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#0f172a' }}>Purchase Details</h2>
+      <span style={{ fontSize: '1rem', color: '#64748b', background: '#f1f5f9', padding: '0.25rem 0.75rem', borderRadius: '16px' }}>{purchase.requestId}</span>
+    </div>
+    <div style={{ display: 'flex', gap: '1rem' }}>
+      <button className="btn btn--outline" onClick={handleDownloadPdf}>
+        Download PDF
+      </button>
+      {purchase.status === 'Approved' && (
+        <button className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} onClick={onMarkPurchased}>
+          Mark as Purchased
+        </button>
+      )}
+    </div>
+  </div>
+
       <div style={{ padding: '0.5rem 0' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
           
@@ -156,6 +160,6 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
           </div>
         </div>
       </div>
-    </Modal>
+    </div>
   );
 }

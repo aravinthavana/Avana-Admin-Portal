@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
 import { Modal } from '../ui';
@@ -100,7 +100,7 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
         data.append('itemImage', file);
       }
       
-      const email = localStorage.getItem('avana_admin_email') || 'admin@avanamedical.com';
+      const email = localStorage.getItem('avana_admin_email') || 'karthicksankar@avanamedical.com';
       data.append('requestedBy', email);
 
       const res = await apiFetch('/purchase', {
@@ -249,3 +249,4 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
     </Modal>
   );
 }
+

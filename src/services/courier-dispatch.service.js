@@ -1,4 +1,4 @@
-const env = require('../config/env');
+﻿const env = require('../config/env');
 const fs = require('fs');
 const path = require('path');
 const prisma = require('../config/db');
@@ -105,7 +105,7 @@ exports.createDispatch = async (data, requesterEmail, host) => {
   }
   
   const existingDc = await prisma.courierDispatch.findFirst({
-    where: { dcNo }
+    where: { dcNo, requesterEmail }
   });
   
   if (existingDc) {
@@ -829,3 +829,4 @@ exports.rejectMergeRequest = async (id, reason) => {
   await sendEmail({ to: mr.requesterEmail, subject: `Merge Request Rejected - DC #${mr.targetDispatch.dcNo}`, htmlBody: html });
   return { success: true };
 };
+

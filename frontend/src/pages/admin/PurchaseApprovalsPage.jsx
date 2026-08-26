@@ -64,6 +64,37 @@ export default function PurchaseApprovalsPage() {
     }
   };
 
+  
+  if (viewPurchase) {
+    return (
+      <ViewPurchaseModal 
+        purchase={viewPurchase}
+        onClose={() => setViewPurchase(null)}
+        onUpdate={(updated) => {
+          setViewPurchase(updated);
+          fetchPurchases();
+        }}
+        onMarkPurchased={() => {
+          setMarkPurchasedFor(viewPurchase);
+          setViewPurchase(null);
+        }}
+      />
+    );
+  }
+
+  if (markPurchasedFor) {
+    return (
+      <MarkPurchasedModal
+        purchase={markPurchasedFor}
+        onClose={() => setMarkPurchasedFor(null)}
+        onSuccess={(updated) => {
+          setMarkPurchasedFor(null);
+          fetchPurchases();
+        }}
+      />
+    );
+  }
+
   return (
     <div style={{ padding: '0' }}>
       
@@ -169,31 +200,9 @@ export default function PurchaseApprovalsPage() {
         />
       )}
 
-      {viewPurchase && (
-        <ViewPurchaseModal 
-          purchase={viewPurchase}
-          onClose={() => setViewPurchase(null)}
-          onUpdate={(updated) => {
-            setViewPurchase(updated);
-            fetchPurchases();
-          }}
-          onMarkPurchased={() => {
-            setMarkPurchasedFor(viewPurchase);
-            setViewPurchase(null);
-          }}
-        />
-      )}
+      
 
-      {markPurchasedFor && (
-        <MarkPurchasedModal
-          purchase={markPurchasedFor}
-          onClose={() => setMarkPurchasedFor(null)}
-          onSuccess={(updated) => {
-            setMarkPurchasedFor(null);
-            fetchPurchases();
-          }}
-        />
-      )}
+      
 
     </div>
   );

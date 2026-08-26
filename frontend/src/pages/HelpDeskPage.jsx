@@ -2301,8 +2301,12 @@ function HelpdeskRequestView() {
       }
       navigate('/helpdesk');
     } catch (err) {
-      toast.error(err.message || 'Failed to submit request');
-    } finally {
+        if (err.message && err.message.toLowerCase().includes('dc number')) {
+          setErrors({ dcNo: 'Already used DC number. Please use a different one.' });
+        } else {
+          toast.error(err.message || 'Failed to submit request');
+        }
+      } finally {
       setSubmitting(false);
     }
   }

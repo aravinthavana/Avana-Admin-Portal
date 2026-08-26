@@ -433,7 +433,7 @@ ul { list-style: none; }
   animation: fadeIn var(--transition-base) ease;
 }
 
-.modal {
+.modal, .modal-content {
   background: var(--color-surface);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
@@ -447,14 +447,14 @@ ul { list-style: none; }
 .modal--wide { max-width: 720px; }
 .modal--xl   { max-width: 900px; }
 
-.modal__header {
+.modal__header, .modal-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: var(--space-6);
   border-bottom: 1px solid var(--color-border);
 }
 
-.modal__body   { padding: var(--space-6); }
-.modal__footer {
+.modal__body, .modal-body { padding: var(--space-6); }
+.modal__footer, .modal-actions, .modal-footer {
   padding: var(--space-4) var(--space-6);
   border-top: 1px solid var(--color-border);
   display: flex; justify-content: flex-end; gap: var(--space-3);

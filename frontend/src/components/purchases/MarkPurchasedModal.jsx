@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
+import { Modal } from '../ui';
 
 export default function MarkPurchasedModal({ purchase, onClose, onSuccess }) {
   const toast = useToast();
@@ -50,18 +51,13 @@ export default function MarkPurchasedModal({ purchase, onClose, onSuccess }) {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '500px' }}>
-        <div className="modal-header">
-          <h2>Mark as Purchased</h2>
-          <button className="close-btn" onClick={onClose}>&times;</button>
-        </div>
-        <form onSubmit={handleSubmit}>
+    <Modal isOpen={true} onClose={onClose} title="Mark as Purchased">
+      <form onSubmit={handleSubmit}>
           
           <div style={{ background: '#f3f4f6', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
             <div style={{ marginBottom: '0.25rem' }}><strong>Item:</strong> {purchase.itemName}</div>
             <div style={{ marginBottom: '0.25rem' }}><strong>Requested Qty:</strong> {purchase.quantity}</div>
-            <div style={{ marginBottom: '0.25rem' }}><strong>Approved Amount:</strong> ₹{purchase.finalAmount}</div>
+            <div style={{ marginBottom: '0.25rem' }}><strong>Approved Amount:</strong> Rs. {purchase.finalAmount}</div>
           </div>
 
           <div className="form-group">
@@ -90,14 +86,13 @@ export default function MarkPurchasedModal({ purchase, onClose, onSuccess }) {
             <textarea name="purchaseRemarks" value={formData.purchaseRemarks} onChange={handleChange} className="form-control" rows="2"></textarea>
           </div>
 
-          <div className="modal-actions">
-            <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>Cancel</button>
-            <button type="submit" className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} disabled={loading}>
-              {loading ? 'Saving...' : 'Save Purchase'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+                  <div className="modal__footer">
+          <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>Cancel</button>
+          <button type="submit" className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} disabled={loading}>
+            {loading ? 'Saving...' : 'Save Purchase'}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
+import { Modal } from '../ui';
 
 export default function AddPurchaseModal({ onClose, onSuccess }) {
   const toast = useToast();
@@ -75,13 +76,8 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '600px' }}>
-        <div className="modal-header">
-          <h2>Add Purchase Request</h2>
-          <button className="close-btn" onClick={onClose}>&times;</button>
-        </div>
-        <form onSubmit={handleSubmit}>
+    <Modal isOpen={true} onClose={onClose} title="Add Purchase Request" size="wide">
+      <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Item Name *</label>
             <input type="text" name="itemName" required value={formData.itemName} onChange={handleChange} className="form-control" />
@@ -162,15 +158,15 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
           <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #e2e8f0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <span>Subtotal:</span>
-              <strong>₹{subtotal.toFixed(2)}</strong>
+              <strong>Rs. {subtotal.toFixed(2)}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: formData.hasGst === 'true' ? '#475569' : '#94a3b8' }}>
               <span>GST ({formData.hasGst === 'true' ? formData.gstPercentage : '0'}%):</span>
-              <strong>₹{gstAmt.toFixed(2)}</strong>
+              <strong>Rs. {gstAmt.toFixed(2)}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #cbd5e1', paddingTop: '0.5rem', marginTop: '0.5rem', fontSize: '1.1rem' }}>
               <span>Final Amount:</span>
-              <strong style={{ color: '#0f172a' }}>₹{finalAmt.toFixed(2)}</strong>
+              <strong style={{ color: '#0f172a' }}>Rs. {finalAmt.toFixed(2)}</strong>
             </div>
           </div>
 
@@ -180,12 +176,13 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
             <small style={{ color: '#64748b' }}>Must be @avanamedical.com or @avanasurgical.com</small>
           </div>
 
-          <div className="modal-actions">
-            <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>Cancel</button>
-            <button type="submit" className="btn btn--primary" disabled={loading}>{loading ? 'Submitting...' : 'Submit Request'}</button>
-          </div>
-        </form>
-      </div>
-    </div>
+                  <div className="modal__footer">
+          <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>Cancel</button>
+          <button type="submit" className="btn btn--primary" disabled={loading}>{loading ? 'Submitting...' : 'Submit Request'}</button>
+        </div>
+      </form>
+    </Modal>
   );
 }
+
+

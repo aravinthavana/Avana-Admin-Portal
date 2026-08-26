@@ -231,7 +231,7 @@ exports.updateTrackingInfo = async (id, data) => {
     include: { items: true }
   });
 
-  if (transporterName && docketNo && dispatch.status !== 'Dispatched' && newStatus === 'Dispatched') {
+  if (transporterName && docketNo && newStatus === 'Dispatched') {
     let trackingLink = '';
     const tn = transporterName.toLowerCase();
     

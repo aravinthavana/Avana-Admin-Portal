@@ -224,7 +224,10 @@ const generateExcelReport = async (filters) => {
     xlsx.utils.book_append_sheet(wb, ws, "Purchases");
     
     const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
-    const generatePdfReport = async (id) => {
+    return buffer;
+};
+
+const generatePdfReport = async (id) => {
     const p = await getPurchaseById(id);
     if (!p) throw new Error("Not found");
 

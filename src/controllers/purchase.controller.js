@@ -134,12 +134,12 @@ const handleEmailAction = async (req, res) => {
         const purchase = await purchaseService.getPurchaseById(id);
         if (!purchase) return res.status(404).send('Not found.');
 
-        if (req.method === 'GET' && (action === 'Reject' || action === 'Discuss')) {
+        if (req.method === 'GET' && (action === 'Approve' || action === 'Reject' || action === 'Discuss')) {
             return res.send(`
                 <html>
                 <body style="font-family: sans-serif; background-color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
                     <div style="background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-width: 500px; width: 100%;">
-                        <h2 style="margin-top: 0; color: #0f172a;">Provide Reason for ${action === 'Reject' ? 'Rejection' : 'Discussion'}</h2>
+                        <h2 style="margin-top: 0; color: #0f172a;">Provide Reason for ${action === 'Reject' ? 'Rejection' : action === 'Approve' ? 'Approval' : 'Discussion'}</h2>
                         <p style="color: #475569; margin-bottom: 20px;">Please provide the reason below. This will be sent back to the admin and logged in the portal.</p>
                         <form method="POST" action="/api/purchase/${id}/action?action=${action}">
                             <textarea name="comments" rows="5" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; margin-bottom: 20px; font-family: sans-serif;" required placeholder="Please enter your reason here..."></textarea>

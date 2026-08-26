@@ -807,7 +807,18 @@ export function CourierDispatchPage() {
     if (!selectedDispatch) return;
     setSubmitting(true);
     try {
-      await courierApi.updateTracking(selectedDispatch.id, trackingForm);
+      
+      let payload = trackingForm;
+      if (trackingForm.attachment) {
+        payload = new FormData();
+        Object.keys(trackingForm).forEach(k => {
+          if (trackingForm[k] !== undefined && trackingForm[k] !== null) {
+            payload.append(k, trackingForm[k]);
+          }
+        });
+      }
+      await courierApi.updateTracking(selectedDispatch.id, payload);
+
       toast.success('Tracking & courier info updated.');
       setTrackingModalOpen(false);
       fetchDispatches();

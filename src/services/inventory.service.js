@@ -174,20 +174,30 @@ exports.getStationeryCatalog = async () => {
   // 1. One-time migration of legacy JSON to DB if it exists
   try {
     const p1 = path.join(__dirname, '../../stationery_catalog.json');
-    if (fs.existsSync(p1)) {
-      const legacyCatalog = JSON.parse(fs.readFileSync(p1, 'utf8'));
+    const pMigrated = path.join(__dirname, '../../stationery_catalog.json.migrated');
+    const pToRead = fs.existsSync(p1) ? p1 : (fs.existsSync(pMigrated) ? pMigrated : null);
+    
+    if (pToRead) {
+      const legacyCatalog = JSON.parse(fs.readFileSync(pToRead, 'utf8'));
       for (const [name, catType] of Object.entries(legacyCatalog)) {
-        const existing = await prisma.inventoryItem.findFirst({ where: { name, category: { in: ['stationery', 'printing'] } } });
+        const targetCategory = catType === 'printing' ? 'printing' : 'stationery';
+        const existing = await prisma.inventoryItem.findFirst({ where: { name } });
         if (!existing) {
           await prisma.inventoryItem.create({
-            data: { name, category: catType === 'printing' ? 'printing' : 'stationery', currentStock: 0, updatedAt: new Date().toISOString() }
+            data: { name, category: targetCategory, currentStock: 0, updatedAt: new Date().toISOString() }
+          });
+        } else if (existing.category === 'stationery' && targetCategory === 'printing') {
+          await prisma.inventoryItem.update({
+            where: { id: existing.id },
+            data: { category: 'printing' }
           });
         }
       }
-      fs.renameSync(p1, p1 + '.migrated');
-      console.log('Legacy stationery catalog migrated to DB successfully.');
+      if (fs.existsSync(p1)) {
+        fs.renameSync(p1, p1 + '.migrated');
+      }
     }
-  } catch(e) {}
+  } catch(e) { console.error('Migration error:', e); }
 
   // 2. Fetch all items from DB
   try {
@@ -239,3 +249,15 @@ exports.checkLowStockAlert = async (item, newQty, type = 'stationery') => {
   }
 };
 
+\n
+exports.deleteStationeryCatalogItem = async (itemName) => {
+  try {
+    await prisma.inventoryItem.deleteMany({
+      where: { name: itemName, category: { in: ["stationery", "printing"] } }
+    });
+    return await exports.getStationeryCatalog();
+  } catch(e) {
+    console.error("Failed to delete stationery catalog item:", e);
+    return null;
+  }
+};

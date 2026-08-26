@@ -168,6 +168,13 @@ export const helpdeskApi = {
 };
 
 // ─── Inventory — Stationery ──────────────────────────────────
+export const printingApi = {
+  getStock: () => request('/admin/printing-stock', {}, 'admin'),
+  updateStock: (data) => request('/admin/printing-stock', { method: 'POST', body: JSON.stringify(data) }, 'admin'),
+  addItem: (data) => request('/admin/stationery-items', { method: 'POST', body: JSON.stringify(data) }, 'admin'),
+  deleteItem: (itemName) => request(`/admin/stationery-items/${encodeURIComponent(itemName)}`, { method: 'DELETE' }, 'admin'),
+};
+
 export const stationeryApi = {
   getStock: () =>
     request('/admin/stationery-stock', {}, 'admin'),

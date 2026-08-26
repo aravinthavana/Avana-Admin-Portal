@@ -453,7 +453,7 @@ const templates = {
           A new service request has been submitted by an employee. Please review and assign/resolve it.
         </p>
         <table style="${TABLE_WRAP}">
-          ${tableRow('Request ID', `<strong style="color:#dc2626;">#${request.id}</strong>`)}
+          ${tableRow('Request ID', `<strong style="color:#dc2626;">#${request.id ? request.id.slice(0,8).toUpperCase() : 'N/A'}</strong>`)}
           ${tableRow('Category', catTitle, true)}
           ${tableRow('Sub-Type', request.subcategory || request.item_type || 'N/A')}
           ${tableRow('Location/Floor', request.floor || request.location || 'N/A', true)}

@@ -49,7 +49,12 @@ exports.createDispatch = async (req, res, next) => {
 exports.updateTrackingInfo = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updated = await courierService.updateTrackingInfo(id, req.body);
+    const data = { ...req.body };
+    if (req.file) {
+      data.attachmentPath = req.file.path;
+      data.attachmentName = req.file.originalname;
+    }
+    const updated = await courierService.updateTrackingInfo(id, data);
     if (!updated) return res.status(404).json({ error: 'Delivery Challan not found.' });
 
     res.status(200).json({ message: 'Tracking information updated.', dispatch: updated });

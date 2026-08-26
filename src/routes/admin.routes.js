@@ -29,16 +29,20 @@ router.get('/bookings', bookingsController.getAdminBookings);
 router.delete('/bookings/:id', bookingsController.deleteAdminBooking);
 
 // Inventory - Stationery
+router.get('/printing-stock', inventoryController.getPrintingStock);
+router.post('/printing-stock', inventoryController.updatePrintingStock);
 router.get('/stationery-stock', inventoryController.getStationeryStock);
 router.post('/stationery-stock', inventoryController.updateStationeryStock);
 router.get('/stationery-audit', inventoryController.getStationeryAudit);
 router.post('/stationery-audit/override', inventoryController.overrideStationeryAudit);
 router.post('/stationery-items', inventoryController.addStationeryItemType);
+router.delete('/stationery-items/:itemName', inventoryController.deleteStationeryItemType);
 
 // Inventory - Housekeeping
 router.get('/housekeeping-stock', inventoryController.getHousekeepingStock);
 router.post('/housekeeping-stock', inventoryController.updateHousekeepingStock);
 router.post('/housekeeping-items', inventoryController.addHousekeepingItemType);
+router.delete('/housekeeping-items/:itemName', inventoryController.deleteHousekeepingItemType);
 router.get('/housekeeping-audit', inventoryController.getHousekeepingAudit);
 router.post('/housekeeping-audit/override', inventoryController.overrideHousekeepingAudit);
 
@@ -74,9 +78,22 @@ router.delete('/assets/:id', assetTrackerController.deleteHandover);
 
 // Courier Dispatches & Delivery Challans
 const courierController = require('../controllers/courier-dispatch.controller');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const courierUploadDir = path.join('/app/data', 'uploads', 'courier');
+if (!fs.existsSync(courierUploadDir)) fs.mkdirSync(courierUploadDir, { recursive: true });
+const courierUpload = multer({ 
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, courierUploadDir),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'))
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
 router.get('/courier-dispatches', courierController.getAllDispatches);
 router.post('/courier-dispatches', courierController.createDispatch);
-router.patch('/courier-dispatches/:id', courierController.updateTrackingInfo);
+router.patch('/courier-dispatches/:id', courierUpload.single('attachment'), courierController.updateTrackingInfo);
 router.post('/courier-dispatches/merge', courierController.mergeParcel);
 router.delete('/courier-dispatches/:id', courierController.deleteDispatch);
 

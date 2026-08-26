@@ -357,14 +357,7 @@ export function HelpdeskTable({ categoryFilter }) {
                   const itemsList = parseItems(r.items);
                   const meta = parseItemsData(r.items);
                   
-                  let shortId = r.id ? r.id.substring(0,4).toUpperCase() : '0000';
-                  const dateStr = (r.createdAt || r.created_at || '').split('T')[0];
-                  if (dateStr) {
-                    const dObj = new Date(dateStr);
-                    const dd = String(dObj.getDate()).padStart(2, '0');
-                    const mm = String(dObj.getMonth()+1).padStart(2, '0');
-                    shortId = `[${dd}${mm}-${shortId}]`;
-                  }
+                  let shortId = r.id ? '#' + r.id.substring(0,8).toUpperCase() : '#00000000';
 
                   return (
                     <tr key={r.id}>

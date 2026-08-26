@@ -224,6 +224,8 @@ exports.addHousekeepingItemType = async (req, res, next) => {
 
 // Route Handlers
 exports.getStationeryStock = (req, res, next) => handleGetStock('stationery', req, res, next);
+exports.getPrintingStock = (req, res, next) => handleGetStock('printing', req, res, next);
+exports.updatePrintingStock = (req, res, next) => handleUpdateStock('printing', req, res, next);
 exports.updateStationeryStock = (req, res, next) => handleUpdateStock('stationery', req, res, next);
 exports.getStationeryAudit = (req, res, next) => handleGetAudit('stationery', req, res, next);
 exports.overrideStationeryAudit = (req, res, next) => handleAuditOverride('stationery', req, res, next);
@@ -232,3 +234,37 @@ exports.getHousekeepingStock = (req, res, next) => handleGetStock('housekeeping'
 exports.updateHousekeepingStock = (req, res, next) => handleUpdateStock('housekeeping', req, res, next);
 exports.getHousekeepingAudit = (req, res, next) => handleGetAudit('housekeeping', req, res, next);
 exports.overrideHousekeepingAudit = (req, res, next) => handleAuditOverride('housekeeping', req, res, next);
+\n
+exports.deleteStationeryItemType = async (req, res, next) => {
+  try {
+    const itemName = req.params.itemName;
+    if (!itemName) return res.status(400).json({ error: "Missing item name." });
+    
+    // Remove from catalog
+    await inventoryService.deleteStationeryCatalogItem(itemName);
+    
+    // Remove from stock
+    const stock = await inventoryService.getStock("stationery");
+    if (stock.hasOwnProperty(itemName)) {
+      delete stock[itemName];
+      await inventoryService.saveStock("stationery", stock);
+    }
+    
+    res.status(200).json({ message: "Item deleted successfully" });
+  } catch (error) { next(error); }
+};
+
+exports.deleteHousekeepingItemType = async (req, res, next) => {
+  try {
+    const itemName = req.params.itemName;
+    if (!itemName) return res.status(400).json({ error: "Missing item name." });
+    
+    const stock = await inventoryService.getStock("housekeeping");
+    if (stock.hasOwnProperty(itemName)) {
+      delete stock[itemName];
+      await inventoryService.saveStock("housekeeping", stock);
+    }
+    
+    res.status(200).json({ message: "Item deleted successfully" });
+  } catch (error) { next(error); }
+};

@@ -345,7 +345,7 @@ function RequestTracker() {
 
                 return (
                   <tr key={r.id}>
-                    <td style={{ color: 'var(--color-text-muted)' }}>{idx + 1}</td>
+                    <td style={{ color: 'var(--color-text-muted)' }}>{r.id ? '#' + r.id.substring(0,8).toUpperCase() : idx + 1}</td>
                     <td style={{ whiteSpace: 'nowrap', fontSize: '0.85rem', fontWeight: 500 }}>
                       {formatDateTime(reqDate)}
                     </td>
@@ -413,8 +413,12 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
   }
 
   function updateQty(item, val) {
+    if (val === '') {
+      onChange(selected.map(s => s.name === item ? { ...s, qty: '' } : s));
+      return;
+    }
     const qty = parseInt(val, 10);
-    onChange(selected.map(s => s.name === item ? { ...s, qty: isNaN(qty) || qty < 1 ? 1 : qty } : s));
+    onChange(selected.map(s => s.name === item ? { ...s, qty: isNaN(qty) ? 1 : qty } : s));
   }
 
   const filteredItems = items.filter(it => it.toLowerCase().includes(search.toLowerCase()));
@@ -532,7 +536,8 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
                     </td>
                     <td style={{ padding: 'var(--space-1)', textAlign: 'center', verticalAlign: 'top' }}>
                       <input 
-                        type="number" 
+                        type="text"
+                        inputMode="numeric"
                         className={`form-input${isOverStock ? ' form-input--error' : ''}`} 
                         style={{
                           width: '100%',
@@ -541,9 +546,10 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
                           borderColor: isOverStock ? 'var(--color-danger)' : undefined
                         }} 
                         value={sel.qty} 
-                        min="1"
-                        max={available !== null && available > 0 && sel.name !== 'Other' ? available : undefined}
-                        onChange={e => updateQty(sel.name, e.target.value)} 
+                        onChange={e => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          updateQty(sel.name, val);
+                        }} 
                       />
                     </td>
                     <td style={{ padding: 'var(--space-1)', textAlign: 'center', verticalAlign: 'top' }}>

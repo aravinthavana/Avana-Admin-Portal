@@ -104,6 +104,16 @@ exports.createDispatch = async (data, requesterEmail, host) => {
     throw new Error('Delivery Challan No is mandatory and required.');
   }
   
+  const existingDc = await prisma.courierDispatch.findFirst({
+    where: { dcNo }
+  });
+  
+  if (existingDc) {
+    const err = new Error('This DC Number has already been used. Please enter a different DC Number.');
+    err.status = 400;
+    throw err;
+  }
+  
   let totalAmount = 0;
   const itemsData = (data.items || []).map(it => {
     const qty = parseInt(it.qty, 10) || 1;
@@ -240,7 +250,6 @@ exports.updateTrackingInfo = async (id, data) => {
     } else {
         trackingLink = `Track via ${transporterName} website`;
     }
-
     const trackingLinkHtml = trackingLink.startsWith('http') 
         ? `<a href="${trackingLink}" target="_blank">${trackingLink}</a>`
         : trackingLink;
@@ -248,10 +257,34 @@ exports.updateTrackingInfo = async (id, data) => {
     const emailContent = `
       <h3>Courier Dispatch Tracking Details</h3>
       <p>Hello,</p>
-      <p>Your courier request has been dispatched.</p>
-      <p><strong>Courier Partner:</strong> ${transporterName}</p>
-      <p><strong>Tracking / Docket No:</strong> ${docketNo}</p>
-      <p><strong>Tracking Link:</strong> ${trackingLinkHtml}</p>
+      <p>Your courier request has been dispatched. Below are the tracking details for Delivery Challan <strong>#${updated.dcNo}</strong>.</p>
+      <br>
+      <table border="0" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%; max-width: 600px;">
+        <tr>
+          <td style="border: 1px solid #ddd; font-weight: bold; width: 40%; background: #f9f9f9;">DC No</td>
+          <td style="border: 1px solid #ddd;">#${updated.dcNo}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">From</td>
+          <td style="border: 1px solid #ddd;">${updated.senderName}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">To</td>
+          <td style="border: 1px solid #ddd;">${updated.receiverName} (${updated.toAddress})</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">Courier Partner</td>
+          <td style="border: 1px solid #ddd;">${transporterName}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">Tracking / Docket No.</td>
+          <td style="border: 1px solid #ddd;">${docketNo}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">Tracking Link</td>
+          <td style="border: 1px solid #ddd;">${trackingLinkHtml}</td>
+        </tr>
+      </table>
       <br>
       <p>
         Thanks & Regards,<br>
@@ -267,6 +300,15 @@ exports.updateTrackingInfo = async (id, data) => {
         Website: <a href="http://www.avanamedical.com">www.avanamedical.com</a>
       </p>
     `;
+    
+    const attachments = [];
+    if (data.attachmentPath && data.attachmentName) {
+      attachments.push({
+        filename: data.attachmentName,
+        path: data.attachmentPath
+      });
+    }
+
     try {
       const recipients = [dispatch.requesterEmail];
       if (dispatch.mergedRequesters) {
@@ -274,7 +316,12 @@ exports.updateTrackingInfo = async (id, data) => {
       }
       
       for (const email of [...new Set(recipients)]) {
-        await sendEmail({ to: email, subject: 'Courier Dispatched - Tracking Details', htmlBody: emailContent });
+        await sendEmail({ 
+          to: email, 
+          subject: `Courier Dispatched - DC #${updated.dcNo}`, 
+          htmlBody: emailContent,
+          attachments: attachments.length > 0 ? attachments : undefined
+        });
       }
     } catch (e) {
       console.error('Failed to send tracking email:', e);

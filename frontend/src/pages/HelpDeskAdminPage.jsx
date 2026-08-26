@@ -13,7 +13,41 @@ import { AuditLogsPage } from './admin/AuditLogsPage';
 import PurchaseApprovalsPage from './admin/PurchaseApprovalsPage';
 
 
-import { stationeryApi, housekeepingApi, utilityApi, taxApi } from '../lib/api';
+import { stationeryApi, housekeepingApi, utilityApi, taxApi, printingApi } from '../lib/api';
+import { useState } from 'react';
+
+function StationeryPrintingStockWrapper() {
+  const [tab, setTab] = useState('stationery');
+  return (
+    <div>
+      <div className="tabs" style={{ marginBottom: '1rem' }}>
+        <button className={`tab ${tab === 'stationery' ? 'tab--active' : ''}`} onClick={() => setTab('stationery')}>Stationery Items</button>
+        <button className={`tab ${tab === 'printing' ? 'tab--active' : ''}`} onClick={() => setTab('printing')}>Printing / Form Item</button>
+      </div>
+      {tab === 'stationery' ? (
+        <StockManager
+          title="Stationery Stock"
+          icon="✏️"
+          type="stationery"
+          getStock={stationeryApi.getStock}
+          updateStock={stationeryApi.updateStock}
+          addItem={stationeryApi.addItem}
+          deleteItem={stationeryApi.deleteItem}
+        />
+      ) : (
+        <StockManager
+          title="Printing Stock"
+          icon="🖨️"
+          type="printing"
+          getStock={printingApi.getStock}
+          updateStock={printingApi.updateStock}
+          addItem={printingApi.addItem}
+          deleteItem={printingApi.deleteItem}
+        />
+      )}
+    </div>
+  );
+}
 
 /* ─── Reusable Card Component for Grid Views ────────────────────────────── */
 function NavCard({ icon, title, description, badge, link, color = '#b27f0d' }) {

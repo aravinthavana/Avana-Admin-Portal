@@ -12,7 +12,7 @@ import {
 import { formatDate, formatDateTime, getStatusBadge, openLegacyPrintReport, CATEGORY_LABELS } from './utils';
 import { PrintHeader } from './PrintHeader';
 
-export function StockManager({ title, icon, type = 'stationery', getStock, updateStock, addItem, labelField = 'item_name' }) {
+export function StockManager({ title, icon, type = 'stationery', getStock, updateStock, addItem, deleteItem, labelField = 'item_name' }) {
   const toast = useToast();
   const [stock, setStock] = useState({});
   const [loading, setLoading] = useState(true);
@@ -58,6 +58,17 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
       toast.error(err.message || 'Update failed');
     } finally {
       setSaving(s => ({ ...s, [itemName]: false }));
+    }
+  }
+
+  async function handleDeleteItem(itemName) {
+    if (!window.confirm(`Are you sure you want to delete "${itemName}"? This cannot be undone.`)) return;
+    try {
+      await deleteItem(itemName);
+      toast.success(`"${itemName}" deleted successfully.`);
+      fetchStock();
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete item');
     }
   }
 
@@ -152,7 +163,7 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
             onChange={e => setNewItemStock(e.target.value)}
             style={{ width: '110px' }}
           />
-          <button type="submit" className="btn btn-primary" disabled={addingItem} style={{ background: type === 'housekeeping' ? '#404131' : '#16a34a', borderColor: 'transparent' }}>
+          <button type="submit" className="btn btn--primary" disabled={addingItem}>
             {addingItem ? 'Adding...' : 'Add Item'}
           </button>
         </form>

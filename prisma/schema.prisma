@@ -371,6 +371,7 @@ model PurchaseRequest {
   exactPurchaseAmount Float?
   purchaseDate        String?
   invoiceFile         String?
+    itemsJson           String?
   purchaseRemarks     String?
   createdAt           String
   updatedAt           String

@@ -45,17 +45,23 @@ const generateRequestId = async () => {
 const createPurchaseRequest = async (data) => {
     const requestId = await generateRequestId();
     
-    const unitAmount = parseFloat(data.unitAmount);
-    const quantity = parseInt(data.quantity, 10);
-    const hasGst = data.hasGst === 'true' || data.hasGst === true;
-    const gstPercentage = hasGst ? parseFloat(data.gstPercentage) : 0;
+    let unitAmount = parseFloat(data.unitAmount);
+    let quantity = parseInt(data.quantity, 10);
+    let hasGst = data.hasGst === 'true' || data.hasGst === true;
+    let gstPercentage = hasGst ? parseFloat(data.gstPercentage) : 0;
     
-    const subtotal = unitAmount * quantity;
-    const gstAmount = hasGst ? (subtotal * gstPercentage) / 100 : 0;
-    const finalAmount = subtotal + gstAmount;
+    let subtotal = unitAmount * quantity;
+    let gstAmount = hasGst ? (subtotal * gstPercentage) / 100 : 0;
+    let finalAmount = subtotal + gstAmount;
+
+    if (data.itemsJson) {
+      gstAmount = parseFloat(data.gstAmount) || 0;
+      finalAmount = parseFloat(data.finalAmount) || 0;
+    }
 
     const request = await prisma.purchaseRequest.create({
         data: {
+            itemsJson: data.itemsJson || null,
             requestId,
             itemName: data.itemName,
             quantity,
@@ -288,11 +294,45 @@ const sendApprovalEmail = async (request) => {
     const baseUrl = process.env.BASE_URL || 'http://172.30.10.21:8086';
     const reqUrl = `${baseUrl}/api/purchase/${request.id}/action`;
     
-    const unitAmt = request.unitAmount || 0;
-    const qty = request.quantity || 1;
-    const amount = unitAmt * qty;
-    const gst = request.gstAmount || 0;
-    const total = request.finalAmount || 0;
+    let itemsHtml = '';
+    
+    if (request.itemsJson) {
+      try {
+        const items = JSON.parse(request.itemsJson);
+        items.forEach((item, index) => {
+          itemsHtml += `
+            <tr>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${index + 1}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1;">${item.itemName}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${item.qty}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${item.subtotal}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${item.gstAmt}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${item.finalAmt}</td>
+            </tr>
+          `;
+        });
+      } catch(e) {
+        // Fallback if json fails
+      }
+    }
+    
+    if (!itemsHtml) {
+        const unitAmt = request.unitAmount || 0;
+        const qty = request.quantity || 1;
+        const amount = unitAmt * qty;
+        const gst = request.gstAmount || 0;
+        const total = request.finalAmount || 0;
+        itemsHtml = `
+            <tr>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">1</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1;">${request.itemName}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${qty}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${amount}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${gst}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${total}</td>
+            </tr>
+        `;
+    }
 
     const html = `
         <div style="font-family: sans-serif; max-width: 800px; color: #1e293b;">
@@ -311,17 +351,10 @@ const sendApprovalEmail = async (request) => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">1</td>
-                        <td style="padding: 10px; border: 1px solid #cbd5e1;">${request.itemName}</td>
-                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${qty}</td>
-                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${amount}</td>
-                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${gst}</td>
-                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${total}</td>
-                    </tr>
+                    ${itemsHtml}
                     <tr style="background-color: #f1f5f9; font-weight: bold;">
                         <td colspan="5" style="padding: 10px; border: 1px solid #cbd5e1; text-align: left;">Grand Total</td>
-                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${total}</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${request.finalAmount}</td>
                     </tr>
                 </tbody>
             </table>
@@ -340,11 +373,10 @@ const sendApprovalEmail = async (request) => {
     `;
     await sendMail({
         to: request.approvalPersonEmail,
-        subject: `Request for Purchase Approval - ${request.itemName}`,
+        subject: `Request for Purchase Approval - ${request.requestId}`,
         html
     });
 };
-
 module.exports = {
     sendApprovalEmail,
 

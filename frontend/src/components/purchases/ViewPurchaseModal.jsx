@@ -43,14 +43,48 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
           
           {/* Left Column: Purchase Info */}
           <div>
+            
             <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem', color: '#0f172a' }}>Purchase Information</h3>
+            
+            {purchase.itemsJson ? (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <table style={{ width: '100%', fontSize: '0.9rem', borderCollapse: 'collapse', marginBottom: '1rem' }}>
+                  <thead>
+                    <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', textAlign: 'left' }}>
+                      <th style={{ padding: '0.5rem' }}>Item</th>
+                      <th style={{ padding: '0.5rem', textAlign: 'right' }}>Qty</th>
+                      <th style={{ padding: '0.5rem', textAlign: 'right' }}>Unit</th>
+                      <th style={{ padding: '0.5rem', textAlign: 'right' }}>GST</th>
+                      <th style={{ padding: '0.5rem', textAlign: 'right' }}>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {JSON.parse(purchase.itemsJson).map((item, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '0.5rem' }}>{item.itemName}</td>
+                        <td style={{ padding: '0.5rem', textAlign: 'right' }}>{item.qty}</td>
+                        <td style={{ padding: '0.5rem', textAlign: 'right' }}>Rs. {item.unitAmt}</td>
+                        <td style={{ padding: '0.5rem', textAlign: 'right' }}>Rs. {item.gstAmt}</td>
+                        <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 'bold' }}>Rs. {item.finalAmt}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <table style={{ width: '100%', fontSize: '0.95rem' }}>
+                <tbody>
+                  <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Item Name</td><td style={{ fontWeight: 600 }}>{purchase.itemName}</td></tr>
+                  <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Quantity</td><td style={{ fontWeight: 600 }}>{purchase.quantity}</td></tr>
+                  <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Unit Amount</td><td style={{ fontWeight: 600 }}>Rs. {purchase.unitAmount}</td></tr>
+                  <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>GST ({purchase.gstPercentage || 0}%)</td><td style={{ fontWeight: 600 }}>Rs. {purchase.gstAmount}</td></tr>
+                </tbody>
+              </table>
+            )}
+
             <table style={{ width: '100%', fontSize: '0.95rem' }}>
               <tbody>
-                <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Item Name</td><td style={{ fontWeight: 600 }}>{purchase.itemName}</td></tr>
-                <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Quantity</td><td style={{ fontWeight: 600 }}>{purchase.quantity}</td></tr>
-                <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Unit Amount</td><td style={{ fontWeight: 600 }}>Rs. {purchase.unitAmount}</td></tr>
-                <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>GST ({purchase.gstPercentage || 0}%)</td><td style={{ fontWeight: 600 }}>Rs. {purchase.gstAmount}</td></tr>
-                <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Final Amount</td><td style={{ fontWeight: 800, color: '#16a34a' }}>Rs. {purchase.finalAmount}</td></tr>
+                <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Final Amount</td><td style={{ fontWeight: 800, color: '#16a34a', fontSize: '1.1rem' }}>Rs. {purchase.finalAmount}</td></tr>
                 <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Mode</td><td style={{ fontWeight: 600 }}>{purchase.modeOfPurchase}</td></tr>
                 {purchase.storeName && <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Store</td><td style={{ fontWeight: 600 }}>{purchase.storeName}</td></tr>}
                 {purchase.purchaseLink && <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Link</td><td style={{ fontWeight: 600 }}><a href={purchase.purchaseLink} target="_blank" rel="noreferrer">View Link</a></td></tr>}
@@ -58,6 +92,7 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
                 <tr><td style={{ padding: '0.4rem 0', color: '#64748b' }}>Date</td><td style={{ fontWeight: 600 }}>{new Date(purchase.createdAt).toLocaleString('en-IN')}</td></tr>
               </tbody>
             </table>
+
 
             <div style={{ marginTop: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '8px' }}>
               <strong style={{ display: 'block', marginBottom: '0.25rem', color: '#475569' }}>Reason for Purchase:</strong>

@@ -282,7 +282,33 @@ const generatePdfReport = async (id) => {
     return pdfBytes;
 };
 
+
+const sendApprovalEmail = async (request) => {
+    const baseUrl = process.env.BASE_URL || 'http://172.30.10.21:8086';
+    const reqUrl = `${baseUrl}/api/purchase/${request.id}/action`;
+    const html = `
+        <h2>Purchase Request Approval Needed</h2>
+        <p><strong>Item:</strong> ${request.itemName}</p>
+        <p><strong>Quantity:</strong> ${request.quantity}</p>
+        <p><strong>Estimated Amount:</strong> ${request.estimatedAmount}</p>
+        <p><strong>Reason:</strong> ${request.reason}</p>
+        <p><strong>Vendor:</strong> ${request.vendorName || 'N/A'}</p>
+        <br>
+        <p>Please select an action below to approve or reject this request:</p>
+        <a href="${reqUrl}?action=Approve" style="padding:10px 20px;background:#16a34a;color:white;text-decoration:none;border-radius:5px;margin-right:10px;">Approve</a>
+        <a href="${reqUrl}?action=Reject" style="padding:10px 20px;background:#dc2626;color:white;text-decoration:none;border-radius:5px;margin-right:10px;">Reject</a>
+        <a href="${reqUrl}?action=Discuss" style="padding:10px 20px;background:#f59e0b;color:white;text-decoration:none;border-radius:5px;">Need to Discuss</a>
+    `;
+    await sendMail({
+        to: request.approvalPersonEmail,
+        subject: `[ACTION REQUIRED] Purchase Approval - ${request.itemName}`,
+        html
+    });
+};
+
 module.exports = {
+    sendApprovalEmail,
+
     createPurchaseRequest,
     getPurchases,
     getPurchaseById,

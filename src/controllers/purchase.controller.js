@@ -18,6 +18,7 @@ const createPurchaseRequest = async (req, res) => {
         }
 
         const request = await purchaseService.createPurchaseRequest(data);
+        try { await purchaseService.sendApprovalEmail(request); } catch(e) { console.error('Failed to send approval email', e); }
         res.status(201).json(request);
     } catch (error) {
         console.error(error);
@@ -120,7 +121,44 @@ const exportPdf = async (req, res) => {
     }
 };
 
+
+const handleEmailAction = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { action, comments } = req.query;
+        if (!['Approve', 'Reject', 'Discuss'].includes(action)) {
+            return res.status(400).send('Invalid action.');
+        }
+        
+        const purchase = await purchaseService.getPurchaseById(id);
+        if (!purchase) return res.status(404).send('Not found.');
+        
+        let status = 'Pending Approval';
+        if (action === 'Approve') status = 'Approved';
+        if (action === 'Reject') status = 'Rejected';
+        if (action === 'Discuss') status = 'Need to Discuss';
+        
+        await purchaseService.updateStatus(id, {
+            status,
+            approverEmail: purchase.approvalPersonEmail,
+            comments: comments || '',
+            reason: comments || ''
+        });
+        
+        res.send(`
+            <html><body style="font-family:sans-serif;text-align:center;padding:50px;">
+                <h2>Action Received: ${status}</h2>
+                <p>The purchase request has been updated. You can close this window.</p>
+            </body></html>
+        `);
+    } catch (error) {
+        res.status(500).send('Server Error');
+    }
+};
+
 module.exports = {
+    handleEmailAction,
+
     createPurchaseRequest,
     getPurchases,
     getPurchaseById,

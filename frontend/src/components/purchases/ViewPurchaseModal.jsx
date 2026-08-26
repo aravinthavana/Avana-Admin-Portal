@@ -162,32 +162,11 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
           </div>
           
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            {purchase.status === 'Pending Approval' && !action && (
-              <>
-                <button className="btn btn--outline" style={{ color: '#f59e0b', borderColor: '#f59e0b' }} onClick={() => setAction('Need to Discuss')}>Need to Discuss</button>
-                <button className="btn btn--outline" style={{ color: '#dc2626', borderColor: '#dc2626' }} onClick={() => setAction('Rejected')}>Reject</button>
-                <button className="btn btn--primary" style={{ background: '#16a34a', borderColor: '#15803d' }} onClick={() => setAction('Approved')}>Approve</button>
-              </>
-            )}
+            
 
-            {action && (
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', width: '100%' }}>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder={action === 'Rejected' ? 'Rejection Reason *' : 'Comments (Optional)'} 
-                  value={comments} 
-                  onChange={e => setComments(e.target.value)}
-                  style={{ width: '300px' }}
-                />
-                <button className="btn btn--primary" onClick={() => handleStatusUpdate(action)} disabled={loading}>
-                  {loading ? 'Processing...' : `Confirm ${action}`}
-                </button>
-                <button className="btn btn--outline" onClick={() => setAction(null)} disabled={loading}>Cancel</button>
-              </div>
-            )}
 
-            {!action && <button className="btn btn--outline" onClick={onClose}>Close</button>}
+
+            <button className="btn btn--outline" onClick={onClose}>Close</button>
           </div>
         </div>
 

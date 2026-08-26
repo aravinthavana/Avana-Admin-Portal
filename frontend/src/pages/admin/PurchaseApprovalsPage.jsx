@@ -70,7 +70,7 @@ export default function PurchaseApprovalsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: '0 0 0.25rem 0', color: '#172025' }}>
-            🛒 Purchase Approvals
+            🛒 Purchase Requests
           </h1>
           <p style={{ margin: 0, color: '#6b7280' }}>Manage purchase requests, workflows, and actual purchases.</p>
         </div>

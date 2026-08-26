@@ -234,7 +234,6 @@ exports.getHousekeepingStock = (req, res, next) => handleGetStock('housekeeping'
 exports.updateHousekeepingStock = (req, res, next) => handleUpdateStock('housekeeping', req, res, next);
 exports.getHousekeepingAudit = (req, res, next) => handleGetAudit('housekeeping', req, res, next);
 exports.overrideHousekeepingAudit = (req, res, next) => handleAuditOverride('housekeeping', req, res, next);
-\n
 exports.deleteStationeryItemType = async (req, res, next) => {
   try {
     const itemName = req.params.itemName;

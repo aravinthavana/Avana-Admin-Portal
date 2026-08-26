@@ -249,7 +249,7 @@ exports.checkLowStockAlert = async (item, newQty, type = 'stationery') => {
   }
 };
 
-\n
+
 exports.deleteStationeryCatalogItem = async (itemName) => {
   try {
     await prisma.inventoryItem.deleteMany({

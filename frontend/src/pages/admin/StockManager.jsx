@@ -232,6 +232,14 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
                         >
                           {saving[itemName] ? '...' : '− Consume'}
                         </button>
+                          <button
+                            className="btn btn--sm btn--outline"
+                            onClick={() => handleDeleteItem(itemName)}
+                            title="Delete entire item from catalog"
+                            style={{ color: '#dc2626', borderColor: '#dc2626', marginLeft: '0.5rem' }}
+                          >
+                            🗑️
+                          </button>
                       </div>
                     </td>
                   </tr>

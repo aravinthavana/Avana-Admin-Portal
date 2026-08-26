@@ -2,10 +2,7 @@ const cron = require('node-cron');
 const { checkAndSendReminders } = require('../services/reminders.service');
 
 // Run once on startup (delayed by 10 seconds to let database connection initialize)
-setTimeout(() => {
-  console.log('[CRON Startup] Running initial deadline checks...');
-  checkAndSendReminders().catch(console.error);
-}, 10000);
+// Removed on-startup run to avoid spam during deployments.
 
 // Schedule tasks to be run on the server at 9:30 AM every day.
 cron.schedule('30 9 * * *', () => {

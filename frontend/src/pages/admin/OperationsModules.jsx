@@ -1083,6 +1083,12 @@ export function CourierDispatchPage() {
             <FormField label="Remarks">
               <input type="text" className="form-input" value={trackingForm.remarks} onChange={e => setTrackingForm(f => ({ ...f, remarks: e.target.value }))} placeholder="Optional remarks" />
             </FormField>
+            <FormField label="Tracking Attachment (Optional)">
+              <input type="file" className="form-input" accept="image/*,application/pdf" onChange={e => {
+                const file = e.target.files[0];
+                setTrackingForm(f => ({ ...f, attachment: file }));
+              }} />
+            </FormField>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
               <button type="submit" className={`btn btn--primary${submitting?' btn--loading':''}`} disabled={submitting}>Save & Send Update</button>
             </div>

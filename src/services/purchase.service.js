@@ -321,6 +321,109 @@ const generatePdfReport = async (id) => {
     return Buffer.from(pdfBytes);
 };
 
+
+const sendApprovalEmail = async (request) => {
+    const baseUrl = process.env.BASE_URL || 'http://172.30.10.21:8086';
+    const reqUrl = `${baseUrl}/api/purchase/${request.id}/action`;
+    
+    let itemsHtml = '';
+    
+    if (request.itemsJson) {
+      try {
+        const items = JSON.parse(request.itemsJson);
+        items.forEach((item, index) => {
+          itemsHtml += `
+            <tr>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${index + 1}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1;">${item.itemName}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${item.qty}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${item.subtotal}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${item.gstAmt}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${item.finalAmt}</td>
+            </tr>
+          `;
+        });
+      } catch(e) {
+        // Fallback if json fails
+      }
+    }
+    
+    if (!itemsHtml) {
+        const unitAmt = request.unitAmount || 0;
+        const qty = request.quantity || 1;
+        const amount = unitAmt * qty;
+        const gst = request.gstAmount || 0;
+        const total = request.finalAmount || 0;
+        itemsHtml = `
+            <tr>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">1</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1;">${request.itemName}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${qty}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${amount}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${gst}</td>
+                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${total}</td>
+            </tr>
+        `;
+    }
+
+    let attachments = [];
+    if (request.itemImage) {
+        const fsLib = require('fs');
+        const pathLib = require('path');
+        const filePath = pathLib.join('/app/data', request.itemImage);
+        if (fsLib.existsSync(filePath)) {
+            attachments.push({
+                filename: pathLib.basename(filePath),
+                path: filePath
+            });
+        }
+    }
+
+    const html = `
+        <div style="font-family: sans-serif; max-width: 800px; color: #1e293b;">
+            <p>Dear Sir,</p>
+            <p>We request your approval for the below stock purchase. Kindly review the details and provide your approval to proceed with the purchase.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; border: 1px solid #cbd5e1;">
+                <thead>
+                    <tr style="background-color: #f1f5f9; border-bottom: 1px solid #cbd5e1;">
+                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">S.No</th>
+                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: left;">Name of the Item</th>
+                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">Qty</th>
+                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">Amount</th>
+                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">GST Value</th>
+                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml}
+                    <tr style="background-color: #f1f5f9; font-weight: bold;">
+                        <td colspan="5" style="padding: 10px; border: 1px solid #cbd5e1; text-align: left;">Grand Total</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${request.finalAmount}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p><strong>Purchase Reason:</strong> ${request.reason}</p>
+            
+            <p>Kindly requesting your review for the above purchase details and provide your approval to proceed.</p>
+            <p>Thank you.</p>
+
+            <div style="margin-top: 30px;">
+                <a href="${reqUrl}?action=Approve" style="padding:10px 20px;background:#16a34a;color:white;text-decoration:none;border-radius:5px;margin-right:10px;display:inline-block;font-weight:bold;">Approve</a>
+                <a href="${reqUrl}?action=Reject" style="padding:10px 20px;background:#dc2626;color:white;text-decoration:none;border-radius:5px;margin-right:10px;display:inline-block;font-weight:bold;">Reject</a>
+                <a href="${reqUrl}?action=Discuss" style="padding:10px 20px;background:#f59e0b;color:white;text-decoration:none;border-radius:5px;display:inline-block;font-weight:bold;">Need to Discuss</a>
+            </div>
+        </div>
+    `;
+    await sendMail({
+        to: request.approvalPersonEmail,
+        subject: `Request for Purchase Approval - ${request.requestId}`,
+        html,
+        attachments
+    });
+};
+
 module.exports = {
     sendApprovalEmail,
 

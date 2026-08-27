@@ -2308,6 +2308,8 @@ function HelpdeskRequestView() {
     } catch (err) {
         if (err.message && err.message.toLowerCase().includes('dc number')) {
           setErrors({ dcNo: 'Already used DC number. Please use a different one.' });
+          toast.error('Already used DC number. Please use a different one.');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           toast.error(err.message || 'Failed to submit request');
         }

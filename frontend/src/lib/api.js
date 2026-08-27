@@ -315,7 +315,7 @@ export const courierApi = {
       method: 'PATCH',
       body: isFormData ? data : JSON.stringify(data),
       isFormData
-    }, 'admin').then(res => res.json());
+    }, 'admin');
   },
 
   merge: (parentDispatchId, items, remarks) =>

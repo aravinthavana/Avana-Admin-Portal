@@ -147,7 +147,12 @@ function ChangePasswordPanel() {
     const errs = {};
     if (!form.newPass || form.newPass.length < 6) errs.newPass = 'New password must be at least 6 characters';
     if (form.newPass !== form.confirm) errs.confirm = 'Passwords do not match';
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    if (Object.keys(errs).length > 0) { 
+      setErrors(errs); 
+      toast.error('Please fix the validation errors marked in red.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return; 
+  }
     
     setLoading(true);
     try {

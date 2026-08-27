@@ -64,7 +64,18 @@ export default function PurchaseApprovalsPage() {
     }
   };
 
-  
+  if (showAddModal) {
+    return (
+      <AddPurchaseModal 
+        onClose={() => setShowAddModal(false)}
+        onSuccess={() => {
+          setShowAddModal(false);
+          fetchPurchases();
+        }}
+      />
+    );
+  }
+
   if (viewPurchase) {
     return (
       <ViewPurchaseModal 
@@ -190,15 +201,7 @@ export default function PurchaseApprovalsPage() {
         </table>
       </div>
 
-      {showAddModal && (
-        <AddPurchaseModal 
-          onClose={() => setShowAddModal(false)}
-          onSuccess={() => {
-            setShowAddModal(false);
-            fetchPurchases();
-          }}
-        />
-      )}
+
 
       
 

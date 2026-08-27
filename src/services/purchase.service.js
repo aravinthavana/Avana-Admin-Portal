@@ -83,16 +83,7 @@ const createPurchaseRequest = async (data) => {
         }
     });
 
-    try {
-        const emailContent = templates.purchaseApprovalRequest(request);
-        await sendMail({
-            to: request.approvalPersonEmail,
-            subject: `Action Required: Purchase Request ${request.requestId} for ${request.itemName}`,
-            html: emailContent
-        });
-    } catch (e) {
-        console.error('Failed to send approval email', e);
-    }
+
 
     return request;
 };
@@ -334,6 +325,19 @@ const sendApprovalEmail = async (request) => {
         `;
     }
 
+    let attachments = [];
+    if (request.itemImage) {
+        const fsLib = require('fs');
+        const pathLib = require('path');
+        const filePath = pathLib.join('/app/data', request.itemImage);
+        if (fsLib.existsSync(filePath)) {
+            attachments.push({
+                filename: pathLib.basename(filePath),
+                path: filePath
+            });
+        }
+    }
+
     const html = `
         <div style="font-family: sans-serif; max-width: 800px; color: #1e293b;">
             <p>Dear Sir,</p>
@@ -374,7 +378,8 @@ const sendApprovalEmail = async (request) => {
     await sendMail({
         to: request.approvalPersonEmail,
         subject: `Request for Purchase Approval - ${request.requestId}`,
-        html
+        html,
+        attachments
     });
 };
 module.exports = {

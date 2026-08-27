@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
-import { Modal } from '../ui';
+
 
 export default function AddPurchaseModal({ onClose, onSuccess }) {
   const toast = useToast();
@@ -119,7 +119,13 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
   };
 
   return (
-    <Modal isOpen={true} onClose={onClose} title="Add Purchase Request" size="xl">
+    <div style={{ padding: '0', background: '#fff', minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <button type="button" className="btn btn--outline" onClick={onClose}>&larr; Back</button>
+        <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#0f172a' }}>Add Purchase Request</h2>
+      </div>
+    </div>
       <form onSubmit={handleSubmit}>
         
         {items.map((item, index) => (
@@ -131,23 +137,23 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
             )}
             <h4 style={{ margin: '0 0 1rem 0', color: '#0f172a', fontSize: '1rem' }}>Item {index + 1}</h4>
             
-            <div className="form-group">
+            <div style={{ marginBottom: "var(--space-4)" }}>
               <label>Item Name *</label>
-              <input type="text" required value={item.itemName} onChange={(e) => handleItemChange(index, 'itemName', e.target.value)} className="form-control" />
+              <input type="text" required value={item.itemName} onChange={(e) => handleItemChange(index, 'itemName', e.target.value)} className="form-input" />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div className="form-group">
+              <div style={{ marginBottom: "var(--space-4)" }}>
                 <label>Quantity *</label>
-                <input type="number" min="1" required value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} className="form-control" />
+                <input type="number" min="1" required value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} className="form-input" />
               </div>
-              <div className="form-group">
+              <div style={{ marginBottom: "var(--space-4)" }}>
                 <label>Unit Amount (Rs) *</label>
-                <input type="number" min="0" step="0.01" required value={item.unitAmount} onChange={(e) => handleItemChange(index, 'unitAmount', e.target.value)} className="form-control" />
+                <input type="number" min="0" step="0.01" required value={item.unitAmount} onChange={(e) => handleItemChange(index, 'unitAmount', e.target.value)} className="form-input" />
               </div>
             </div>
 
-            <div className="form-group">
+            <div style={{ marginBottom: "var(--space-4)" }}>
               <label>GST</label>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -162,9 +168,9 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
             </div>
 
             {item.hasGst === 'true' && (
-              <div className="form-group">
+              <div style={{ marginBottom: "var(--space-4)" }}>
                 <label>GST Percentage (%) *</label>
-                <input type="number" min="0" max="100" required value={item.gstPercentage} onChange={(e) => handleItemChange(index, 'gstPercentage', e.target.value)} className="form-control" />
+                <input type="number" min="0" max="100" required value={item.gstPercentage} onChange={(e) => handleItemChange(index, 'gstPercentage', e.target.value)} className="form-input" />
               </div>
             )}
             
@@ -195,9 +201,9 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
           </div>
         </div>
 
-        <div className="form-group">
+        <div style={{ marginBottom: "var(--space-4)" }}>
           <label>Mode of Purchase *</label>
-          <select name="modeOfPurchase" required value={formData.modeOfPurchase} onChange={handleChange} className="form-control">
+          <select name="modeOfPurchase" required value={formData.modeOfPurchase} onChange={handleChange} className="form-input">
             <option value="Amazon">Amazon</option>
             <option value="Flipkart">Flipkart</option>
             <option value="Other Online Portal">Other Online Portal</option>
@@ -207,46 +213,46 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
         </div>
 
         {formData.modeOfPurchase === 'Offline Stores' && (
-          <div className="form-group">
+          <div style={{ marginBottom: "var(--space-4)" }}>
             <label>Store Name *</label>
-            <input type="text" name="storeName" required value={formData.storeName} onChange={handleChange} className="form-control" />
+            <input type="text" name="storeName" required value={formData.storeName} onChange={handleChange} className="form-input" />
           </div>
         )}
 
         {formData.modeOfPurchase === 'Others' && (
-          <div className="form-group">
+          <div style={{ marginBottom: "var(--space-4)" }}>
             <label>Enter Purchase Mode *</label>
-            <input type="text" name="storeName" required value={formData.storeName} onChange={handleChange} className="form-control" />
+            <input type="text" name="storeName" required value={formData.storeName} onChange={handleChange} className="form-input" />
           </div>
         )}
 
-        <div className="form-group">
+        <div style={{ marginBottom: "var(--space-4)" }}>
           <label>Purchase Link (Optional)</label>
-          <input type="url" name="purchaseLink" value={formData.purchaseLink} onChange={handleChange} className="form-control" />
+          <input type="url" name="purchaseLink" value={formData.purchaseLink} onChange={handleChange} className="form-input" />
         </div>
 
-        <div className="form-group">
+        <div style={{ marginBottom: "var(--space-4)" }}>
           <label>Attachment / Image (Optional)</label>
-          <input type="file" accept="image/*,application/pdf" onChange={handleFileChange} className="form-control" />
+          <input type="file" accept="image/*,application/pdf" onChange={handleFileChange} className="form-input" />
         </div>
 
-        <div className="form-group">
+        <div style={{ marginBottom: "var(--space-4)" }}>
           <label>Reason for Purchase *</label>
-          <textarea name="reason" required value={formData.reason} onChange={handleChange} className="form-control" rows="3"></textarea>
+          <textarea name="reason" required value={formData.reason} onChange={handleChange} className="form-input" rows="3"></textarea>
         </div>
 
-        <div className="form-group">
+        <div style={{ marginBottom: "var(--space-4)" }}>
           <label>Approval Person Email *</label>
-          <input type="email" name="approvalPersonEmail" required placeholder="manager@avanamedical.com" value={formData.approvalPersonEmail} onChange={handleChange} className="form-control" />
+          <input type="email" name="approvalPersonEmail" required placeholder="manager@avanamedical.com" value={formData.approvalPersonEmail} onChange={handleChange} className="form-input" />
           <small style={{ color: '#64748b' }}>Must be @avanamedical.com or @avanasurgical.com</small>
         </div>
 
-        <div className="modal__footer">
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-3)", marginTop: "var(--space-5)" }}>
           <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>Cancel</button>
           <button type="submit" className="btn btn--primary" disabled={loading}>{loading ? 'Submitting...' : 'Submit Request'}</button>
         </div>
       </form>
-    </Modal>
+    </div>
   );
 }
 

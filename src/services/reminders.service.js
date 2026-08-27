@@ -212,7 +212,7 @@ exports.checkAndSendReminders = async () => {
     }
 
     const totalDeadlines = expiringAmcs.length + dueUtilities.length + dueTaxes.length;
-    if (totalDeadlines === 0 && readyReminders.length === 0 && lowStationeryItems.length === 0) {
+    if (totalDeadlines === 0 && readyReminders.length === 0 && newlyNotifiedCount === 0) {
       console.log('[Reminders Service] No upcoming deadlines or low stock alerts found today.');
     }
 
@@ -221,7 +221,7 @@ exports.checkAndSendReminders = async () => {
       utilityCount: dueUtilities.length, 
       taxCount: dueTaxes.length, 
       customCount: readyReminders.length, 
-      lowStockCount: lowStationeryItems.length 
+      lowStockCount: newlyNotifiedCount 
     };
   } catch (err) {
     console.error('[Reminders Service] Error running checkAndSendReminders:', err);

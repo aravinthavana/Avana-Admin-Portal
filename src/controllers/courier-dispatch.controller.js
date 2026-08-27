@@ -49,6 +49,8 @@ exports.createDispatch = async (req, res, next) => {
 exports.updateTrackingInfo = async (req, res, next) => {
   try {
     const { id } = req.params;
+    console.log('[updateTrackingInfo] req.body:', req.body);
+    console.log('[updateTrackingInfo] req.file:', req.file);
     const data = { ...req.body };
     if (req.file) {
       data.attachmentPath = req.file.path;

@@ -309,8 +309,14 @@ export const courierApi = {
   create: (data) =>
     request('/admin/courier-dispatches', { method: 'POST', body: JSON.stringify(data) }, 'admin'),
 
-  updateTracking: (id, data) =>
-    request(`/admin/courier-dispatches/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, 'admin'),
+  updateTracking: (id, data) => {
+    const isFormData = data instanceof FormData;
+    return apiFetch(`/admin/courier-dispatches/${id}`, {
+      method: 'PATCH',
+      body: isFormData ? data : JSON.stringify(data),
+      isFormData
+    }, 'admin').then(res => res.json());
+  },
 
   merge: (parentDispatchId, items, remarks) =>
     request('/admin/courier-dispatches/merge', { method: 'POST', body: JSON.stringify({ parentDispatchId, items, remarks }) }, 'admin'),

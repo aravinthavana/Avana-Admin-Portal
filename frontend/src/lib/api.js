@@ -196,6 +196,9 @@ export const stationeryApi = {
     request('/admin/stationery-items', {
       method: 'POST', body: JSON.stringify(data),
     }, 'admin'),
+
+  deleteItem: (itemName) =>
+    request(`/admin/stationery-items/${encodeURIComponent(itemName)}`, { method: 'DELETE' }, 'admin'),
 };
 
 // ─── Inventory — Housekeeping ────────────────────────────────
@@ -220,6 +223,9 @@ export const housekeepingApi = {
     request('/admin/housekeeping-items', {
       method: 'POST', body: JSON.stringify(data),
     }, 'admin'),
+
+  deleteItem: (itemName) =>
+    request(`/admin/housekeeping-items/${encodeURIComponent(itemName)}`, { method: 'DELETE' }, 'admin'),
 };
 
 // ─── AMC ─────────────────────────────────────────────────────

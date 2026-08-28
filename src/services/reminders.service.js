@@ -190,6 +190,14 @@ exports.checkAndSendReminders = async () => {
     }
 
     // 5. Fetch low stationery stock items (strictly below 6 items) -> Separate email per item (Admin ONLY, no CC)
+    let newlyNotifiedCount = 0;
+    const lowStockStateFile = '/app/data/low_stock_notified.json';
+    let notifiedItems = {};
+    if (fs.existsSync(lowStockStateFile)) {
+      try {
+        notifiedItems = JSON.parse(fs.readFileSync(lowStockStateFile, 'utf8'));
+      } catch (e) {}
+    }
     let lowStationeryItems = [];
     try {
       lowStationeryItems = await prisma.inventoryItem.findMany({
@@ -203,13 +211,21 @@ exports.checkAndSendReminders = async () => {
     }
 
     for (const item of lowStationeryItems) {
-      console.log(`[Reminders Service] Sending individual Low Stock alert for: ${item.name} (${item.currentStock} remaining)`);
-      await sendEmail({
-        to: adminEmail,
-        subject: `⚠️ Low Stock Alert: "${item.name}" (${item.currentStock} remaining)`,
-        htmlBody: templates.lowStockAlert({ item: item.name, currentQty: item.currentStock, threshold: 5 })
-      });
+      if (!notifiedItems[item.id] || notifiedItems[item.id] > item.currentStock) {
+        console.log(`[Reminders Service] Sending individual Low Stock alert for: ${item.name} (${item.currentStock} remaining)`);
+        await sendEmail({
+          to: adminEmail,
+          subject: `⚠️ Low Stock Alert: "${item.name}" (${item.currentStock} remaining)`,
+          htmlBody: templates.lowStockAlert({ item: item.name, currentQty: item.currentStock, threshold: 5 })
+        });
+        notifiedItems[item.id] = item.currentStock;
+        newlyNotifiedCount++;
+      }
     }
+    
+    try {
+      fs.writeFileSync(lowStockStateFile, JSON.stringify(notifiedItems));
+    } catch (e) { console.error('Failed to save low stock state:', e); }
 
     const totalDeadlines = expiringAmcs.length + dueUtilities.length + dueTaxes.length;
     if (totalDeadlines === 0 && readyReminders.length === 0 && newlyNotifiedCount === 0) {

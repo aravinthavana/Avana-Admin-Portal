@@ -205,15 +205,15 @@ exports.deleteHandover = async (id) => {
 exports.sendHandoverEmailNotification = async (handover, host, isAppended = false) => {
   const ackLink = `${host}/asset-acknowledgement?id=${handover.id}`;
   const subject = isAppended
-    ? `ACTION REQUIRED: Additional Office Assets Assigned - ${handover.name}`
-    : `ACTION REQUIRED: Office Asset Handover Acknowledgement - ${handover.name}`;
+    ? `ACTION REQUIRED: Additional Office Stationery Assigned - ${handover.name}`
+    : `ACTION REQUIRED: Office Stationery Handover Acknowledgement - ${handover.name}`;
 
   let itemsHtml = `
     <table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 20px;">
       <thead>
         <tr style="background-color: #f3f4f6; text-align: left;">
           <th style="padding: 10px; border: 1px solid #e5e7eb;">#</th>
-          <th style="padding: 10px; border: 1px solid #e5e7eb;">Asset Name</th>
+          <th style="padding: 10px; border: 1px solid #e5e7eb;">Stationery Name</th>
           <th style="padding: 10px; border: 1px solid #e5e7eb;">Serial / Specs</th>
           <th style="padding: 10px; border: 1px solid #e5e7eb;">Condition</th>
         </tr>
@@ -237,10 +237,10 @@ exports.sendHandoverEmailNotification = async (handover, host, isAppended = fals
   const htmlBody = `
     <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto; padding: 25px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
       <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-top: 0;">
-        Avana Office Asset Handover
+        Avana Office Stationery Handover
       </h2>
       <p>Dear <strong>${handover.name}</strong>,</p>
-      <p>${isAppended ? 'Additional company assets have been issued to you.' : 'The company assets listed below have been assigned to you by the Admin team.'}</p>
+      <p>${isAppended ? 'Additional company stationery items have been issued to you.' : 'The company stationery items listed below have been assigned to you by the Admin team.'}</p>
       
       ${itemsHtml}
 

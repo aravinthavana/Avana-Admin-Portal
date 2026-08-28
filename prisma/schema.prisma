@@ -109,6 +109,7 @@ model UtilityPayment {
   payment_date    String?
   transaction_ref String?
   remarks         String?
+  location        String?
   created_at      String?
 }
 

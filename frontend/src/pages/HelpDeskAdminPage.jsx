@@ -31,7 +31,7 @@ function StationeryPrintingStockWrapper() {
           type="stationery"
           getStock={stationeryApi.getStock}
           updateStock={stationeryApi.updateStock}
-          addItem={stationeryApi.addItem}
+          addItem={stationeryApi.addItem}\n              deleteItem={stationeryApi.deleteItem}
           deleteItem={stationeryApi.deleteItem}
         />
       ) : (
@@ -416,7 +416,7 @@ export default function HelpDeskAdminPage() {
             type="housekeeping"
             getStock={housekeepingApi.getStock}
             updateStock={housekeepingApi.updateStock}
-            addItem={housekeepingApi.addItem}
+            addItem={housekeepingApi.addItem}\n              deleteItem={housekeepingApi.deleteItem}
           />
         } />
         <Route path="stationery-audit" element={<StationeryAudit />} />
@@ -440,7 +440,7 @@ export default function HelpDeskAdminPage() {
 
         {/* Admin */}
         <Route path="locations" element={<LocationsManagementPage />} />
-        <Route path="settings" element={<AdminSettings />} />
+        <Route path="settings" element={<AdminSettings />} />\n        <Route path="audit-logs" element={<AuditLogsPage />} />
         
       </Routes>
     </div>

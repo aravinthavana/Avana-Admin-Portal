@@ -55,7 +55,7 @@ export function UtilityPaymentsPage({ api }) {
     finally { setSaving(false); }
   }
 
-  async function handleMarkAsPaid(r) {\n      try {\n        await api.update(r.id, { ...r, status: 'Paid', payment_date: new Date().toISOString().split('T')[0] });\n        toast.success('Marked as Paid.');\n        fetchRecords();\n      } catch (err) { toast.error(err.message); }\n    }\n\n    async function handleDelete(id) {
+  async function handleDelete(id) {
     try { await api.delete(id); toast.success('Deleted.'); setRecords(prev => prev.filter(r => r.id !== id)); }
     catch (err) { toast.error(err.message); }
     finally { setConfirmId(null); }
@@ -84,117 +84,8 @@ export function UtilityPaymentsPage({ api }) {
                   {tabs.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </FormField>
-              <FormField label="Location"><input type="text" className="form-input" placeholder="e.g. Chennai Office" value={form.location||''} onChange={e=>setForm(f=>({...f, location: e.target.value}))}/></FormField>\n              <FormField label="Provider Name *" required><input type="text" className="form-input" required value={form.provider_name||''} onChange={e=>setForm(f=>({...f, provider_name: e.target.value}))}/></FormField>
-              <FormField label="Account Number *" required><input type="text" className="form-input" required value={form.account_number||''} onChange={e=>setForm(f=>({...f, account_number: e.target.value}))}/></FormField>
-              <FormField label="Billing Cycle"><input type="text" className="form-input" placeholder="e.g. July 2026" value={form.billing_cycle||''} onChange={e=>setForm(f=>({...f, billing_cycle: e.target.value}))}/></FormField>
-              <FormField label="Due Date *" required><input type="date" className="form-input" required value={form.due_date||''} onChange={e=>setForm(f=>({...f, due_date: e.target.value}))}/></FormField>
-              <FormField label="Amount *" required><input type="number" className="form-input" required value={form.amount||''} onChange={e=>setForm(f=>({...f, amount: e.target.value}))}/></FormField>
-              <FormField label="Status">
-                <select className="form-select" value={form.status||'Unpaid'} onChange={e=>setForm(f=>({...f, status: e.target.value}))}>
-                  <option value="Unpaid">Unpaid</option><option value="Paid">Paid</option><option value="Overdue">Overdue</option>
-                </select>
-              </FormField>
-              <FormField label="Payment Date"><input type="date" className="form-input" value={form.payment_date||''} onChange={e=>setForm(f=>({...f, payment_date: e.target.value}))}/></FormField>
-              <FormField label="Transaction Ref"><input type="text" className="form-input" value={form.transaction_ref||''} onChange={e=>setForm(f=>({...f, transaction_ref: e.target.value}))}/></FormField>
-            </div>
-            <FormField label="Remarks"><input type="text" className="form-input" value={form.remarks||''} onChange={e=>setForm(f=>({...f, remarks: e.target.value}))}/></FormField>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
-              <button type="button" className="btn btn--secondary" onClick={() => setShowForm(false)}>Cancel</button>
-              <button type="submit" className={`btn btn--primary${saving?' btn--loading':''}`} disabled={saving}>{editId ? 'Update' : 'Save'}</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  const handleLegacyPDF = () => {\n      const sections = tabs.map(tab => {\n        const tabRecords = filteredRecords.filter(r => r.utility_type === tab);\n        if (tabRecords.length === 0) return null;\n        \n        const tSum = tabRecords.reduce((a, c) => a + (parseFloat(c.amount) || 0), 0);\n        const pSum = tabRecords.filter(r => r.status === 'Paid').reduce((a, c) => a + (parseFloat(c.amount) || 0), 0);\n        \n        return {\n          sectionTitle: tab + ' Records',\n          summary: [\n            { label: 'Entries', value: tabRecords.length + ' Records' },\n            { label: 'Total Amount', value: 'Rs ' + tSum.toLocaleString('en-IN') },\n            { label: 'Paid Amount', value: 'Rs ' + pSum.toLocaleString('en-IN'), color: '#16a34a' }\n          ],\n          headers: [\n            { title: '#' },\n            { title: 'Location' },\n            { title: 'Provider' },\n            { title: 'Account No' },\n            { title: 'Billing Cycle' },\n            { title: 'Due Date' },\n            { title: 'Amount', align: 'right' },\n            { title: 'Status' }\n          ],\n          rows: tabRecords.map((r, i) => [\n            i + 1,\n            r.location || '-',\n            r.provider_name || '-',\n            r.account_number || '-',\n            r.billing_cycle || '-',\n            r.due_date || '-',\n            'Rs ' + (parseFloat(r.amount) || 0).toLocaleString('en-IN'),\n            r.status === 'Paid' ? 'Paid (' + (r.payment_date || '') + ')' : r.status\n          ])\n        };\n      }).filter(Boolean);\n\n      openLegacyPrintReport({\n        title: 'Utility Payments Report',\n        subtitle: filterMonth ? 'Records for ' + filterMonth : 'All Utility Records',\n        docNo: 'AMD-QSP05-03',\n        sections\n      });\n    };t React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { useToast } from '../../context/ToastContext';
-import {
-  helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi,
-  assetTrackerApi, courierApi, pettyCashApi, travelApi, billWarrantyApi, otherStockApi, remindersApi, purchaseApi,
-} from '../../lib/api';
-import {
-  Badge, Spinner, EmptyState, Alert, Modal, ConfirmModal,
-  FormField, PageHeader, StatCard,
-} from '../../components/ui';
-import { formatDate, formatDateTime, getStatusBadge, openLegacyPrintReport, CATEGORY_LABELS } from './utils';
-
-export function UtilityPaymentsPage({ api }) {
-  const toast = useToast();
-  const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ utility_type: 'Electricity' });
-  const [saving, setSaving] = useState(false);
-  const [confirmId, setConfirmId] = useState(null);
-  const [activeTab, setActiveTab] = useState('Mobile Bill');
-  const [filterMonth, setFilterMonth] = useState(''); // e.g., '2026-07'
-
-  const defaultTabs = ['Mobile Bill', 'Landline', 'Broadband', 'Electricity'];
-  const tabs = Array.from(new Set([...defaultTabs, ...records.map(r => r.utility_type).filter(Boolean)]));
-
-  const fetchRecords = useCallback(async () => {
-    setLoading(true);
-    try { setRecords((await api.getAll()) || []); }
-    catch (err) { toast.error(err.message); }
-    finally { setLoading(false); }
-  }, [api, toast]);
-
-  useEffect(() => { fetchRecords(); }, [fetchRecords]);
-
-  function openNew() { setEditId(null); setForm({ utility_type: tabs[0], status: 'Unpaid' }); setShowForm(true); }
-  function openEdit(r) { setEditId(r.id); setForm({ ...r }); setShowForm(true); }
-
-  async function handleSave(e) {
-    e.preventDefault();
-    if (!form.provider_name || !form.account_number || !form.due_date || !form.amount) {
-      toast.warning('Please fill all required fields');
-      return;
-    }
-    setSaving(true);
-    try {
-      if (editId) await api.update(editId, form);
-      else await api.save(form);
-      toast.success('Record saved.');
-      setShowForm(false);
-      fetchRecords();
-    } catch (err) { toast.error(err.message); }
-    finally { setSaving(false); }
-  }
-
-  async function handleMarkAsPaid(r) {\n      try {\n        await api.update(r.id, { ...r, status: 'Paid', payment_date: new Date().toISOString().split('T')[0] });\n        toast.success('Marked as Paid.');\n        fetchRecords();\n      } catch (err) { toast.error(err.message); }\n    }\n\n    async function handleDelete(id) {
-    try { await api.delete(id); toast.success('Deleted.'); setRecords(prev => prev.filter(r => r.id !== id)); }
-    catch (err) { toast.error(err.message); }
-    finally { setConfirmId(null); }
-  }
-
-  function getPaytmLink(type) {
-    if (type === 'Mobile Bill') return 'https://paytm.com/recharge';
-    if (type === 'Landline' || type === 'Broadband') return 'https://paytm.com/landline-bill-payment';
-    return 'https://paytm.com/electricity-bill-payment'; // Electricity
-  }
-
-  const filteredRecords = useMemo(() => {
-    if (!filterMonth) return records;
-    return records.filter(r => (r.due_date || r.payment_date || '').startsWith(filterMonth));
-  }, [records, filterMonth]);
-
-  if (showForm) {
-    return (
-      <div>
-        <PageHeader title={editId ? 'Edit Utility Bill' : 'Add Utility Bill'} subtitle="Enter utility payment details" action={<button type="button" className="btn btn--outline btn--sm" onClick={() => setShowForm(false)}>← Back</button>} />
-        <div className="card">
-          <form autoComplete="off" onSubmit={handleSave}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 'var(--space-4)' }}>
-              <FormField label="Utility Type">
-                <select className="form-select" value={form.utility_type} onChange={e=>setForm(f=>({...f, utility_type: e.target.value}))}>
-                  {tabs.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </FormField>
-              <FormField label="Location"><input type="text" className="form-input" placeholder="e.g. Chennai Office" value={form.location||''} onChange={e=>setForm(f=>({...f, location: e.target.value}))}/></FormField>\n              <FormField label="Provider Name *" required><input type="text" className="form-input" required value={form.provider_name||''} onChange={e=>setForm(f=>({...f, provider_name: e.target.value}))}/></FormField>
+              <FormField label="Location"><input type="text" className="form-input" placeholder="e.g. Chennai Office" value={form.location||''} onChange={e=>setForm(f=>({...f, location: e.target.value}))}/></FormField>
+              <FormField label="Provider Name *" required><input type="text" className="form-input" required value={form.provider_name||''} onChange={e=>setForm(f=>({...f, provider_name: e.target.value}))}/></FormField>
               <FormField label="Account Number *" required><input type="text" className="form-input" required value={form.account_number||''} onChange={e=>setForm(f=>({...f, account_number: e.target.value}))}/></FormField>
               <FormField label="Billing Cycle"><input type="text" className="form-input" placeholder="e.g. July 2026" value={form.billing_cycle||''} onChange={e=>setForm(f=>({...f, billing_cycle: e.target.value}))}/></FormField>
               <FormField label="Due Date *" required><input type="date" className="form-input" required value={form.due_date||''} onChange={e=>setForm(f=>({...f, due_date: e.target.value}))}/></FormField>
@@ -219,38 +110,48 @@ export function UtilityPaymentsPage({ api }) {
   }
 
   const handleLegacyPDF = () => {
-    const totalSum = filteredRecords.reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
-    const paidSum = filteredRecords.filter(r => r.status === 'Paid').reduce((acc, cur) => acc + (parseFloat(cur.amount) || 0), 0);
+    const sections = tabs.map(tab => {
+      const tabRecords = filteredRecords.filter(r => r.utility_type === tab);
+      if (tabRecords.length === 0) return null;
+      
+      const tSum = tabRecords.reduce((a, c) => a + (parseFloat(c.amount) || 0), 0);
+      const pSum = tabRecords.filter(r => r.status === 'Paid').reduce((a, c) => a + (parseFloat(c.amount) || 0), 0);
+      
+      return {
+        sectionTitle: tab + ' Records',
+        summary: [
+          { label: 'Entries', value: tabRecords.length + ' Records' },
+          { label: 'Total Amount', value: 'Rs ' + tSum.toLocaleString('en-IN') },
+          { label: 'Paid Amount', value: 'Rs ' + pSum.toLocaleString('en-IN'), color: '#16a34a' }
+        ],
+        headers: [
+          { title: '#' },
+          { title: 'Location' },
+          { title: 'Provider' },
+          { title: 'Account No' },
+          { title: 'Billing Cycle' },
+          { title: 'Due Date' },
+          { title: 'Amount', align: 'right' },
+          { title: 'Status' }
+        ],
+        rows: tabRecords.map((r, i) => [
+          i + 1,
+          r.location || '-',
+          r.provider_name || '-',
+          r.account_number || '-',
+          r.billing_cycle || '-',
+          r.due_date || '-',
+          'Rs ' + (parseFloat(r.amount) || 0).toLocaleString('en-IN'),
+          r.status === 'Paid' ? 'Paid (' + (r.payment_date || '') + ')' : r.status
+        ])
+      };
+    }).filter(Boolean);
 
     openLegacyPrintReport({
-      title: `Utility Payments Report`,
-      subtitle: filterMonth ? `Records for ${filterMonth}` : `All Utility Records`,
+      title: 'Utility Payments Report',
+      subtitle: filterMonth ? 'Records for ' + filterMonth : 'All Utility Records',
       docNo: 'AMD-QSP05-03',
-      summary: [
-        { label: 'Total Entries', value: `${filteredRecords.length} Records` },
-        { label: 'Total Amount', value: `Rs ${totalSum.toLocaleString('en-IN')}` },
-        { label: 'Total Paid', value: `Rs ${paidSum.toLocaleString('en-IN')}`, color: '#16a34a' },
-      ],
-      headers: [
-        { title: '#' },
-        { title: 'Type' },
-        { title: 'Provider' },
-        { title: 'Account Number' },
-        { title: 'Billing Cycle' },
-        { title: 'Due Date' },
-        { title: 'Amount', align: 'right' },
-        { title: 'Status' },
-      ],
-      rows: filteredRecords.map((r, idx) => [
-        idx + 1,
-        r.utility_type || '—',
-        r.provider_name || '—',
-        r.account_number || '—',
-        r.billing_cycle || '—',
-        r.due_date || '—',
-        `Rs ${(parseFloat(r.amount) || 0).toLocaleString('en-IN')}`,
-        r.status === 'Paid' ? `Paid (${r.payment_date || ''})` : r.status,
-      ])
+      sections
     });
   };
 
@@ -292,6 +193,7 @@ export function UtilityPaymentsPage({ api }) {
                       <table className="table" aria-label={`${tab} payments`}>
                         <thead>
                           <tr>
+                            <th scope="col">Location</th>
                             <th scope="col">Provider Name</th>
                             <th scope="col">Account No</th>
                             <th scope="col">Due Date</th>
@@ -303,7 +205,8 @@ export function UtilityPaymentsPage({ api }) {
                         <tbody>
                           {tabRecords.map(r => (
                             <tr key={r.id}>
-                              <td>{r.location || '-'}</td><td style={{ fontWeight: 600 }}>{r.provider_name}</td>
+                              <td>{r.location || '-'}</td>
+                              <td style={{ fontWeight: 600 }}>{r.provider_name}</td>
                               <td>{r.account_number}</td>
                               <td>{formatDate(r.due_date)}</td>
                               <td>₹{Number(r.amount).toLocaleString()}</td>
@@ -312,7 +215,10 @@ export function UtilityPaymentsPage({ api }) {
                                 <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                                   <button type="button" className="btn btn--sm btn--secondary" onClick={() => openEdit(r)}>✏️ Edit</button>
                                   {r.status !== 'Paid' && (
-                                    <button type="button" className="btn btn--sm btn--outline" onClick={() => handleMarkAsPaid(r)}>o. Mark as Paid</button>\n                                      <a href={getPaytmLink(r.utility_type)} target="_blank" rel="noopener noreferrer" className="btn btn--sm btn--primary">💸 Pay Now</a>
+                                    <>
+                                      <button type="button" className="btn btn--sm btn--outline" onClick={() => handleMarkAsPaid(r)}>✅ Mark as Paid</button>
+                                      <a href={getPaytmLink(r.utility_type)} target="_blank" rel="noopener noreferrer" className="btn btn--sm btn--primary">💸 Pay Now</a>
+                                    </>
                                   )}
                                   <button type="button" className="btn btn--sm btn--danger" onClick={() => setConfirmId(r.id)}>🗑️</button>
                                 </div>

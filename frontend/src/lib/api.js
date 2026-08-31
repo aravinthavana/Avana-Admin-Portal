@@ -128,6 +128,9 @@ export const adminApi = {
 
   getLogins: () =>
     request('/admin/logins', {}, 'admin'),
+
+  getAuditLogs: () =>
+    request('/admin/audit-logs', {}, 'admin'),
 };
 
 export const globalAddressApi = {

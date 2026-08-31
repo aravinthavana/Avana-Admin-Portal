@@ -399,16 +399,7 @@ export default function HelpDeskAdminPage() {
         <Route path="app-feedback" element={<CategoryWrapper />} />
         
         {/* Stock */}
-        <Route path="stationery-stock" element={
-          <StockManager
-            title="Stationery Stock"
-            icon="✏️"
-            type="stationery"
-            getStock={stationeryApi.getStock}
-            updateStock={stationeryApi.updateStock}
-            addItem={stationeryApi.addItem}
-          />
-        } />
+        <Route path="stationery-stock" element={<StationeryPrintingStockWrapper />} />
         <Route path="housekeeping-stock" element={
           <StockManager
             title="Housekeeping Stock"

@@ -55,6 +55,14 @@ export function UtilityPaymentsPage({ api }) {
     finally { setSaving(false); }
   }
 
+  async function handleMarkAsPaid(r) {
+    try {
+      await api.update(r.id, { ...r, status: 'Paid', payment_date: new Date().toISOString().split('T')[0] });
+      toast.success('Marked as Paid.');
+      fetchRecords();
+    } catch (err) { toast.error(err.message); }
+  }
+
   async function handleDelete(id) {
     try { await api.delete(id); toast.success('Deleted.'); setRecords(prev => prev.filter(r => r.id !== id)); }
     catch (err) { toast.error(err.message); }

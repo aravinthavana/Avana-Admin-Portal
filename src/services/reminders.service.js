@@ -79,9 +79,9 @@ const NOTIFICATION_CC = env.NOTIFICATION_CC;
 
 /**
  * Checks for:
- * 1. AMC contracts expiring within 3 weeks (21 days) -> Separate email per AMC + CC aravinth@avanamedical.com
- * 2. Utility payments due within 4 days -> Separate email per payment + CC aravinth@avanamedical.com
- * 3. Tax payments due within 1 month (30 days) -> Separate email per tax + CC aravinth@avanamedical.com
+ * 1. AMC contracts expiring within 3 weeks (21 days) -> Separate email per AMC + CC srinivasan@avanamedical.com
+ * 2. Utility payments due within 4 days -> Separate email per payment + CC srinivasan@avanamedical.com
+ * 3. Tax payments due within 1 month (30 days) -> Separate email per tax + CC srinivasan@avanamedical.com
  * 4. Low stationery stocks (stock < 6) -> Separate email per item to Admin ONLY (no CC)
  * 5. Due custom reminders -> Admin ONLY (no CC)
  */

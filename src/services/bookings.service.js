@@ -155,7 +155,7 @@ exports.sendBookingRequestToAdminNotification = async (booking, host) => {
     }).catch(console.error);
   }
 
-  // 2. Alert email to Admin (with aravinth@avanamedical.com + employee in CC)
+  // 2. Alert email to Admin (with srinivasan@avanamedical.com + employee in CC)
   const adminCcList = [NOTIFICATION_CC];
   if (booking.email && !adminCcList.includes(booking.email)) {
     adminCcList.push(booking.email);

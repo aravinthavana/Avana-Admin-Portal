@@ -15,16 +15,19 @@ export function UtilityPaymentsPage({ api }) {
   const toast = useToast();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ utility_type: 'Electricity' });
-  const [saving, setSaving] = useState(false);
-  const [confirmId, setConfirmId] = useState(null);
-  const [activeTab, setActiveTab] = useState('Mobile Bill');
-  const [filterMonth, setFilterMonth] = useState(''); // e.g., '2026-07'
+  
+  // Default to current month YYYY-MM
+  const [filterMonth, setFilterMonth] = useState(() => {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  });
 
-  const defaultTabs = ['Mobile Bill', 'Landline', 'Broadband', 'Electricity'];
-  const tabs = Array.from(new Set([...defaultTabs, ...records.map(r => r.utility_type).filter(Boolean)]));
+  const [savingRows, setSavingRows] = useState({});
+  const [editRowData, setEditRowData] = useState({});
+  
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState({ utility_type: 'electricity', status: 'Unpaid' });
+  const [savingNew, setSavingNew] = useState(false);
 
   const fetchRecords = useCallback(async () => {
     setLoading(true);
@@ -35,204 +38,219 @@ export function UtilityPaymentsPage({ api }) {
 
   useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
-  function openNew() { setEditId(null); setForm({ utility_type: tabs[0], status: 'Unpaid' }); setShowForm(true); }
-  function openEdit(r) { setEditId(r.id); setForm({ ...r }); setShowForm(true); }
-
-  async function handleSave(e) {
-    e.preventDefault();
-    if (!form.provider_name || !form.account_number || !form.due_date || !form.amount) {
-      toast.warning('Please fill all required fields');
-      return;
+  // Derive unique connections
+  const connectionsMap = new Map();
+  records.forEach(r => {
+    const key = (r.utility_type||'') + '|' + (r.provider_name||'') + '|' + (r.account_number||'');
+    if (key === '||') return;
+    if (!connectionsMap.has(key)) {
+      connectionsMap.set(key, {
+        utility_type: r.utility_type,
+        provider_name: r.provider_name,
+        account_number: r.account_number,
+        location: r.location,
+        remarks: r.remarks
+      });
+    } else {
+      const exist = connectionsMap.get(key);
+      if (!exist.location && r.location) exist.location = r.location;
     }
-    setSaving(true);
-    try {
-      if (editId) await api.update(editId, form);
-      else await api.save(form);
-      toast.success('Record saved.');
-      setShowForm(false);
-      fetchRecords();
-    } catch (err) { toast.error(err.message); }
-    finally { setSaving(false); }
-  }
+  });
 
-  async function handleMarkAsPaid(r) {
-    try {
-      await api.update(r.id, { ...r, status: 'Paid', payment_date: new Date().toISOString().split('T')[0] });
-      toast.success('Marked as Paid.');
-      fetchRecords();
-    } catch (err) { toast.error(err.message); }
-  }
+  const currentMonthRecords = records.filter(r => r.billing_cycle === filterMonth);
 
-  async function handleDelete(id) {
-    try { await api.delete(id); toast.success('Deleted.'); setRecords(prev => prev.filter(r => r.id !== id)); }
-    catch (err) { toast.error(err.message); }
-    finally { setConfirmId(null); }
-  }
-
-  function getPaytmLink(type) {
-    if (type === 'Mobile Bill') return 'https://paytm.com/recharge';
-    if (type === 'Landline' || type === 'Broadband') return 'https://paytm.com/landline-bill-payment';
-    return 'https://paytm.com/electricity-bill-payment'; // Electricity
-  }
-
-  const filteredRecords = useMemo(() => {
-    if (!filterMonth) return records;
-    return records.filter(r => (r.due_date || r.payment_date || '').startsWith(filterMonth));
-  }, [records, filterMonth]);
-
-  if (showForm) {
-    return (
-      <div>
-        <PageHeader title={editId ? 'Edit Utility Bill' : 'Add Utility Bill'} subtitle="Enter utility payment details" action={<button type="button" className="btn btn--outline btn--sm" onClick={() => setShowForm(false)}>← Back</button>} />
-        <div className="card">
-          <form autoComplete="off" onSubmit={handleSave}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 'var(--space-4)' }}>
-              <FormField label="Utility Type">
-                <select className="form-select" value={form.utility_type} onChange={e=>setForm(f=>({...f, utility_type: e.target.value}))}>
-                  {tabs.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </FormField>
-              <FormField label="Location"><input type="text" className="form-input" placeholder="e.g. Chennai Office" value={form.location||''} onChange={e=>setForm(f=>({...f, location: e.target.value}))}/></FormField>
-              <FormField label="Provider Name *" required><input type="text" className="form-input" required value={form.provider_name||''} onChange={e=>setForm(f=>({...f, provider_name: e.target.value}))}/></FormField>
-              <FormField label="Account Number *" required><input type="text" className="form-input" required value={form.account_number||''} onChange={e=>setForm(f=>({...f, account_number: e.target.value}))}/></FormField>
-              <FormField label="Billing Cycle"><input type="text" className="form-input" placeholder="e.g. July 2026" value={form.billing_cycle||''} onChange={e=>setForm(f=>({...f, billing_cycle: e.target.value}))}/></FormField>
-              <FormField label="Due Date *" required><input type="date" className="form-input" required value={form.due_date||''} onChange={e=>setForm(f=>({...f, due_date: e.target.value}))}/></FormField>
-              <FormField label="Amount *" required><input type="number" className="form-input" required value={form.amount||''} onChange={e=>setForm(f=>({...f, amount: e.target.value}))}/></FormField>
-              <FormField label="Status">
-                <select className="form-select" value={form.status||'Unpaid'} onChange={e=>setForm(f=>({...f, status: e.target.value}))}>
-                  <option value="Unpaid">Unpaid</option><option value="Paid">Paid</option><option value="Overdue">Overdue</option>
-                </select>
-              </FormField>
-              <FormField label="Payment Date"><input type="date" className="form-input" value={form.payment_date||''} onChange={e=>setForm(f=>({...f, payment_date: e.target.value}))}/></FormField>
-              <FormField label="Transaction Ref"><input type="text" className="form-input" value={form.transaction_ref||''} onChange={e=>setForm(f=>({...f, transaction_ref: e.target.value}))}/></FormField>
-            </div>
-            <FormField label="Remarks"><input type="text" className="form-input" value={form.remarks||''} onChange={e=>setForm(f=>({...f, remarks: e.target.value}))}/></FormField>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
-              <button type="button" className="btn btn--secondary" onClick={() => setShowForm(false)}>Cancel</button>
-              <button type="submit" className={`btn btn--primary${saving?' btn--loading':''}`} disabled={saving}>{editId ? 'Update' : 'Save'}</button>
-            </div>
-          </form>
-        </div>
-      </div>
+  const tableData = Array.from(connectionsMap.values()).map(conn => {
+    const existing = currentMonthRecords.find(r => 
+      r.utility_type === conn.utility_type && 
+      r.provider_name === conn.provider_name && 
+      r.account_number === conn.account_number
     );
+    const id = existing?.id || `new-${conn.utility_type}-${conn.provider_name}-${conn.account_number}`;
+    return {
+      ...conn,
+      id,
+      recordId: existing?.id,
+      amount: existing ? existing.amount : '',
+      due_date: existing ? existing.due_date : '',
+      status: existing ? existing.status : 'Unpaid',
+      payment_date: existing?.payment_date || '',
+      transaction_ref: existing?.transaction_ref || '',
+      isExisting: !!existing
+    };
+  });
+
+  tableData.sort((a,b) => {
+    if (a.utility_type !== b.utility_type) return (a.utility_type||'').localeCompare(b.utility_type||'');
+    return (a.provider_name||'').localeCompare(b.provider_name||'');
+  });
+
+  const handleRowChange = (id, field, value) => {
+    setEditRowData(prev => ({
+      ...prev,
+      [id]: {
+        ...(prev[id] || tableData.find(r => r.id === id)),
+        [field]: value
+      }
+    }));
+  };
+
+  const saveRow = async (id) => {
+    const data = editRowData[id];
+    if (!data) return;
+    
+    setSavingRows(prev => ({ ...prev, [id]: true }));
+    try {
+      const payload = {
+        utility_type: data.utility_type,
+        provider_name: data.provider_name,
+        account_number: data.account_number,
+        location: data.location,
+        remarks: data.remarks,
+        billing_cycle: filterMonth,
+        due_date: data.due_date,
+        amount: data.amount,
+        status: data.status || 'Unpaid',
+        payment_date: data.payment_date,
+        transaction_ref: data.transaction_ref
+      };
+
+      if (data.recordId) {
+        await api.update(data.recordId, payload);
+      } else {
+        await api.save(payload);
+      }
+      toast.success('Saved.');
+      setEditRowData(prev => { const n = {...prev}; delete n[id]; return n; });
+      await fetchRecords();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSavingRows(prev => ({ ...prev, [id]: false }));
+    }
+  };
+
+  async function handleMarkAsPaid(id, recordId) {
+    if (!recordId) return;
+    setSavingRows(prev => ({ ...prev, [id]: true }));
+    try {
+      const r = tableData.find(x => x.id === id);
+      await api.update(recordId, { ...r, status: 'Paid', payment_date: new Date().toISOString().split('T')[0] });
+      toast.success('Marked as Paid.');
+      await fetchRecords();
+    } catch (err) { 
+      toast.error(err.message); 
+    } finally {
+      setSavingRows(prev => ({ ...prev, [id]: false }));
+    }
+  }
+  
+  async function handleDelete(recordId) {
+    if (!recordId) return;
+    if (!window.confirm('Delete this month\'s bill?')) return;
+    try {
+      await api.delete(recordId);
+      toast.success('Deleted.');
+      await fetchRecords();
+    } catch (err) { toast.error(err.message); }
   }
 
-  const handleLegacyPDF = () => {
-    const sections = tabs.map(tab => {
-      const tabRecords = filteredRecords.filter(r => r.utility_type === tab);
-      if (tabRecords.length === 0) return null;
-      
-      const tSum = tabRecords.reduce((a, c) => a + (parseFloat(c.amount) || 0), 0);
-      const pSum = tabRecords.filter(r => r.status === 'Paid').reduce((a, c) => a + (parseFloat(c.amount) || 0), 0);
-      
-      return {
-        sectionTitle: tab + ' Records',
-        summary: [
-          { label: 'Entries', value: tabRecords.length + ' Records' },
-          { label: 'Total Amount', value: 'Rs ' + tSum.toLocaleString('en-IN') },
-          { label: 'Paid Amount', value: 'Rs ' + pSum.toLocaleString('en-IN'), color: '#16a34a' }
-        ],
-        headers: [
-          { title: '#' },
-          { title: 'Location' },
-          { title: 'Provider' },
-          { title: 'Account No' },
-          { title: 'Billing Cycle' },
-          { title: 'Due Date' },
-          { title: 'Amount', align: 'right' },
-          { title: 'Status' }
-        ],
-        rows: tabRecords.map((r, i) => [
-          i + 1,
-          r.location || '-',
-          r.provider_name || '-',
-          r.account_number || '-',
-          r.billing_cycle || '-',
-          r.due_date || '-',
-          'Rs ' + (parseFloat(r.amount) || 0).toLocaleString('en-IN'),
-          r.status === 'Paid' ? 'Paid (' + (r.payment_date || '') + ')' : r.status
-        ])
-      };
-    }).filter(Boolean);
+  async function handleAddNew(e) {
+    e.preventDefault();
+    setSavingNew(true);
+    try {
+      await api.save({ ...addForm, billing_cycle: filterMonth });
+      toast.success('Connection added.');
+      setShowAddForm(false);
+      setAddForm({ utility_type: 'electricity', status: 'Unpaid' });
+      await fetchRecords();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSavingNew(false);
+    }
+  }
 
-    openLegacyPrintReport({
-      title: 'Utility Payments Report',
-      subtitle: filterMonth ? 'Records for ' + filterMonth : 'All Utility Records',
-      docNo: 'AMD-QSP05-03',
-      sections
-    });
-  };
+  const utilityTypes = Array.from(new Set(tableData.map(r => r.utility_type).filter(Boolean)));
 
   return (
     <div>
-      <PageHeader title="💡 Utility Payments" subtitle="Manage utility bills and payments" action={
+      <PageHeader title="💡 Utility Payments" subtitle="Manage utility bills and payments for each month" action={
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-          <button type="button" className="btn btn--secondary btn--sm" onClick={handleLegacyPDF}>📄 Download PDF</button>
-          <button type="button" className="btn btn--primary btn--sm" onClick={openNew}>+ Add Bill</button>
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowAddForm(true)}>+ Add Connection</button>
         </div>
       } />
 
       <div className="card" style={{ marginBottom: 'var(--space-5)', padding: 'var(--space-4) var(--space-5)' }}>
         <div style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'center' }}>
-          <FormField label="Filter by Month" htmlFor="util-month-filter">
+          <FormField label="Select Billing Month" htmlFor="util-month-filter">
             <input id="util-month-filter" type="month" className="form-input" value={filterMonth}
               onChange={e => setFilterMonth(e.target.value)} style={{ width: 180 }} />
           </FormField>
-          {filterMonth && (
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setFilterMonth('')} style={{ alignSelf: 'flex-end', marginBottom: 'var(--space-1)' }}>Clear Filter</button>
-          )}
+          <div style={{ alignSelf: 'center', marginLeft: 'auto', fontSize: '0.9rem', color: 'var(--color-text-light)' }}>
+            Showing bills for <strong>{filterMonth}</strong>
+          </div>
         </div>
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
-          : filteredRecords.length === 0 ? <EmptyState icon="💳" title="No bills found" description={filterMonth ? "No utility records found for this month" : "No utility records found"} />
+          : tableData.length === 0 ? <EmptyState icon="🧾" title="No connections found" description="Create your first utility connection by clicking Add Connection." />
           : (
             <div style={{ padding: 'var(--space-4)' }}>
-              {tabs.map(tab => {
-                const tabRecords = filteredRecords.filter(r => r.utility_type === tab);
+              {utilityTypes.map(tab => {
+                const tabRecords = tableData.filter(r => r.utility_type === tab);
                 if (tabRecords.length === 0) return null;
                 return (
                   <div key={tab} style={{ marginBottom: 'var(--space-8)' }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-primary-dark)', marginBottom: 'var(--space-3)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-primary-dark)', marginBottom: 'var(--space-3)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', textTransform: 'capitalize' }}>
                       {tab}
                     </h3>
                     <div className="table-wrapper" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderRadius: '8px' }}>
-                      <table className="table" aria-label={`${tab} payments`}>
+                      <table className="table">
                         <thead>
                           <tr>
                             <th scope="col">Location</th>
-                            <th scope="col">Provider Name</th>
+                            <th scope="col">Provider</th>
                             <th scope="col">Account No</th>
-                            <th scope="col">Due Date</th>
-                            <th scope="col">Amount</th>
+                            <th scope="col" style={{ width: 140 }}>Due Date</th>
+                            <th scope="col" style={{ width: 140 }}>Amount (₹)</th>
                             <th scope="col">Status</th>
                             <th scope="col">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {tabRecords.map(r => (
+                          {tabRecords.map(r => {
+                            const isEditing = !!editRowData[r.id];
+                            const rowData = editRowData[r.id] || r;
+                            const isSaving = savingRows[r.id];
+                            
+                            return (
                             <tr key={r.id}>
                               <td>{r.location || '-'}</td>
                               <td style={{ fontWeight: 600 }}>{r.provider_name}</td>
                               <td>{r.account_number}</td>
-                              <td>{formatDate(r.due_date)}</td>
-                              <td>₹{Number(r.amount).toLocaleString()}</td>
+                              <td>
+                                <input type="date" className="form-input" style={{ padding: '0.25rem' }} value={rowData.due_date || ''} onChange={e => handleRowChange(r.id, 'due_date', e.target.value)} />
+                              </td>
+                              <td>
+                                <input type="number" className="form-input" style={{ padding: '0.25rem' }} value={rowData.amount || ''} onChange={e => handleRowChange(r.id, 'amount', e.target.value)} />
+                              </td>
                               <td><Badge status={r.status === 'Paid' ? 'success' : (r.status === 'Overdue' ? 'danger' : 'warning')} label={r.status || 'Unpaid'} /></td>
                               <td>
                                 <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                                  <button type="button" className="btn btn--sm btn--secondary" onClick={() => openEdit(r)}>✏️ Edit</button>
-                                  {r.status !== 'Paid' && (
-                                    <>
-                                      <button type="button" className="btn btn--sm btn--outline" onClick={() => handleMarkAsPaid(r)}>✅ Mark as Paid</button>
-                                      <a href={getPaytmLink(r.utility_type)} target="_blank" rel="noopener noreferrer" className="btn btn--sm btn--primary">💸 Pay Now</a>
-                                    </>
+                                  {isEditing && (
+                                    <button type="button" className="btn btn--sm btn--primary" onClick={() => saveRow(r.id)} disabled={isSaving}>{isSaving ? '...' : 'Save'}</button>
                                   )}
-                                  <button type="button" className="btn btn--sm btn--danger" onClick={() => setConfirmId(r.id)}>🗑️</button>
+                                  {r.isExisting && r.status !== 'Paid' && !isEditing && (
+                                    <button type="button" className="btn btn--sm btn--outline" onClick={() => handleMarkAsPaid(r.id, r.recordId)} disabled={isSaving}>💸 Mark Paid</button>
+                                  )}
+                                  {r.isExisting && (
+                                    <button type="button" className="btn btn--sm btn--danger" onClick={() => handleDelete(r.recordId)}>🗑️</button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
-                          ))}
+                          )})}
                         </tbody>
                       </table>
                     </div>
@@ -243,7 +261,27 @@ export function UtilityPaymentsPage({ api }) {
           )
         }
       </div>
-      <ConfirmModal isOpen={!!confirmId} onClose={() => setConfirmId(null)} onConfirm={() => handleDelete(confirmId)} title="Delete Record" message="Are you sure you want to delete this bill?" confirmLabel="Delete" dangerous />
+
+      <Modal isOpen={showAddForm} onClose={() => setShowAddForm(false)} title="Add New Utility Connection">
+        <form onSubmit={handleAddNew}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+            <FormField label="Utility Type" required>
+              <select className="form-input" value={addForm.utility_type} onChange={e=>setAddForm(f=>({...f, utility_type: e.target.value}))} required>
+                <option value="electricity">Electricity</option><option value="broadband">Broadband</option><option value="mobile">Mobile Bill</option><option value="landline">Landline</option><option value="water">Water Tax</option><option value="other">Other</option>
+              </select>
+            </FormField>
+            <FormField label="Provider Name" required><input type="text" className="form-input" value={addForm.provider_name||''} onChange={e=>setAddForm(f=>({...f, provider_name: e.target.value}))} required/></FormField>
+            <FormField label="Account Number" required><input type="text" className="form-input" value={addForm.account_number||''} onChange={e=>setAddForm(f=>({...f, account_number: e.target.value}))} required/></FormField>
+            <FormField label="Location"><input type="text" className="form-input" value={addForm.location||''} onChange={e=>setAddForm(f=>({...f, location: e.target.value}))} /></FormField>
+            <FormField label="Due Date"><input type="date" className="form-input" value={addForm.due_date||''} onChange={e=>setAddForm(f=>({...f, due_date: e.target.value}))} /></FormField>
+            <FormField label="Amount"><input type="number" step="0.01" className="form-input" value={addForm.amount||''} onChange={e=>setAddForm(f=>({...f, amount: e.target.value}))} /></FormField>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
+            <button type="button" className="btn btn--secondary" onClick={() => setShowAddForm(false)}>Cancel</button>
+            <button type="submit" className={`btn btn--primary${savingNew?' btn--loading':''}`} disabled={savingNew}>Save Connection</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

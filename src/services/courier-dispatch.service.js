@@ -186,7 +186,7 @@ exports.createDispatch = async (data, requesterEmail, host) => {
         });
       }
       
-      // 2. Alert email to Admin (with aravinth@avanamedical.com + requester in CC)
+      // 2. Alert email to Admin (with srinivasan@avanamedical.com + requester in CC)
       const NOTIFICATION_CC = env.NOTIFICATION_CC;
       const adminCcList = [NOTIFICATION_CC];
       if (requesterEmail && !adminCcList.includes(requesterEmail)) {

@@ -73,12 +73,12 @@ exports.saveUtilityPayment = async (data) => {
     update: {
       utility_type: data.utility_type, provider_name: data.provider_name, account_number: data.account_number,
       billing_cycle: data.billing_cycle, due_date: data.due_date, amount: data.amount ? parseFloat(data.amount) : null, status: data.status,
-      payment_date: data.payment_date, transaction_ref: data.transaction_ref, remarks: data.remarks
+      payment_date: data.payment_date, transaction_ref: data.transaction_ref, remarks: data.remarks, location: data.location
     },
     create: {
       id, utility_type: data.utility_type, provider_name: data.provider_name, account_number: data.account_number,
       billing_cycle: data.billing_cycle, due_date: data.due_date, amount: data.amount ? parseFloat(data.amount) : null, status: data.status,
-      payment_date: data.payment_date, transaction_ref: data.transaction_ref, remarks: data.remarks, created_at: data.created_at || new Date().toISOString()
+      payment_date: data.payment_date, transaction_ref: data.transaction_ref, remarks: data.remarks, location: data.location, created_at: data.created_at || new Date().toISOString()
     }
   });
   return id;

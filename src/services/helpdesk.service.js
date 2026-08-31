@@ -68,7 +68,7 @@ exports.sendHelpdeskNotification = async (request, host) => {
       }));
     }
 
-    // 2. Alert email to Admin (with aravinth@avanamedical.com + Employee in CC)
+    // 2. Alert email to Admin (with srinivasan@avanamedical.com + Employee in CC)
     const adminCcList = [NOTIFICATION_CC];
     if (employeeEmail && !adminCcList.includes(employeeEmail)) {
       adminCcList.push(employeeEmail);

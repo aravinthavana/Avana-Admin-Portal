@@ -149,7 +149,16 @@ export function UtilityPaymentsPage({ api }) {
     if (!window.confirm('Delete this month\'s bill?')) return;
     try {
       await api.delete(recordId);
-      toast.success('Deleted.');
+      toast.success('Deleted bill.');
+      await fetchRecords();
+    } catch (err) { toast.error(err.message); }
+  }
+
+  async function handleDeleteConnection(uType, provider, account) {
+    if (!window.confirm('WARNING: Are you sure you want to completely remove this connection and ALL its historical bills?')) return;
+    try {
+      await api.deleteConnection(uType, provider, account);
+      toast.success('Connection removed completely.');
       await fetchRecords();
     } catch (err) { toast.error(err.message); }
   }
@@ -209,7 +218,7 @@ export function UtilityPaymentsPage({ api }) {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th scope="col">Location</th>
+                            <th scope="col" style={{ width: 150 }}>Location</th>
                             <th scope="col">Provider</th>
                             <th scope="col">Account No</th>
                             <th scope="col" style={{ width: 140 }}>Due Date</th>
@@ -226,7 +235,9 @@ export function UtilityPaymentsPage({ api }) {
                             
                             return (
                             <tr key={r.id}>
-                              <td>{r.location || '-'}</td>
+                              <td>
+                                <input type="text" className="form-input" style={{ padding: '0.25rem', width: '100%' }} value={rowData.location || ''} onChange={e => handleRowChange(r.id, 'location', e.target.value)} placeholder="Location" />
+                              </td>
                               <td style={{ fontWeight: 600 }}>{r.provider_name}</td>
                               <td>{r.account_number}</td>
                               <td>
@@ -245,8 +256,9 @@ export function UtilityPaymentsPage({ api }) {
                                     <button type="button" className="btn btn--sm btn--outline" onClick={() => handleMarkAsPaid(r.id, r.recordId)} disabled={isSaving}>💸 Mark Paid</button>
                                   )}
                                   {r.isExisting && (
-                                    <button type="button" className="btn btn--sm btn--danger" onClick={() => handleDelete(r.recordId)}>🗑️</button>
+                                    <button type="button" className="btn btn--sm btn--outline" style={{ color: 'var(--color-error)' }} onClick={() => handleDelete(r.recordId)} title="Clear this month's bill">🗑️ Bill</button>
                                   )}
+                                  <button type="button" className="btn btn--sm btn--danger" onClick={() => handleDeleteConnection(r.utility_type, r.provider_name, r.account_number)} title="Remove this connection entirely">🗑️ Conn</button>
                                 </div>
                               </td>
                             </tr>

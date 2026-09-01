@@ -261,6 +261,9 @@ export const utilityApi = {
 
   delete: (id) =>
     request(`/admin/utility-payments/${id}`, { method: 'DELETE' }, 'admin'),
+
+  deleteConnection: (utility_type, provider_name, account_number) =>
+    request(`/admin/utility-connections?utility_type=${encodeURIComponent(utility_type)}&provider_name=${encodeURIComponent(provider_name)}&account_number=${encodeURIComponent(account_number)}`, { method: 'DELETE' }, 'admin'),
 };
 
 // ─── Tax Payments ────────────────────────────────────────────

@@ -78,7 +78,9 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
     setAddingItem(true);
     try {
       if (type === 'stationery') {
-        await addItem({ item: newItemName.trim(), type: newItemCategory, initialStock: parseInt(newItemStock, 10) || 0 });
+        await addItem({ item: newItemName.trim(), type: 'stationery', initialStock: parseInt(newItemStock, 10) || 0 });
+      } else if (type === 'printing') {
+        await addItem({ item: newItemName.trim(), type: 'printing', initialStock: parseInt(newItemStock, 10) || 0 });
       } else {
         await addItem({ item: newItemName.trim(), initialStock: parseInt(newItemStock, 10) || 0 });
       }
@@ -143,17 +145,6 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
             style={{ flex: 1, minWidth: '180px' }}
             required
           />
-          {type === 'stationery' && (
-            <select
-              className="form-select"
-              value={newItemCategory}
-              onChange={e => setNewItemCategory(e.target.value)}
-              style={{ width: 'auto' }}
-            >
-              <option value="stationery">📦 Stationery Item</option>
-              <option value="printing">🖨️ Printing / Form Item</option>
-            </select>
-          )}
           <input
             type="number"
             className="form-input"

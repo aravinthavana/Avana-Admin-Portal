@@ -88,6 +88,16 @@ exports.deleteUtilityPayment = async (id) => {
   await prisma.utilityPayment.delete({ where: { id } });
 };
 
+exports.deleteUtilityConnection = async (utility_type, provider_name, account_number) => {
+  await prisma.utilityPayment.deleteMany({
+    where: {
+      utility_type,
+      provider_name,
+      account_number
+    }
+  });
+};
+
 // Tax Payments
 exports.getTaxPayments = async () => {
   return await prisma.taxPayment.findMany({ orderBy: { due_date: 'desc' } });

@@ -60,6 +60,7 @@ router.get('/utility-payments', billingController.getUtilityPayments);
 router.post('/utility-payments', billingController.saveUtilityPayment);
 router.patch('/utility-payments/:id', billingController.patchUtilityPayment);
 router.delete('/utility-payments/:id', billingController.deleteUtilityPayment);
+router.delete('/utility-connections', billingController.deleteUtilityConnection);
 
 // Taxes
 router.get('/tax-payments', billingController.getTaxPayments);

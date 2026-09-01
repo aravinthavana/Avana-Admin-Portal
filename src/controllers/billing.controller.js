@@ -90,6 +90,19 @@ exports.deleteUtilityPayment = async (req, res, next) => {
   }
 };
 
+exports.deleteUtilityConnection = async (req, res, next) => {
+  try {
+    const { utility_type, provider_name, account_number } = req.query;
+    if (!utility_type || !provider_name || !account_number) {
+      return res.status(400).json({ error: 'Missing connection details' });
+    }
+    await billingService.deleteUtilityConnection(utility_type, provider_name, account_number);
+    res.status(200).json({ message: 'Connection deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // --- Tax ---
 exports.getTaxPayments = async (req, res, next) => {
   try {

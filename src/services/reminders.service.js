@@ -210,12 +210,19 @@ exports.checkAndSendReminders = async () => {
       console.error('[Reminders Service] Error fetching inventory items:', e);
     }
 
+    const lowStockIds = lowStationeryItems.map(i => i.id);
+    for (const id of Object.keys(notifiedItems)) {
+      if (!lowStockIds.includes(id)) {
+        delete notifiedItems[id];
+      }
+    }
+
     for (const item of lowStationeryItems) {
-      if (!notifiedItems[item.id] || notifiedItems[item.id] > item.currentStock) {
+      if (notifiedItems[item.id] === undefined || notifiedItems[item.id] > item.currentStock) {
         console.log(`[Reminders Service] Sending individual Low Stock alert for: ${item.name} (${item.currentStock} remaining)`);
         await sendEmail({
           to: adminEmail,
-          subject: `⚠️ Low Stock Alert: "${item.name}" (${item.currentStock} remaining)`,
+          subject: `🚨 Low Stock Alert: "${item.name}" (${item.currentStock} remaining)`,
           htmlBody: templates.lowStockAlert({ item: item.name, currentQty: item.currentStock, threshold: 5 })
         });
         notifiedItems[item.id] = item.currentStock;

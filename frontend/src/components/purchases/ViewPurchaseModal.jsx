@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
-import { Modal } from '../ui';
+import { Modal, Badge } from '../ui';
 
 export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkPurchased }) {
   const toast = useToast();
@@ -13,11 +13,11 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'Approved': return <span className="badge badge--success">✓ Approved</span>;
-      case 'Rejected': return <span className="badge badge--danger">✗ Rejected</span>;
-      case 'Need to Discuss': return <span className="badge badge--warning">💬 Need to Discuss</span>;
-      case 'Purchased': return <span className="badge badge--primary" style={{ background: '#9333ea', color: '#fff' }}>🛍️ Purchased</span>;
-      default: return <span className="badge badge--warning">⏳ Pending Approval</span>;
+      case 'Approved': return <Badge status="approved" />;
+      case 'Rejected': return <Badge status="rejected" />;
+      case 'Need to Discuss': return <Badge status="warning" label="Need to Discuss" />;
+      case 'Purchased': return <Badge status="success" label="Purchased" />;
+      default: return <Badge status="pending" label="Pending" />;
     }
   };
 
@@ -29,7 +29,7 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
       <div style={{ display: 'flex', gap: '1rem' }}>
         <button className="btn btn--outline" onClick={onClose}>Close</button>
         {purchase.status === 'Approved' && (
-          <button className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} onClick={onMarkPurchased}>
+          <button className="btn btn--primary" onClick={onMarkPurchased}>
             Mark as Purchased
           </button>
         )}
@@ -50,7 +50,7 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
             Download PDF
           </button>
           {purchase.status === 'Approved' && (
-            <button className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} onClick={onMarkPurchased}>
+            <button className="btn btn--primary" onClick={onMarkPurchased}>
               Mark as Purchased
             </button>
           )}
@@ -65,7 +65,7 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
           
           {purchase.itemsJson ? (
             <div style={{ marginBottom: '1.5rem', overflowX: 'auto' }}>
-              <table className="data-table" style={{ width: '100%', fontSize: '0.9rem' }}>
+              <table className="data-table" style={{ width: '100%', fontSize: '0.9rem', tableLayout: 'auto' }}>
                 <thead>
                   <tr>
                     <th>Item</th>
@@ -99,15 +99,15 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
             </table>
           )}
 
-          <div style={{ background: 'var(--color-bg-offset)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: '1.5rem' }}>
-            <table style={{ width: '100%', fontSize: '0.95rem' }}>
+          <div className="card" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
+            <table style={{ width: '100%', fontSize: '0.95rem', borderCollapse: 'collapse' }}>
               <tbody>
-                <tr><td style={{ padding: '0.4rem 0', color: 'var(--color-text-secondary)' }}>Final Amount</td><td style={{ fontWeight: 800, color: 'var(--color-success)', fontSize: '1.1rem' }}>Rs. {purchase.finalAmount}</td></tr>
-                <tr><td style={{ padding: '0.4rem 0', color: 'var(--color-text-secondary)' }}>Mode</td><td style={{ fontWeight: 600 }}>{purchase.modeOfPurchase}</td></tr>
-                {purchase.storeName && <tr><td style={{ padding: '0.4rem 0', color: 'var(--color-text-secondary)' }}>Store</td><td style={{ fontWeight: 600 }}>{purchase.storeName}</td></tr>}
-                {purchase.purchaseLink && <tr><td style={{ padding: '0.4rem 0', color: 'var(--color-text-secondary)' }}>Link</td><td style={{ fontWeight: 600 }}><a href={purchase.purchaseLink} target="_blank" rel="noreferrer">View Link</a></td></tr>}
-                <tr><td style={{ padding: '0.4rem 0', color: 'var(--color-text-secondary)' }}>Requested By</td><td style={{ fontWeight: 600 }}>{purchase.requestedBy}</td></tr>
-                <tr><td style={{ padding: '0.4rem 0', color: 'var(--color-text-secondary)' }}>Date</td><td style={{ fontWeight: 600 }}>{new Date(purchase.createdAt).toLocaleString('en-IN')}</td></tr>
+                <tr><td style={{ padding: '0.75rem 0', color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Final Amount</td><td style={{ padding: '0.75rem 0', fontWeight: 800, color: 'var(--color-success)', fontSize: '1.1rem', borderBottom: '1px solid var(--color-border)', textAlign: 'right' }}>₹{purchase.finalAmount}</td></tr>
+                <tr><td style={{ padding: '0.75rem 0', color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Mode</td><td style={{ padding: '0.75rem 0', fontWeight: 600, borderBottom: '1px solid var(--color-border)', textAlign: 'right' }}>{purchase.modeOfPurchase}</td></tr>
+                {purchase.storeName && <tr><td style={{ padding: '0.75rem 0', color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Store</td><td style={{ padding: '0.75rem 0', fontWeight: 600, borderBottom: '1px solid var(--color-border)', textAlign: 'right' }}>{purchase.storeName}</td></tr>}
+                {purchase.purchaseLink && <tr><td style={{ padding: '0.75rem 0', color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Link</td><td style={{ padding: '0.75rem 0', fontWeight: 600, borderBottom: '1px solid var(--color-border)', textAlign: 'right' }}><a href={purchase.purchaseLink} target="_blank" rel="noreferrer">View Link</a></td></tr>}
+                <tr><td style={{ padding: '0.75rem 0', color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)' }}>Requested By</td><td style={{ padding: '0.75rem 0', fontWeight: 600, borderBottom: '1px solid var(--color-border)', textAlign: 'right' }}>{purchase.requestedBy.split('@')[0]}</td></tr>
+                <tr><td style={{ padding: '0.75rem 0', color: 'var(--color-text-secondary)' }}>Date</td><td style={{ padding: '0.75rem 0', fontWeight: 600, textAlign: 'right' }}>{new Date(purchase.createdAt).toLocaleString('en-IN')}</td></tr>
               </tbody>
             </table>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
+import { PageHeader, Badge } from '../../components/ui';
 import { PageHeader } from '../../components/ui';
 import AddPurchaseModal from '../../components/purchases/AddPurchaseModal';
 import ViewPurchaseModal from '../../components/purchases/ViewPurchaseModal';
@@ -57,11 +58,11 @@ export default function PurchaseApprovalsPage() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'Approved': return <span className="badge badge--success">🟢 Approved</span>;
-      case 'Rejected': return <span className="badge badge--danger">🔴 Rejected</span>;
-      case 'Need to Discuss': return <span className="badge badge--warning">🟠 Discuss</span>;
-      case 'Purchased': return <span className="badge badge--primary" style={{ background: '#9333ea', color: '#fff' }}>🟣 Purchased</span>;
-      default: return <span className="badge badge--warning">🟡 Pending</span>;
+      case 'Approved': return <Badge status="approved" />;
+      case 'Rejected': return <Badge status="rejected" />;
+      case 'Need to Discuss': return <Badge status="warning" label="Need to Discuss" />;
+      case 'Purchased': return <Badge status="success" label="Purchased" />;
+      default: return <Badge status="pending" label="Pending" />;
     }
   };
 
@@ -139,11 +140,11 @@ export default function PurchaseApprovalsPage() {
           <div style={{ width: '200px' }}>
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="form-input">
               <option value="">All Statuses</option>
-              <option value="Pending Approval">⏳ Pending Approval</option>
-              <option value="Approved">✓ Approved</option>
-              <option value="Need to Discuss">💬 Need to Discuss</option>
-              <option value="Rejected">✗ Rejected</option>
-              <option value="Purchased">🛍️ Purchased</option>
+              <option value="Pending Approval">Pending Approval</option>
+              <option value="Approved">Approved</option>
+              <option value="Need to Discuss">Need to Discuss</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Purchased">Purchased</option>
             </select>
           </div>
           <div style={{ width: '200px' }}>
@@ -158,18 +159,18 @@ export default function PurchaseApprovalsPage() {
       </div>
 
       <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
-        <table className="data-table">
+        <table className="data-table" style={{ width: '100%', tableLayout: 'auto' }}>
           <thead>
             <tr>
-              <th>Request ID</th>
-              <th>Date</th>
-              <th>Item</th>
-              <th>Qty</th>
-              <th>Amount</th>
-              <th>Requested By</th>
-              <th>Approver</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Request ID</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Date</th>
+              <th style={{ minWidth: '350px' }}>Item</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Qty</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Amount</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Requested By</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Approver</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Status</th>
+              <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -180,15 +181,15 @@ export default function PurchaseApprovalsPage() {
             ) : (
               purchases.map(p => (
                 <tr key={p.id}>
-                  <td><strong>{p.requestId}</strong></td>
-                  <td>{new Date(p.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}><strong>{p.requestId}</strong></td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{new Date(p.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</td>
                   <td>{p.itemName}</td>
-                  <td>{p.quantity}</td>
-                  <td>₹{p.finalAmount}</td>
-                  <td>{p.requestedBy.split('@')[0]}</td>
-                  <td>{p.approvalPersonEmail.split('@')[0]}</td>
-                  <td>{getStatusBadge(p.status)}</td>
-                  <td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{p.quantity}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>₹{p.finalAmount}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{p.requestedBy.split('@')[0]}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{p.approvalPersonEmail.split('@')[0]}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{getStatusBadge(p.status)}</td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                     <button className="btn btn--outline btn--sm" onClick={() => setViewPurchase(p)}>
                       View
                     </button>
@@ -199,12 +200,6 @@ export default function PurchaseApprovalsPage() {
           </tbody>
         </table>
       </div>
-
-
-
-      
-
-      
 
     </div>
   );

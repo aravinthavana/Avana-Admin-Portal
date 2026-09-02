@@ -58,7 +58,7 @@ export default function MarkPurchasedModal({ purchase, onClose, onSuccess }) {
           <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--color-text)' }}>Mark as Purchased</h2>
         </div>
         <div>
-          <button type="submit" form="mark-purchased-form" className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} disabled={loading}>
+          <button type="submit" form="mark-purchased-form" className="btn btn--primary"  disabled={loading}>
             {loading ? 'Saving...' : 'Save Purchase'}
           </button>
         </div>

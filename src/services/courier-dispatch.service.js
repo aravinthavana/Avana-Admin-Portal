@@ -186,12 +186,9 @@ exports.createDispatch = async (data, requesterEmail, host) => {
         });
       }
       
-      // 2. Alert email to Admin (with srinivasan@avanamedical.com in CC)
-      const NOTIFICATION_CC = env.NOTIFICATION_CC;
-      
+      // 2. Alert email to Admin
       await sendEmail({
         to: env.ADMIN_EMAIL,
-        cc: NOTIFICATION_CC,
         subject: `New Courier Dispatch (#${created.dcNo})`,
         htmlBody: templates.courierDispatchAdminAlert(created, host),
         attachments

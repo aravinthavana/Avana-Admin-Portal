@@ -158,15 +158,16 @@ exports.addStationeryItemType = async (req, res, next) => {
       return res.status(400).json({ error: 'Item already exists in catalog.' });
     }
 
-    const updatedCatalog = await inventoryService.addStationeryCatalogItem(itemClean, type || 'stationery');
+    const resolvedType = type || 'stationery';
+    const updatedCatalog = await inventoryService.addStationeryCatalogItem(itemClean, resolvedType);
     
     const qty = parseInt(initialStock, 10) || 0;
-    const stock = await inventoryService.getStock('stationery');
+    const stock = await inventoryService.getStock(resolvedType);
     stock[itemClean] = qty;
-    await inventoryService.saveStock('stationery', stock);
+    await inventoryService.saveStock(resolvedType, stock);
 
     if (qty > 0) {
-      const logs = await inventoryService.getTransactions('stationery');
+      const logs = await inventoryService.getTransactions(resolvedType);
       logs.push({
         item: itemClean,
         type: 'purchase',
@@ -176,10 +177,10 @@ exports.addStationeryItemType = async (req, res, next) => {
         timestamp: new Date().toISOString(),
         remarks: 'Initial stock creation'
       });
-      await inventoryService.saveTransactions('stationery', logs);
+      await inventoryService.saveTransactions(resolvedType, logs);
     }
 
-    await auditLogger.logAdminAction(req, 'CREATE_ITEM', 'Inventory', itemClean, { type: type || 'stationery', initialStock: qty });
+    await auditLogger.logAdminAction(req, 'CREATE_ITEM', 'Inventory', itemClean, { type: resolvedType, initialStock: qty });
     res.status(200).json({ message: 'Stationery item added successfully.', catalog: updatedCatalog });
   } catch (error) {
     next(error);

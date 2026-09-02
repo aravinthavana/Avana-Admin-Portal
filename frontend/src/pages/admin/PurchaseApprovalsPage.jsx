@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
 import { PageHeader, Badge } from '../../components/ui';
-import { PageHeader } from '../../components/ui';
 import AddPurchaseModal from '../../components/purchases/AddPurchaseModal';
 import ViewPurchaseModal from '../../components/purchases/ViewPurchaseModal';
 import MarkPurchasedModal from '../../components/purchases/MarkPurchasedModal';

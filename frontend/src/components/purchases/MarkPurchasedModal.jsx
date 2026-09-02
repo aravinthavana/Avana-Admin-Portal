@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
-import { Modal } from '../ui';
+import { Modal, FormField } from '../ui';
 
 export default function MarkPurchasedModal({ purchase, onClose, onSuccess }) {
   const toast = useToast();
@@ -50,48 +50,44 @@ export default function MarkPurchasedModal({ purchase, onClose, onSuccess }) {
     }
   };
 
+  const footer = (
+    <>
+      <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>Cancel</button>
+      <button type="submit" form="mark-purchased-form" className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} disabled={loading}>
+        {loading ? 'Saving...' : 'Save Purchase'}
+      </button>
+    </>
+  );
+
   return (
-    <Modal isOpen={true} onClose={onClose} title="Mark as Purchased">
-      <form onSubmit={handleSubmit}>
+    <Modal isOpen={true} onClose={onClose} title="Mark as Purchased" footer={footer}>
+      <form onSubmit={handleSubmit} id="mark-purchased-form" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           
-          <div style={{ background: '#f3f4f6', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+          <div style={{ background: 'var(--color-bg-offset)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '0.5rem', fontSize: '0.9rem', border: '1px solid var(--color-border)' }}>
             <div style={{ marginBottom: '0.25rem' }}><strong>Item:</strong> {purchase.itemName}</div>
             <div style={{ marginBottom: '0.25rem' }}><strong>Requested Qty:</strong> {purchase.quantity}</div>
             <div style={{ marginBottom: '0.25rem' }}><strong>Approved Amount:</strong> Rs. {purchase.finalAmount}</div>
           </div>
 
-          <div className="form-group">
-            <label>Order ID / Reference No *</label>
-            <input type="text" name="orderId" required value={formData.orderId} onChange={handleChange} className="form-control" />
-          </div>
+          <FormField label="Order ID / Reference No" required>
+            <input type="text" name="orderId" required value={formData.orderId} onChange={handleChange} className="form-input" />
+          </FormField>
 
-          <div className="form-group">
-            <label>Delivery Date *</label>
-            <input type="date" name="deliveryDate" required value={formData.deliveryDate} onChange={handleChange} className="form-control" />
-          </div>
+          <FormField label="Delivery Date" required>
+            <input type="date" name="deliveryDate" required value={formData.deliveryDate} onChange={handleChange} className="form-input" />
+          </FormField>
 
-          <div className="form-group">
-            <label>Exact Purchase Amount (Rs) *</label>
-            <input type="number" min="0" step="0.01" name="exactPurchaseAmount" required value={formData.exactPurchaseAmount} onChange={handleChange} className="form-control" />
-            <small style={{ color: '#64748b' }}>Update this if the final actual purchase amount differs from the approved amount.</small>
-          </div>
+          <FormField label="Exact Purchase Amount (Rs)" required hint="Update this if the final actual purchase amount differs from the approved amount.">
+            <input type="number" min="0" step="0.01" name="exactPurchaseAmount" required value={formData.exactPurchaseAmount} onChange={handleChange} className="form-input" />
+          </FormField>
 
-          <div className="form-group">
-            <label>Upload Invoice / Bill (Optional)</label>
-            <input type="file" onChange={handleFileChange} className="form-control" />
-          </div>
+          <FormField label="Upload Invoice / Bill" hint="Optional">
+            <input type="file" onChange={handleFileChange} className="form-input" />
+          </FormField>
 
-          <div className="form-group">
-            <label>Remarks (Optional)</label>
-            <textarea name="purchaseRemarks" value={formData.purchaseRemarks} onChange={handleChange} className="form-control" rows="2"></textarea>
-          </div>
-
-                  <div className="modal__footer">
-          <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>Cancel</button>
-          <button type="submit" className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} disabled={loading}>
-            {loading ? 'Saving...' : 'Save Purchase'}
-          </button>
-        </div>
+          <FormField label="Remarks" hint="Optional">
+            <textarea name="purchaseRemarks" value={formData.purchaseRemarks} onChange={handleChange} className="form-input" rows="2"></textarea>
+          </FormField>
       </form>
     </Modal>
   );

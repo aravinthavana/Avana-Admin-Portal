@@ -404,7 +404,8 @@ const sendApprovalEmail = async (request) => {
                 </tbody>
             </table>
             
-            <p><strong>Purchase Reason:</strong> ${request.reason}</p>
+            <p><strong>Mode of Purchase:</strong> ${request.modeOfPurchase}</p>
+              <p><strong>Purchase Reason:</strong> ${request.reason}</p>
             
             <p>Kindly requesting your review for the above purchase details and provide your approval to proceed.</p>
             <p>Thank you.</p>

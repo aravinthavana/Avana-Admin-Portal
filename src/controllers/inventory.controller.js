@@ -259,11 +259,12 @@ exports.deleteHousekeepingItemType = async (req, res, next) => {
     const itemName = req.params.itemName;
     if (!itemName) return res.status(400).json({ error: "Missing item name." });
     
-    const stock = await inventoryService.getStock("housekeeping");
-    if (stock.hasOwnProperty(itemName)) {
-      delete stock[itemName];
-      await inventoryService.saveStock("housekeeping", stock);
-    }
+    // Actually delete the item from the database
+    const prisma = require('../config/db');
+    
+    await prisma.inventoryItem.deleteMany({
+      where: { name: itemName, category: 'housekeeping' }
+    });
     
     res.status(200).json({ message: "Item deleted successfully" });
   } catch (error) { next(error); }

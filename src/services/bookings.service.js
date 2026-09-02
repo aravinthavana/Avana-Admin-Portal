@@ -155,16 +155,11 @@ exports.sendBookingRequestToAdminNotification = async (booking, host) => {
     }).catch(console.error);
   }
 
-  // 2. Alert email to Admin (with srinivasan@avanamedical.com + employee in CC)
-  const adminCcList = [NOTIFICATION_CC];
-  if (booking.email && !adminCcList.includes(booking.email)) {
-    adminCcList.push(booking.email);
-  }
-
-  const adminSubject = ` ACTION REQUIRED: New Conference Room Request - ${booking.name}`;
+  // 2. Alert email to Admin (with srinivasan@avanamedical.com in CC)
+  const adminSubject = `🚨 ACTION REQUIRED: New Conference Room Request - ${booking.name}`;
   sendEmail({
     to: adminEmail,
-    cc: adminCcList.join(', '),
+    cc: NOTIFICATION_CC,
     subject: adminSubject,
     htmlBody: templates.bookingAdminAlert({ booking, host })
   }).catch(console.error);
@@ -205,15 +200,11 @@ exports.sendBookingCancellationNotification = async (booking) => {
     }).catch(console.error);
   }
 
-  const adminCcList = [NOTIFICATION_CC];
-  if (booking.email && !adminCcList.includes(booking.email)) {
-    adminCcList.push(booking.email);
-  }
-
+  // 2. Alert email to Admin
   const adminSubject = `❌ Room Booking Cancelled - ${booking.name}`;
   sendEmail({
     to: adminEmail,
-    cc: adminCcList.join(', '),
+    cc: NOTIFICATION_CC,
     subject: adminSubject,
     htmlBody: templates.bookingCancelledAdminAlert({ booking })
   }).catch(console.error);

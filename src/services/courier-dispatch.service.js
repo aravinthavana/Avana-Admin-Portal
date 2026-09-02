@@ -1,4 +1,4 @@
-﻿const env = require('../config/env');
+const env = require('../config/env');
 const fs = require('fs');
 const path = require('path');
 const prisma = require('../config/db');
@@ -186,16 +186,12 @@ exports.createDispatch = async (data, requesterEmail, host) => {
         });
       }
       
-      // 2. Alert email to Admin (with srinivasan@avanamedical.com + requester in CC)
+      // 2. Alert email to Admin (with srinivasan@avanamedical.com in CC)
       const NOTIFICATION_CC = env.NOTIFICATION_CC;
-      const adminCcList = [NOTIFICATION_CC];
-      if (requesterEmail && !adminCcList.includes(requesterEmail)) {
-        adminCcList.push(requesterEmail);
-      }
-
+      
       await sendEmail({
         to: env.ADMIN_EMAIL,
-        cc: adminCcList.join(', '),
+        cc: NOTIFICATION_CC,
         subject: `New Courier Dispatch (#${created.dcNo})`,
         htmlBody: templates.courierDispatchAdminAlert(created, host),
         attachments

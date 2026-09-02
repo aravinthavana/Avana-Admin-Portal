@@ -68,16 +68,11 @@ exports.sendHelpdeskNotification = async (request, host) => {
       }));
     }
 
-    // 2. Alert email to Admin (with srinivasan@avanamedical.com + Employee in CC)
-    const adminCcList = [NOTIFICATION_CC];
-    if (employeeEmail && !adminCcList.includes(employeeEmail)) {
-      adminCcList.push(employeeEmail);
-    }
-
+    // 2. Alert email to Admin (with srinivasan@avanamedical.com in CC)
     sends.push(sendEmail({
       to: adminEmail,
-      cc: adminCcList.join(', '),
-      subject: `ACTION REQUIRED: New Help Desk Request #${request.id}`,
+      cc: NOTIFICATION_CC,
+      subject: `🚨 ACTION REQUIRED: New Help Desk Request #${request.id}`,
       htmlBody: adminHtml
     }));
     await Promise.all(sends);

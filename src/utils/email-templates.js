@@ -1,3 +1,32 @@
+
+  function extractHelpdeskDetails(request) {
+    let itemsArr = request.items;
+    let extraFields = {};
+    if (typeof itemsArr === 'string' && itemsArr.trim() !== '') {
+      try { itemsArr = JSON.parse(itemsArr); } catch(e) {}
+    }
+    
+    if (itemsArr && typeof itemsArr === 'object' && !Array.isArray(itemsArr)) {
+       extraFields = itemsArr;
+       itemsArr = null;
+    }
+
+    let detailsText = '';
+    if (Array.isArray(itemsArr) && itemsArr.length) {
+      detailsText = itemsArr.map(it => `<strong>${it.item || it.name || 'Item'}</strong> (Qty: ${it.quantity || it.qty || 1})`).join(', ');
+    } else if (request.item) {
+      detailsText = `${request.stationery_type || 'Item'}: <strong>${request.item}</strong> (Qty: ${request.quantity || 1})`;
+    } else {
+      detailsText = request.exact_issue || request.description || 'N/A';
+    }
+    
+    const subcategory = request.subcategory || request.item_type || extraFields.request_type || extraFields.support_type || extraFields.service_type || extraFields.issue_type || 'N/A';
+    const floor = request.floor || request.location || extraFields.floor || extraFields.location || 'N/A';
+    const remarks = request.remarks || extraFields.remarks || 'None';
+    
+    return { detailsText, subcategory, floor, remarks };
+  }
+
 const env = require('../config/env');
 /**
  * email-templates.js
@@ -413,9 +442,9 @@ const templates = {
           ${tableRow('Service Request No', `<strong style="color:#4f46e5;">#${request.id}</strong>`)}
           ${tableRow('Category', catTitle, true)}
           ${tableRow('Sub-Type / Priority', request.subcategory || request.item_type || 'N/A')}
-          ${tableRow('Floor', request.floor || request.location || 'N/A', true)}
+          ${tableRow('Floor', floor, true)}
           ${tableRow('Details / Issue', detailsText)}
-          ${tableRow('Remarks', request.remarks || 'None', true)}
+          ${tableRow('Remarks', remarks, true)}
           ${tableRow('Requested By', request.requester_name || request.name || 'N/A')}
           ${tableRow('Email', request.requester_email || request.email || 'N/A', true)}
           ${tableRow('Phone', request.requester_phone || request.phone || 'N/A')}
@@ -429,19 +458,8 @@ const templates = {
 
   // 9.5 Helpdesk Request Alert — to Admin
   helpdeskAdminAlert(request, host) {
-    let detailsText = '';
-    let itemsArr = request.items;
-    if (typeof itemsArr === 'string') {
-      try { itemsArr = JSON.parse(itemsArr); } catch(e) {}
-    }
-    if (Array.isArray(itemsArr) && itemsArr.length) {
-      detailsText = itemsArr.map(it => `<strong>${it.item || it.name || 'Item'}</strong> (Qty: ${it.quantity || it.qty || 1})`).join(', ');
-    } else if (request.item) {
-      detailsText = `${request.stationery_type || 'Item'}: <strong>${request.item}</strong> (Qty: ${request.quantity || 1})`;
-    } else {
-      detailsText = request.exact_issue || request.description || 'N/A';
-    }
-    const catTitle = request.categoryTitle || request.category;
+      const { detailsText, subcategory, floor, remarks } = extractHelpdeskDetails(request);
+      const catTitle = request.categoryTitle || request.category;
 
     return buildEmail({
       title: `New Help Desk Request: ${catTitle} (#${request.id})`,
@@ -455,10 +473,10 @@ const templates = {
         <table style="${TABLE_WRAP}">
           ${tableRow('Request ID', `<strong style="color:#dc2626;">#${request.id ? request.id.slice(0,8).toUpperCase() : 'N/A'}</strong>`)}
           ${tableRow('Category', catTitle, true)}
-          ${tableRow('Sub-Type', request.subcategory || request.item_type || 'N/A')}
-          ${tableRow('Location/Floor', request.floor || request.location || 'N/A', true)}
+          ${tableRow('Sub-Type', subcategory)}
+          ${tableRow('Location/Floor', floor, true)}
           ${tableRow('Details', detailsText)}
-          ${tableRow('Remarks', request.remarks || 'None', true)}
+          ${tableRow('Remarks', remarks, true)}
           ${tableRow('Submitted By', request.requester_name || request.name || 'N/A')}
           ${tableRow('Contact', `${request.email || 'N/A'} / ${request.phone || 'N/A'}`, true)}
         </table>
@@ -525,15 +543,8 @@ const templates = {
 
   // 10. Helpdesk Request Completed — to Employee
   helpdeskCompleted(request) {
-    let detailsText = '';
-    if (Array.isArray(request.items) && request.items.length) {
-      detailsText = request.items.map(it => `<strong>${it.item}</strong> (Qty: ${it.quantity})`).join(', ');
-    } else if (request.item) {
-      detailsText = `${request.stationery_type || 'Item'}: <strong>${request.item}</strong> (Qty: ${request.quantity || 1})`;
-    } else {
-      detailsText = request.exact_issue || request.description || 'N/A';
-    }
-    const catTitle = request.categoryTitle || request.category;
+      const { detailsText, subcategory, floor, remarks } = extractHelpdeskDetails(request);
+      const catTitle = request.categoryTitle || request.category;
 
     return buildEmail({
       title: `Service Request #${request.id} Completed`,
@@ -548,10 +559,10 @@ const templates = {
         <table style="${TABLE_WRAP}">
           ${tableRow('Service Request No', `<strong style="color:#10b981;">#${request.id}</strong>`)}
           ${tableRow('Category', catTitle, true)}
-          ${tableRow('Sub-Type / Priority', request.subcategory || 'N/A')}
-          ${tableRow('Floor', request.floor || request.location || 'N/A', true)}
+          ${tableRow('Sub-Type / Priority', subcategory)}
+          ${tableRow('Floor', floor, true)}
           ${tableRow('Details / Issue', detailsText)}
-          ${tableRow('Remarks', request.remarks || 'None', true)}
+          ${tableRow('Remarks', remarks, true)}
           ${tableRow('Status', '<strong style="color:#10b981;">Completed ✔</strong>')}
         </table>
         <p style="margin: 16px 0 0 0; color: #374151;">In case of any further assistance, please feel free to contact us.</p>
@@ -561,15 +572,8 @@ const templates = {
 
   // 11. Helpdesk Request Rejected — to Employee
   helpdeskRejected(request, rejectionReason) {
-    let detailsText = '';
-    if (Array.isArray(request.items) && request.items.length) {
-      detailsText = request.items.map(it => `<strong>${it.item}</strong> (Qty: ${it.quantity})`).join(', ');
-    } else if (request.item) {
-      detailsText = `${request.stationery_type || 'Item'}: <strong>${request.item}</strong> (Qty: ${request.quantity || 1})`;
-    } else {
-      detailsText = request.exact_issue || request.description || 'N/A';
-    }
-    const catTitle = request.categoryTitle || request.category;
+      const { detailsText, subcategory, floor, remarks } = extractHelpdeskDetails(request);
+      const catTitle = request.categoryTitle || request.category;
 
     return buildEmail({
       title: `Service Request #${request.id} Rejected`,
@@ -585,10 +589,10 @@ const templates = {
         <table style="${TABLE_WRAP}">
           ${tableRow('Service Request No', `<strong style="color:#ef4444;">#${request.id}</strong>`)}
           ${tableRow('Category', catTitle, true)}
-          ${tableRow('Sub-Type / Priority', request.subcategory || 'N/A')}
-          ${tableRow('Floor', request.floor || request.location || 'N/A', true)}
+          ${tableRow('Sub-Type / Priority', subcategory)}
+          ${tableRow('Floor', floor, true)}
           ${tableRow('Details / Issue', detailsText)}
-          ${tableRow('Remarks', request.remarks || 'None', true)}
+          ${tableRow('Remarks', remarks, true)}
         </table>
         <p style="margin: 16px 0 0 0; color: #374151;">In case of any queries, please feel free to contact the Admin team.</p>
       `,

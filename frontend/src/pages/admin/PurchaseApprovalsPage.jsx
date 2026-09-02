@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
+import { PageHeader } from '../../components/ui';
 import AddPurchaseModal from '../../components/purchases/AddPurchaseModal';
 import ViewPurchaseModal from '../../components/purchases/ViewPurchaseModal';
 import MarkPurchasedModal from '../../components/purchases/MarkPurchasedModal';
@@ -107,26 +108,24 @@ export default function PurchaseApprovalsPage() {
   }
 
   return (
-    <div style={{ padding: '0' }}>
+    <div style={{ padding: '0', animation: 'fadeIn 0.2s ease-out' }}>
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: '0 0 0.25rem 0', color: '#172025' }}>
-            🛒 Purchase Requests
-          </h1>
-          <p style={{ margin: 0, color: '#6b7280' }}>Manage purchase requests, workflows, and actual purchases.</p>
-        </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button className="btn btn--outline" onClick={handleDownloadExcel}>
-            📊 Download Excel Report
-          </button>
-          <button className="btn btn--primary" onClick={() => setShowAddModal(true)}>
-            + Add Purchase
-          </button>
-        </div>
-      </div>
+      <PageHeader 
+        title="Purchase Requests" 
+        subtitle="Manage purchase requests, workflows, and actual purchases."
+        action={
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button className="btn btn--outline" onClick={handleDownloadExcel}>
+              Download Excel Report
+            </button>
+            <button className="btn btn--primary" onClick={() => setShowAddModal(true)}>
+              + Add Purchase
+            </button>
+          </div>
+        }
+      />
 
-      <div className="card" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
+      <div className="card" style={{ padding: '1rem', marginBottom: '1.5rem', background: 'var(--color-bg-offset)', border: '1px solid var(--color-border)' }}>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: '250px' }}>
             <input 
@@ -134,17 +133,17 @@ export default function PurchaseApprovalsPage() {
               placeholder="Search Request ID, Item, Employee..." 
               value={searchTerm} 
               onChange={e => setSearchTerm(e.target.value)} 
-              className="form-control"
+              className="form-input"
             />
           </div>
           <div style={{ width: '200px' }}>
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="form-control">
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="form-input">
               <option value="">All Statuses</option>
-              <option value="Pending Approval">🟡 Pending Approval</option>
-              <option value="Approved">🟢 Approved</option>
-              <option value="Need to Discuss">🟠 Need to Discuss</option>
-              <option value="Rejected">🔴 Rejected</option>
-              <option value="Purchased">🟣 Purchased</option>
+              <option value="Pending Approval">⏳ Pending Approval</option>
+              <option value="Approved">✓ Approved</option>
+              <option value="Need to Discuss">💬 Need to Discuss</option>
+              <option value="Rejected">✗ Rejected</option>
+              <option value="Purchased">🛍️ Purchased</option>
             </select>
           </div>
           <div style={{ width: '200px' }}>
@@ -152,7 +151,7 @@ export default function PurchaseApprovalsPage() {
               type="month" 
               value={filterMonth} 
               onChange={e => setFilterMonth(e.target.value)} 
-              className="form-control"
+              className="form-input"
             />
           </div>
         </div>

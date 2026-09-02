@@ -114,18 +114,22 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
     }
   };
 
-  const footer = (
-    <>
-      <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>Cancel</button>
-      <button type="submit" form="add-purchase-form" className="btn btn--primary" disabled={loading}>
-        {loading ? 'Submitting...' : 'Submit Request'}
-      </button>
-    </>
-  );
-
   return (
-    <Modal isOpen={true} onClose={onClose} title="Add Purchase Request" footer={footer} size="lg">
+    <div style={{ padding: '0', animation: 'fadeIn 0.2s ease-out' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid var(--color-border)', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>&larr; Back</button>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--color-text)' }}>Add Purchase Request</h2>
+        </div>
+        <div>
+          <button type="submit" form="add-purchase-form" className="btn btn--primary" disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit Request'}
+          </button>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} id="add-purchase-form" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
         
         {items.map((item, index) => (
           <div key={index} style={{ background: 'var(--color-bg-offset)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', position: 'relative' }}>
@@ -234,6 +238,6 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
         </FormField>
 
       </form>
-    </Modal>
+    </div>
   );
 }

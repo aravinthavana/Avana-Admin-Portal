@@ -38,7 +38,25 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
   );
 
   return (
-    <Modal isOpen={true} onClose={onClose} title={`Purchase Request ${purchase.requestId}`} footer={footer} size="lg">
+    <div style={{ padding: '0', animation: 'fadeIn 0.2s ease-out' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid var(--color-border)', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button className="btn btn--outline" onClick={onClose}>&larr; Back</button>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--color-text)' }}>Purchase Details</h2>
+          <span className="badge badge--neutral">{purchase.requestId}</span>
+        </div>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button className="btn btn--outline" onClick={handleDownloadPdf}>
+            Download PDF
+          </button>
+          {purchase.status === 'Approved' && (
+            <button className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} onClick={onMarkPurchased}>
+              Mark as Purchased
+            </button>
+          )}
+        </div>
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem' }}>
         
         {/* Left Column: Purchase Info */}
@@ -154,6 +172,6 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
           )}
         </div>
       </div>
-    </Modal>
+    </div>
   );
 }

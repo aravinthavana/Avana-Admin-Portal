@@ -50,17 +50,20 @@ export default function MarkPurchasedModal({ purchase, onClose, onSuccess }) {
     }
   };
 
-  const footer = (
-    <>
-      <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>Cancel</button>
-      <button type="submit" form="mark-purchased-form" className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} disabled={loading}>
-        {loading ? 'Saving...' : 'Save Purchase'}
-      </button>
-    </>
-  );
-
   return (
-    <Modal isOpen={true} onClose={onClose} title="Mark as Purchased" footer={footer}>
+    <div style={{ padding: '0', animation: 'fadeIn 0.2s ease-out' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid var(--color-border)', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>&larr; Back</button>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--color-text)' }}>Mark as Purchased</h2>
+        </div>
+        <div>
+          <button type="submit" form="mark-purchased-form" className="btn btn--primary" style={{ background: '#9333ea', borderColor: '#7e22ce' }} disabled={loading}>
+            {loading ? 'Saving...' : 'Save Purchase'}
+          </button>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} id="mark-purchased-form" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           
           <div style={{ background: 'var(--color-bg-offset)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '0.5rem', fontSize: '0.9rem', border: '1px solid var(--color-border)' }}>
@@ -89,6 +92,6 @@ export default function MarkPurchasedModal({ purchase, onClose, onSuccess }) {
             <textarea name="purchaseRemarks" value={formData.purchaseRemarks} onChange={handleChange} className="form-input" rows="2"></textarea>
           </FormField>
       </form>
-    </Modal>
+    </div>
   );
 }

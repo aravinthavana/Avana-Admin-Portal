@@ -341,7 +341,7 @@ exports.mergeParcel = async (parentDispatchId, requesterEmail, items, remarks) =
       data: {
         dispatchId: parentDispatchId,
         itemCode: it.itemCode || 'MERGED',
-        description: `[Merged for ${requesterEmail}] ${it.description || 'Item'}`,
+        description: it.description || 'Item',
         serialNo: it.serialNo || '',
         qty,
         rate,
@@ -737,7 +737,7 @@ exports.acceptMergeRequest = async (id) => {
       data: {
         dispatchId: target.id,
         itemCode: it.itemCode || 'MERGED',
-        description: `[Merged for ${mr.requesterName || mr.requesterEmail}] ${it.description || 'Item'}`,
+        description: it.description || 'Item',
         serialNo: it.serialNo || '',
         qty,
         rate,

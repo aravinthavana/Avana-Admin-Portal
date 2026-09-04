@@ -59,11 +59,21 @@ const createPurchaseRequest = async (data) => {
       finalAmount = parseFloat(data.finalAmount) || 0;
     }
 
+    let itemName = data.itemName;
+    if (!itemName && data.itemsJson) {
+      try {
+        const parsed = typeof data.itemsJson === 'string' ? JSON.parse(data.itemsJson) : data.itemsJson;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          itemName = parsed.map(i => i.itemName).filter(Boolean).join(', ');
+        }
+      } catch (e) {}
+    }
+
     const request = await prisma.purchaseRequest.create({
         data: {
             itemsJson: data.itemsJson || null,
             requestId,
-            itemName: data.itemName,
+            itemName: itemName || 'Purchase Item',
             quantity,
             unitAmount,
             hasGst,
@@ -330,19 +340,27 @@ const sendApprovalEmail = async (request) => {
     
     if (request.itemsJson) {
       try {
-        const items = JSON.parse(request.itemsJson);
-        items.forEach((item, index) => {
-          itemsHtml += `
-            <tr>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${index + 1}</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1;">${item.itemName}</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${item.qty}</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${item.subtotal}</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${item.gstAmt}</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${item.finalAmt}</td>
-            </tr>
-          `;
-        });
+        const items = typeof request.itemsJson === 'string' ? JSON.parse(request.itemsJson) : request.itemsJson;
+        if (Array.isArray(items) && items.length > 0) {
+          itemsHtml = '';
+          items.forEach((item, index) => {
+            const itemQty = item.qty || item.quantity || 1;
+            const itemUnit = parseFloat(item.unitAmt || item.unitAmount || (item.subtotal && itemQty ? item.subtotal / itemQty : 0) || 0);
+            const itemSubtotal = parseFloat(item.subtotal || (itemQty * itemUnit) || 0);
+            const itemGst = parseFloat(item.gstAmt !== undefined ? item.gstAmt : (item.gstAmount || 0));
+            const itemFinal = parseFloat(item.finalAmt !== undefined ? item.finalAmt : (itemSubtotal + itemGst));
+            itemsHtml += `
+              <tr>
+                  <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${index + 1}</td>
+                  <td style="padding: 10px; border: 1px solid #cbd5e1;">${item.itemName || 'Item'}</td>
+                  <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${itemQty}</td>
+                  <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${itemUnit.toFixed(2)}</td>
+                  <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${itemGst.toFixed(2)}</td>
+                  <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${itemFinal.toFixed(2)}</td>
+              </tr>
+            `;
+          });
+        }
       } catch(e) {
         // Fallback if json fails
       }

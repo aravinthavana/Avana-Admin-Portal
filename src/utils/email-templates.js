@@ -810,26 +810,103 @@ const templates = {
     if (request.status === 'Rejected') statusColor = '#dc2626';
     if (request.status === 'Purchased') statusColor = '#9333ea';
     
+    let items = [];
+    if (request.itemsJson) {
+      try {
+        items = typeof request.itemsJson === 'string' ? JSON.parse(request.itemsJson) : request.itemsJson;
+      } catch (e) {
+        items = [];
+      }
+    }
+    if (!Array.isArray(items) || items.length === 0) {
+      items = [{
+        itemName: request.itemName || 'Item',
+        quantity: request.quantity || 1,
+        unitAmount: request.unitAmount || (request.finalAmount ? (request.finalAmount / (request.quantity || 1)) : 0),
+        subtotal: (request.quantity || 1) * (request.unitAmount || 0),
+        gstAmt: request.gstAmount || 0,
+        finalAmt: request.finalAmount || 0
+      }];
+    }
+
+    let itemsRows = '';
+    items.forEach((item, index) => {
+      const qty = item.qty || item.quantity || 1;
+      const unit = parseFloat(item.unitAmt || item.unitAmount || (item.subtotal ? item.subtotal / qty : 0) || 0);
+      const subtotal = parseFloat(item.subtotal || (qty * unit) || 0);
+      const gst = parseFloat(item.gstAmt !== undefined ? item.gstAmt : (item.gstAmount || 0));
+      const total = parseFloat(item.finalAmt !== undefined ? item.finalAmt : (subtotal + gst));
+
+      itemsRows += `
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 10px 12px; text-align: right; color: #64748b; font-size: 13px;">${index + 1}</td>
+          <td style="padding: 10px 12px; font-weight: 600; color: #1e293b; font-size: 13px;">${item.itemName || 'Item'}</td>
+          <td style="padding: 10px 12px; text-align: right; color: #1e293b; font-size: 13px;">${qty}</td>
+          <td style="padding: 10px 12px; text-align: right; color: #1e293b; font-size: 13px;">&#8377;${unit.toFixed(2)}</td>
+          <td style="padding: 10px 12px; text-align: right; color: #64748b; font-size: 13px;">&#8377;${gst.toFixed(2)}</td>
+          <td style="padding: 10px 12px; text-align: right; font-weight: 700; color: #0f172a; font-size: 13px;">&#8377;${total.toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+    const itemsBox = `
+      <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="background: #f8fafc; padding: 12px 16px; border-bottom: 1px solid #cbd5e1; font-weight: 700; color: #1e293b; font-size: 14px;">
+          Requested Items &amp; Pricing
+        </div>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background: #f1f5f9; color: #475569; border-bottom: 1px solid #cbd5e1;">
+                <th style="padding: 8px 12px; text-align: right; width: 40px;">#</th>
+                <th style="padding: 8px 12px; text-align: left;">Item Name</th>
+                <th style="padding: 8px 12px; text-align: right; width: 60px;">Qty</th>
+                <th style="padding: 8px 12px; text-align: right; width: 90px;">Price / Unit</th>
+                <th style="padding: 8px 12px; text-align: right; width: 70px;">GST</th>
+                <th style="padding: 8px 12px; text-align: right; width: 90px;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsRows}
+            </tbody>
+            <tfoot>
+              <tr style="background: #f8fafc; font-weight: 700;">
+                <td colspan="5" style="padding: 10px 12px; text-align: right; color: #1e293b; border-top: 2px solid #cbd5e1;">Grand Total:</td>
+                <td style="padding: 10px 12px; text-align: right; color: #16a34a; font-size: 15px; border-top: 2px solid #cbd5e1;">&#8377;${parseFloat(request.finalAmount || 0).toFixed(2)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    `;
+
+    const statusBadge = request.status === 'Approved' ? '✅ Approved' : request.status === 'Rejected' ? '❌ Rejected' : request.status === 'Need to Discuss' ? '💬 Need to Discuss' : request.status;
+
     const bodyHtml = `
-      <h3 style="margin-top: 0; color: #1e293b; font-size: 18px;">Purchase Request Update</h3>
-      <p>Your purchase request (<strong>${request.requestId}</strong>) for <strong>${request.itemName}</strong> has been updated.</p>
+      <h3 style="margin-top: 0; color: #1e293b; font-size: 18px;">Purchase Request Status Update</h3>
+      <p style="color: #334155; margin-bottom: 16px;">Your purchase request (<strong>${request.requestId}</strong>) has been <strong>${request.status}</strong> by <strong>${request.approvalPersonEmail || 'Approver'}</strong>.</p>
       
-      ${highlightBox('<strong>Status:</strong> ' + request.status, statusColor, '#f8fafc')}
+      ${highlightBox('<strong>Current Status:</strong> ' + statusBadge, statusColor, '#f8fafc')}
+
+      ${itemsBox}
 
       <table style="${TABLE_WRAP}">
-        ${tableRow('Item Name', request.itemName)}
-        ${tableRow('Final Amount', '₹' + request.finalAmount, true)}
-        ${tableRow('Approver', request.approvalPersonEmail)}
-        ${request.approverComments ? tableRow('Comments', request.approverComments, true) : ''}
-        ${request.rejectionReason ? tableRow('Rejection Reason', request.rejectionReason, true) : ''}
+        ${tableRow('Request ID', request.requestId)}
+        ${tableRow('Status', `<strong style="color:${statusColor};">${statusBadge}</strong>`, true)}
+        ${tableRow('Mode of Purchase', request.modeOfPurchase || 'N/A')}
+        ${request.storeName ? tableRow('Store Name', request.storeName, true) : ''}
+        ${tableRow('Approver', request.approvalPersonEmail || 'N/A', !request.storeName)}
+        ${request.approverComments ? tableRow('Approver Comments', request.approverComments, true) : ''}
+        ${request.rejectionReason ? tableRow('Rejection Reason', `<span style="color:#dc2626;">${request.rejectionReason}</span>`, true) : ''}
+        ${request.reason ? tableRow('Purchase Reason', request.reason, true) : ''}
       </table>
       
-      <p>Please log in to the admin portal to view complete details.</p>
+      <p style="margin-top: 20px; font-size: 13px; color: #64748b;">Please log in to the Avana admin portal to view complete details or proceed with purchasing.</p>
     `;
     
     return buildEmail({
-      title: 'Purchase Request Status',
-      subtitle: 'Purchase Module',
+      title: `Purchase Request ${request.requestId} - ${request.status}`,
+      subtitle: 'Purchase Management',
       accentColor: statusColor,
       bodyHtml
     });

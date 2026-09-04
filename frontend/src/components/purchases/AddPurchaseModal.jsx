@@ -59,6 +59,11 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
     
     return {
       ...item,
+      qty,
+      quantity: qty,
+      unitAmt,
+      unitAmount: unitAmt,
+      price: unitAmt,
       subtotal,
       gstAmt,
       finalAmt: subtotal + gstAmt
@@ -76,6 +81,8 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
     try {
       const payload = new FormData();
       payload.append('itemsJson', JSON.stringify(calculatedItems));
+      const combinedItemName = items.map(i => i.itemName).filter(Boolean).join(', ');
+      payload.append('itemName', combinedItemName);
       payload.append('quantity', items.length === 1 ? items[0].quantity : items.reduce((a, b) => a + parseInt(b.quantity || 1), 0));
       payload.append('unitAmount', items.length === 1 ? items[0].unitAmount : totalSubtotal);
       payload.append('gstAmount', totalGst);

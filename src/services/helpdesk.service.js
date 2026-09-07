@@ -52,32 +52,35 @@ const NOTIFICATION_CC = env.NOTIFICATION_CC;
 exports.sendHelpdeskNotification = async (request, host) => {
   const adminEmail = env.ADMIN_EMAIL;
   const employeeEmail = request.requester_email || request.email;
-  const catTitle = request.categoryTitle || request.category;
+  const catTitle = request.categoryTitle || request.category || 'Help Desk';
   const emailSubject = `Help Desk Request #${request.id}: ${catTitle}`;
-  const employeeHtml = templates.helpdeskSubmission(request);
-  const adminHtml = templates.helpdeskAdminAlert(request, host);
 
-  try {
-    const sends = [];
-    // 1. Separate confirmation email to Employee (NO CC to aravinth)
-    if (employeeEmail) {
-      sends.push(sendEmail({
+  // 1. Separate confirmation email to Employee
+  if (employeeEmail) {
+    try {
+      const employeeHtml = templates.helpdeskSubmission(request);
+      await sendEmail({
         to: employeeEmail,
         subject: emailSubject,
         htmlBody: employeeHtml
-      }));
+      });
+    } catch (empErr) {
+      console.error('Failed to send employee helpdesk confirmation email:', empErr);
     }
+  }
 
-    // 2. Alert email to Admin (with srinivasan@avanamedical.com in CC)
-    sends.push(sendEmail({
+  // 2. Alert email to Admin (with NOTIFICATION_CC in CC)
+  try {
+    const adminHtml = templates.helpdeskAdminAlert(request, host);
+    await sendEmail({
       to: adminEmail,
       cc: NOTIFICATION_CC,
       subject: `🚨 ACTION REQUIRED: New Help Desk Request #${request.id}`,
       htmlBody: adminHtml
-    }));
-    await Promise.all(sends);
-  } catch (error) {
-    console.error('Background sendHelpdeskEmailNotification failed:', error);
+    });
+    console.log(`[Helpdesk Notification] Admin alert sent successfully to ${adminEmail} for request #${request.id}`);
+  } catch (adminErr) {
+    console.error('Failed to send admin helpdesk alert email:', adminErr);
   }
 };
 

@@ -13,9 +13,9 @@
 
     let detailsText = '';
     if (Array.isArray(itemsArr) && itemsArr.length) {
-      detailsText = itemsArr.map(it => `<strong>${it.item || it.name || 'Item'}</strong> (Qty: ${it.quantity || it.qty || 1})`).join(', ');
+      detailsText = itemsArr.map(it => `• <strong>${it.item || it.name || 'Item'}</strong> &times; ${it.quantity || it.qty || 1}`).join('<br/>');
     } else if (request.item) {
-      detailsText = `${request.stationery_type || 'Item'}: <strong>${request.item}</strong> (Qty: ${request.quantity || 1})`;
+      detailsText = `${request.stationery_type || 'Item'}: <strong>${request.item}</strong> &times; ${request.quantity || 1}`;
     } else {
       detailsText = request.exact_issue || request.description || 'N/A';
     }
@@ -415,18 +415,7 @@ const templates = {
 
   // 9. Helpdesk Request Submission — to Employee
   helpdeskSubmission(request) {
-    let detailsText = '';
-    let itemsArr = request.items;
-    if (typeof itemsArr === 'string') {
-      try { itemsArr = JSON.parse(itemsArr); } catch(e) {}
-    }
-    if (Array.isArray(itemsArr) && itemsArr.length) {
-      detailsText = itemsArr.map(it => `<strong>${it.item || it.name || 'Item'}</strong> (Qty: ${it.quantity || it.qty || 1})`).join(', ');
-    } else if (request.item) {
-      detailsText = `${request.stationery_type || 'Item'}: <strong>${request.item}</strong> (Qty: ${request.quantity || 1})`;
-    } else {
-      detailsText = request.exact_issue || request.description || 'N/A';
-    }
+    const { detailsText, subcategory, floor, remarks } = extractHelpdeskDetails(request);
     const catTitle = request.categoryTitle || request.category;
 
     return buildEmail({
@@ -441,9 +430,9 @@ const templates = {
         <table style="${TABLE_WRAP}">
           ${tableRow('Service Request No', `<strong style="color:#4f46e5;">#${request.id}</strong>`)}
           ${tableRow('Category', catTitle, true)}
-          ${tableRow('Sub-Type / Priority', request.subcategory || request.item_type || 'N/A')}
-          ${tableRow('Floor', floor, true)}
-          ${tableRow('Details / Issue', detailsText)}
+          ${tableRow('Sub-Type / Priority', subcategory)}
+          ${tableRow('Floor / Location', floor, true)}
+          ${tableRow('Details / Items', detailsText)}
           ${tableRow('Remarks', remarks, true)}
           ${tableRow('Requested By', request.requester_name || request.name || 'N/A')}
           ${tableRow('Email', request.requester_email || request.email || 'N/A', true)}

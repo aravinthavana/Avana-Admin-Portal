@@ -17,12 +17,16 @@ const createPurchaseRequest = async (req, res) => {
             data.itemImage = '/uploads/purchases/' + req.files.itemImage[0].filename;
         }
 
+        if (!data.requestedBy) {
+            data.requestedBy = process.env.ADMIN_EMAIL || 'karthicksankar@avanamedical.com';
+        }
+
         const request = await purchaseService.createPurchaseRequest(data);
         try { await purchaseService.sendApprovalEmail(request); } catch(e) { console.error('Failed to send approval email', e); }
         res.status(201).json(request);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to create purchase request.' });
+        console.error('createPurchaseRequest error:', error);
+        res.status(500).json({ error: error.message || 'Failed to create purchase request.' });
     }
 };
 

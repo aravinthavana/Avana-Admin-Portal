@@ -12,6 +12,7 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
   ]);
 
   const [formData, setFormData] = useState({
+    requestedBy: 'karthicksankar@avanamedical.com',
     modeOfPurchase: 'Amazon',
     storeName: '',
     purchaseLink: '',
@@ -87,6 +88,10 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
       payload.append('unitAmount', items.length === 1 ? items[0].unitAmount : totalSubtotal);
       payload.append('gstAmount', totalGst);
       payload.append('finalAmount', grandTotal);
+      const hasGst = calculatedItems.some(i => i.hasGst === 'true' || i.hasGst === true);
+      payload.append('hasGst', hasGst ? 'true' : 'false');
+      payload.append('gstPercentage', hasGst ? (calculatedItems.find(i => i.hasGst === 'true' || i.hasGst === true)?.gstPercentage || 18) : 0);
+      payload.append('requestedBy', formData.requestedBy || 'karthicksankar@avanamedical.com');
       payload.append('modeOfPurchase', formData.modeOfPurchase);
       
       if (formData.modeOfPurchase === 'Offline Stores' || formData.modeOfPurchase === 'Others') {
@@ -101,16 +106,11 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
         payload.append('itemImage', attachment);
       }
 
-      const res = await fetch('/api/purchase', {
+      await apiFetch('/purchase', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: payload
+        body: payload,
+        isFormData: true
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to submit');
       
       toast.success('Purchase request submitted successfully!');
       onSuccess();

@@ -46,17 +46,32 @@ const createPurchaseRequest = async (data) => {
     const requestId = await generateRequestId();
     
     let unitAmount = parseFloat(data.unitAmount);
+    if (isNaN(unitAmount)) unitAmount = 0;
+
     let quantity = parseInt(data.quantity, 10);
+    if (isNaN(quantity) || quantity <= 0) quantity = 1;
+
     let hasGst = data.hasGst === 'true' || data.hasGst === true;
-    let gstPercentage = hasGst ? parseFloat(data.gstPercentage) : 0;
+    let gstPercentage = hasGst ? (parseFloat(data.gstPercentage) || 18) : 0;
     
     let subtotal = unitAmount * quantity;
     let gstAmount = hasGst ? (subtotal * gstPercentage) / 100 : 0;
     let finalAmount = subtotal + gstAmount;
 
     if (data.itemsJson) {
-      gstAmount = parseFloat(data.gstAmount) || 0;
-      finalAmount = parseFloat(data.finalAmount) || 0;
+      try {
+        const parsed = typeof data.itemsJson === 'string' ? JSON.parse(data.itemsJson) : data.itemsJson;
+        if (Array.isArray(parsed)) {
+          if (!hasGst) {
+            hasGst = parsed.some(i => i.hasGst === 'true' || i.hasGst === true || parseFloat(i.gstAmt || 0) > 0);
+          }
+        }
+      } catch (e) {}
+
+      const parsedGst = parseFloat(data.gstAmount);
+      gstAmount = !isNaN(parsedGst) ? parsedGst : gstAmount;
+      const parsedFinal = parseFloat(data.finalAmount);
+      finalAmount = !isNaN(parsedFinal) ? parsedFinal : finalAmount;
     }
 
     let itemName = data.itemName;
@@ -69,6 +84,8 @@ const createPurchaseRequest = async (data) => {
       } catch (e) {}
     }
 
+    const requestedBy = data.requestedBy || env.ADMIN_EMAIL || 'karthicksankar@avanamedical.com';
+
     const request = await prisma.purchaseRequest.create({
         data: {
             itemsJson: data.itemsJson || null,
@@ -76,17 +93,17 @@ const createPurchaseRequest = async (data) => {
             itemName: itemName || 'Purchase Item',
             quantity,
             unitAmount,
-            hasGst,
+            hasGst: Boolean(hasGst),
             gstPercentage,
             gstAmount,
             finalAmount,
-            modeOfPurchase: data.modeOfPurchase,
+            modeOfPurchase: data.modeOfPurchase || 'Others',
             storeName: data.storeName || null,
             purchaseLink: data.purchaseLink || null,
             itemImage: data.itemImage || null,
-            reason: data.reason,
+            reason: data.reason || 'Purchase Request',
             approvalPersonEmail: data.approvalPersonEmail,
-            requestedBy: data.requestedBy,
+            requestedBy,
             status: 'Pending Approval',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()

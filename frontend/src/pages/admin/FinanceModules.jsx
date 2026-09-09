@@ -75,9 +75,54 @@ export function UtilityPaymentsPage({ api }) {
       status: existing ? existing.status : 'Unpaid',
       payment_date: existing?.payment_date || '',
       transaction_ref: existing?.transaction_ref || '',
+      bill_file: existing?.bill_file || '',
       isExisting: !!existing
     };
   });
+
+  const [uploadingBills, setUploadingBills] = useState({});
+
+  async function handleAttachBill(r, file) {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size cannot exceed 10MB.');
+      return;
+    }
+    setUploadingBills(prev => ({ ...prev, [r.id]: true }));
+    try {
+      const formData = new FormData();
+      formData.append('billFile', file);
+      if (r.recordId) formData.append('id', r.recordId);
+      formData.append('utility_type', r.utility_type);
+      formData.append('provider_name', r.provider_name);
+      formData.append('account_number', r.account_number);
+      formData.append('billing_cycle', filterMonth);
+      formData.append('location', (editRowData[r.id]?.location ?? r.location) || '');
+      formData.append('amount', (editRowData[r.id]?.amount ?? r.amount) || '');
+      formData.append('due_date', (editRowData[r.id]?.due_date ?? r.due_date) || '');
+      formData.append('status', r.status || 'Unpaid');
+
+      await api.uploadBill(formData);
+      toast.success('Bill attached successfully!');
+      await fetchRecords();
+    } catch (err) {
+      toast.error(err.message || 'Failed to attach bill');
+    } finally {
+      setUploadingBills(prev => ({ ...prev, [r.id]: false }));
+    }
+  }
+
+  async function handleRemoveBill(recordId) {
+    if (!recordId) return;
+    if (!window.confirm('Remove the attached bill for this month?')) return;
+    try {
+      await api.update(recordId, { bill_file: null });
+      toast.success('Attached bill removed.');
+      await fetchRecords();
+    } catch (err) {
+      toast.error(err.message || 'Failed to remove bill');
+    }
+  }
 
   tableData.sort((a,b) => {
     if (a.utility_type !== b.utility_type) return (a.utility_type||'').localeCompare(b.utility_type||'');
@@ -224,6 +269,7 @@ export function UtilityPaymentsPage({ api }) {
                             <th scope="col" style={{ width: 140 }}>Due Date</th>
                             <th scope="col" style={{ width: 140 }}>Amount (₹)</th>
                             <th scope="col">Status</th>
+                            <th scope="col" style={{ width: 140 }}>Bill</th>
                             <th scope="col">Actions</th>
                           </tr>
                         </thead>
@@ -232,6 +278,7 @@ export function UtilityPaymentsPage({ api }) {
                             const isEditing = !!editRowData[r.id];
                             const rowData = editRowData[r.id] || r;
                             const isSaving = savingRows[r.id];
+                            const isUploading = uploadingBills[r.id];
                             
                             return (
                             <tr key={r.id}>
@@ -248,6 +295,63 @@ export function UtilityPaymentsPage({ api }) {
                               </td>
                               <td><Badge status={r.status === 'Paid' ? 'success' : (r.status === 'Overdue' ? 'danger' : 'warning')} label={r.status || 'Unpaid'} /></td>
                               <td>
+                                <input
+                                  type="file"
+                                  id={`bill-file-${r.id}`}
+                                  style={{ display: 'none' }}
+                                  accept=".pdf,.png,.jpg,.jpeg,.webp"
+                                  onChange={e => {
+                                    if (e.target.files && e.target.files[0]) {
+                                      handleAttachBill(r, e.target.files[0]);
+                                    }
+                                    e.target.value = '';
+                                  }}
+                                />
+                                {isUploading ? (
+                                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Uploading…</span>
+                                ) : r.bill_file ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <a
+                                      href={r.bill_file}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      download
+                                      className="btn btn--sm btn--outline"
+                                      style={{ color: 'var(--color-primary-main)', textDecoration: 'none', padding: '0.2rem 0.5rem', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
+                                      title="Download / View attached bill"
+                                    >
+                                      📥 Bill
+                                    </a>
+                                    <label
+                                      htmlFor={`bill-file-${r.id}`}
+                                      className="btn btn--sm btn--ghost"
+                                      style={{ cursor: 'pointer', padding: '0.2rem 0.35rem', fontSize: '0.78rem' }}
+                                      title="Replace attached bill"
+                                    >
+                                      🔄
+                                    </label>
+                                    <button
+                                      type="button"
+                                      className="btn btn--sm btn--ghost"
+                                      style={{ color: 'var(--color-error)', padding: '0.2rem 0.35rem', fontSize: '0.78rem' }}
+                                      onClick={() => handleRemoveBill(r.recordId)}
+                                      title="Remove attached bill"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <label
+                                    htmlFor={`bill-file-${r.id}`}
+                                    className="btn btn--sm btn--outline"
+                                    style={{ cursor: 'pointer', fontSize: '0.78rem', padding: '0.2rem 0.5rem', whiteSpace: 'nowrap' }}
+                                    title="Attach bill document"
+                                  >
+                                    📎 Attach Bill
+                                  </label>
+                                )}
+                              </td>
+                              <td>
                                 <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                                   {isEditing && (
                                     <button type="button" className="btn btn--sm btn--primary" onClick={() => saveRow(r.id)} disabled={isSaving}>{isSaving ? '...' : 'Save'}</button>
@@ -256,9 +360,9 @@ export function UtilityPaymentsPage({ api }) {
                                     <button type="button" className="btn btn--sm btn--outline" onClick={() => handleMarkAsPaid(r.id, r.recordId)} disabled={isSaving}>💸 Mark Paid</button>
                                   )}
                                   {r.isExisting && (
-                                    <button type="button" className="btn btn--sm btn--outline" style={{ color: 'var(--color-error)' }} onClick={() => handleDelete(r.recordId)} title="Clear this month's bill">🗑️ Bill</button>
+                                    <button type="button" className="btn btn--sm btn--outline" style={{ color: 'var(--color-error)' }} onClick={() => handleDelete(r.recordId)} title="Clear this month's bill">Clear</button>
                                   )}
-                                  <button type="button" className="btn btn--sm btn--danger" onClick={() => handleDeleteConnection(r.utility_type, r.provider_name, r.account_number)} title="Remove this connection entirely">🗑️ Conn</button>
+                                  <button type="button" className="btn btn--sm btn--danger" onClick={() => handleDeleteConnection(r.utility_type, r.provider_name, r.account_number)} title="Remove this connection entirely">Remove</button>
                                 </div>
                               </td>
                             </tr>

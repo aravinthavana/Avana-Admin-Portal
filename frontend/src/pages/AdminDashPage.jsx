@@ -293,16 +293,66 @@ export default function AdminDashPage() {
 
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
-  /* Filter */
-  const filtered = bookings.filter(b => {
-    const d = b.startDate || b.date || '';
-    if (filterYear !== 'all' && !d.startsWith(filterYear)) return false;
-    if (filterMonth !== 'all') {
-      const m = parseInt(d.split('-')[1], 10);
-      if (m !== parseInt(filterMonth, 10)) return false;
+  const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'completed' | 'all'
+
+  const isCompleted = useCallback((b) => {
+    const status = (b.status || '').toLowerCase();
+    if (status === 'completed') return true;
+
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const currentHours = String(now.getHours()).padStart(2, '0');
+    const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+    const currentTime = `${currentHours}:${currentMinutes}`;
+
+    const endD = b.endDate || b.startDate || b.date || '';
+    if (!endD) return false;
+
+    if (endD < todayStr) return true;
+    if (endD === todayStr) {
+      if (b.bookingType === 'full') {
+        return currentTime >= '18:00';
+      }
+      if (b.endTime && b.endTime <= currentTime) {
+        return true;
+      }
     }
-    return true;
-  });
+    return false;
+  }, []);
+
+  /* Filter */
+  const filtered = bookings
+    .filter(b => {
+      const d = b.startDate || b.date || '';
+      if (filterYear !== 'all' && !d.startsWith(filterYear)) return false;
+      if (filterMonth !== 'all') {
+        const m = parseInt(d.split('-')[1], 10);
+        if (m !== parseInt(filterMonth, 10)) return false;
+      }
+      const completed = isCompleted(b);
+      if (activeTab === 'upcoming' && completed) return false;
+      if (activeTab === 'completed' && !completed) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const dateA = a.startDate || a.date || '';
+      const dateB = b.startDate || b.date || '';
+      if (activeTab === 'upcoming') {
+        return dateA.localeCompare(dateB);
+      } else {
+        return dateB.localeCompare(dateA);
+      }
+    });
+
+  const tabStats = useMemo(() => {
+    let upcoming = 0;
+    let completed = 0;
+    bookings.forEach(b => {
+      if (isCompleted(b)) completed++;
+      else upcoming++;
+    });
+    return { upcoming, completed, all: bookings.length };
+  }, [bookings, isCompleted]);
 
   /* Stats */
   const totalBookings = filtered.length;
@@ -418,6 +468,55 @@ export default function AdminDashPage() {
         <StatCard label="Total Bookings" value={totalBookings} icon="📅" color="var(--brand-amber)" />
         <StatCard label="Full Day Bookings" value={fullDayBookings} icon="🔴" color="var(--color-error)" />
         <StatCard label="Time Slot Bookings" value={slotBookings} icon="🕐" color="var(--color-info)" />
+      </div>
+
+      {/* ── Upcoming vs Completed Tabs ── */}
+      <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          className={`btn btn--sm ${activeTab === 'upcoming' ? 'btn--primary' : 'btn--outline'}`}
+          onClick={() => setActiveTab('upcoming')}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          <span>📅 Upcoming Bookings</span>
+          <span style={{
+            background: activeTab === 'upcoming' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
+            color: activeTab === 'upcoming' ? '#fff' : 'var(--color-text-main, #333)',
+            padding: '1px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+          }}>
+            {tabStats.upcoming}
+          </span>
+        </button>
+        <button
+          type="button"
+          className={`btn btn--sm ${activeTab === 'completed' ? 'btn--primary' : 'btn--outline'}`}
+          onClick={() => setActiveTab('completed')}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          <span>🏁 Completed Bookings</span>
+          <span style={{
+            background: activeTab === 'completed' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
+            color: activeTab === 'completed' ? '#fff' : 'var(--color-text-main, #333)',
+            padding: '1px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+          }}>
+            {tabStats.completed}
+          </span>
+        </button>
+        <button
+          type="button"
+          className={`btn btn--sm ${activeTab === 'all' ? 'btn--primary' : 'btn--outline'}`}
+          onClick={() => setActiveTab('all')}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          <span>📋 All Bookings</span>
+          <span style={{
+            background: activeTab === 'all' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
+            color: activeTab === 'all' ? '#fff' : 'var(--color-text-main, #333)',
+            padding: '1px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+          }}>
+            {tabStats.all}
+          </span>
+        </button>
       </div>
 
       {/* ── Table ── */}

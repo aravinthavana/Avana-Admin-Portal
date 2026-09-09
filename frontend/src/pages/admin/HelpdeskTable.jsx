@@ -156,6 +156,7 @@ export function HelpdeskTable({ categoryFilter }) {
   const [completeRequestId, setCompleteRequestId] = useState(null);
   const [completeCategory, setCompleteCategory] = useState('');
   const [completionRemarks, setCompletionRemarks] = useState('');
+  const [conferenceTab, setConferenceTab] = useState('upcoming'); // 'upcoming' | 'completed' | 'all'
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
@@ -174,27 +175,85 @@ export function HelpdeskTable({ categoryFilter }) {
 
   useEffect(() => { fetchRequests(); }, [fetchRequests]);
 
+  const isConferenceCompleted = useCallback((r) => {
+    const status = (r.status || '').toLowerCase();
+    if (status === 'completed') return true;
+
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const currentHours = String(now.getHours()).padStart(2, '0');
+    const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+    const currentTime = `${currentHours}:${currentMinutes}`;
+
+    const endD = r.endDate || r.startDate || r.date || '';
+    if (!endD) return false;
+
+    if (endD < todayStr) return true;
+    if (endD === todayStr) {
+      if (r.bookingType === 'full') {
+        return currentTime >= '18:00';
+      }
+      if (r.endTime && r.endTime <= currentTime) {
+        return true;
+      }
+    }
+    return false;
+  }, []);
+
+  const conferenceStats = useMemo(() => {
+    if (categoryFilter !== 'conference') return { upcoming: 0, completed: 0, all: 0 };
+    const confRequests = requests.filter(r => r.category === 'conference');
+    let upcoming = 0;
+    let completed = 0;
+    confRequests.forEach(r => {
+      if (isConferenceCompleted(r)) completed++;
+      else upcoming++;
+    });
+    return { upcoming, completed, all: confRequests.length };
+  }, [requests, categoryFilter, isConferenceCompleted]);
+
   /* Filter */
   const filtered = useMemo(() => {
-    setPage(1); // reset page on filter change (side-effectish but acceptable in useMemo deps reset)
-    return requests.filter(r => {
-      // Category filter from route
-      if (categoryFilter && categoryFilter !== 'all' && r.category !== categoryFilter) return false;
-      // Category dropdown (only shown on 'all' view)
-      if (!categoryFilter && catFilter !== 'all' && r.category !== catFilter) return false;
-      // Date filter
-      const d = (r.createdAt || r.created_at || '').split('T')[0];
-      if (fromDate && d < fromDate) return false;
-      if (toDate && d > toDate) return false;
-      // Name filter
-      if (nameFilter) {
-        const query = nameFilter.toLowerCase();
-        const rName = (r.name || r.requester_name || r.full_name || '').toLowerCase();
-        if (!rName.includes(query)) return false;
-      }
-      return true;
-    });
-  }, [requests, categoryFilter, catFilter, fromDate, toDate, nameFilter]);
+    setPage(1); // reset page on filter change
+    return requests
+      .filter(r => {
+        // Category filter from route
+        if (categoryFilter && categoryFilter !== 'all' && r.category !== categoryFilter) return false;
+        // Category dropdown (only shown on 'all' view)
+        if (!categoryFilter && catFilter !== 'all' && r.category !== catFilter) return false;
+
+        // Conference tab filter (Upcoming vs Completed)
+        if (categoryFilter === 'conference') {
+          const completed = isConferenceCompleted(r);
+          if (conferenceTab === 'upcoming' && completed) return false;
+          if (conferenceTab === 'completed' && !completed) return false;
+        }
+
+        // Date filter
+        const d = (r.createdAt || r.created_at || '').split('T')[0];
+        if (fromDate && d < fromDate) return false;
+        if (toDate && d > toDate) return false;
+        // Name filter
+        if (nameFilter) {
+          const query = nameFilter.toLowerCase();
+          const rName = (r.name || r.requester_name || r.full_name || '').toLowerCase();
+          if (!rName.includes(query)) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        if (categoryFilter === 'conference') {
+          const dateA = a.startDate || a.date || (a.createdAt || a.created_at || '');
+          const dateB = b.startDate || b.date || (b.createdAt || b.created_at || '');
+          if (conferenceTab === 'upcoming') {
+            return dateA.localeCompare(dateB);
+          } else {
+            return dateB.localeCompare(dateA);
+          }
+        }
+        return 0;
+      });
+  }, [requests, categoryFilter, catFilter, conferenceTab, isConferenceCompleted, fromDate, toDate, nameFilter]);
 
   async function handleStatus(id, status, category, rejectionReason, approvalRemarks) {
     try {
@@ -294,6 +353,57 @@ export function HelpdeskTable({ categoryFilter }) {
         }
       />
       <PrintHeader title={`${label} Requests Report`} subtitle={fromDate || toDate ? `Date range: ${fromDate || 'Start'} to ${toDate || 'Today'}` : 'All Requests'} />
+
+      {/* Conference Room Specific Tabs: Upcoming vs Completed */}
+      {categoryFilter === 'conference' && (
+        <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className={`btn btn--sm ${conferenceTab === 'upcoming' ? 'btn--primary' : 'btn--outline'}`}
+            onClick={() => setConferenceTab('upcoming')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <span>📅 Upcoming Bookings</span>
+            <span style={{
+              background: conferenceTab === 'upcoming' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
+              color: conferenceTab === 'upcoming' ? '#fff' : 'var(--color-text-main, #333)',
+              padding: '1px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+            }}>
+              {conferenceStats.upcoming}
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`btn btn--sm ${conferenceTab === 'completed' ? 'btn--primary' : 'btn--outline'}`}
+            onClick={() => setConferenceTab('completed')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <span>🏁 Completed Bookings</span>
+            <span style={{
+              background: conferenceTab === 'completed' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
+              color: conferenceTab === 'completed' ? '#fff' : 'var(--color-text-main, #333)',
+              padding: '1px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+            }}>
+              {conferenceStats.completed}
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`btn btn--sm ${conferenceTab === 'all' ? 'btn--primary' : 'btn--outline'}`}
+            onClick={() => setConferenceTab('all')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <span>📋 All Bookings</span>
+            <span style={{
+              background: conferenceTab === 'all' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
+              color: conferenceTab === 'all' ? '#fff' : 'var(--color-text-main, #333)',
+              padding: '1px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+            }}>
+              {conferenceStats.all}
+            </span>
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="card" style={{ marginBottom: 'var(--space-5)', padding: 'var(--space-4) var(--space-5)' }}>

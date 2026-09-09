@@ -264,6 +264,13 @@ export const utilityApi = {
 
   deleteConnection: (utility_type, provider_name, account_number) =>
     request(`/admin/utility-connections?utility_type=${encodeURIComponent(utility_type)}&provider_name=${encodeURIComponent(provider_name)}&account_number=${encodeURIComponent(account_number)}`, { method: 'DELETE' }, 'admin'),
+
+  uploadBill: (formData) =>
+    apiFetch('/admin/utility-payments/upload-bill', {
+      method: 'POST',
+      body: formData,
+      isFormData: true,
+    }, 'admin'),
 };
 
 // ─── Tax Payments ────────────────────────────────────────────

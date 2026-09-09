@@ -47,6 +47,20 @@ router.get('/housekeeping-audit', inventoryController.getHousekeepingAudit);
 router.post('/housekeeping-audit/override', inventoryController.overrideHousekeepingAudit);
 
 const billingController = require('../controllers/billing.controller');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const baseDataDir = fs.existsSync('/app/data') ? '/app/data' : path.join(__dirname, '../../data');
+const utilUploadDir = path.join(baseDataDir, 'uploads', 'utilities');
+if (!fs.existsSync(utilUploadDir)) fs.mkdirSync(utilUploadDir, { recursive: true });
+const utilUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, utilUploadDir),
+    filename: (req, file, cb) => cb(null, 'util-' + Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'))
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
 
 // Billing & AMC
 // AMC
@@ -58,6 +72,7 @@ router.post('/amc/visit', billingController.saveAMCVisit);
 // Utilities
 router.get('/utility-payments', billingController.getUtilityPayments);
 router.post('/utility-payments', billingController.saveUtilityPayment);
+router.post('/utility-payments/upload-bill', utilUpload.single('billFile'), billingController.uploadUtilityBill);
 router.patch('/utility-payments/:id', billingController.patchUtilityPayment);
 router.delete('/utility-payments/:id', billingController.deleteUtilityPayment);
 router.delete('/utility-connections', billingController.deleteUtilityConnection);
@@ -79,10 +94,7 @@ router.delete('/assets/:id', assetTrackerController.deleteHandover);
 
 // Courier Dispatches & Delivery Challans
 const courierController = require('../controllers/courier-dispatch.controller');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const courierUploadDir = path.join('/app/data', 'uploads', 'courier');
+const courierUploadDir = path.join(baseDataDir, 'uploads', 'courier');
 if (!fs.existsSync(courierUploadDir)) fs.mkdirSync(courierUploadDir, { recursive: true });
 const courierUpload = multer({ 
   storage: multer.diskStorage({

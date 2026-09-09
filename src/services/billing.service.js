@@ -68,17 +68,30 @@ exports.getUtilityPayments = async () => {
 
 exports.saveUtilityPayment = async (data) => {
   const id = data.id || crypto.randomUUID();
+  const updateData = {
+    utility_type: data.utility_type,
+    provider_name: data.provider_name,
+    account_number: data.account_number,
+    billing_cycle: data.billing_cycle,
+    due_date: data.due_date,
+    amount: data.amount !== undefined && data.amount !== '' && data.amount !== null ? parseFloat(data.amount) : null,
+    status: data.status,
+    payment_date: data.payment_date,
+    transaction_ref: data.transaction_ref,
+    remarks: data.remarks,
+    location: data.location
+  };
+  if (data.bill_file !== undefined) {
+    updateData.bill_file = data.bill_file;
+  }
   await prisma.utilityPayment.upsert({
     where: { id },
-    update: {
-      utility_type: data.utility_type, provider_name: data.provider_name, account_number: data.account_number,
-      billing_cycle: data.billing_cycle, due_date: data.due_date, amount: data.amount ? parseFloat(data.amount) : null, status: data.status,
-      payment_date: data.payment_date, transaction_ref: data.transaction_ref, remarks: data.remarks, location: data.location
-    },
+    update: updateData,
     create: {
-      id, utility_type: data.utility_type, provider_name: data.provider_name, account_number: data.account_number,
-      billing_cycle: data.billing_cycle, due_date: data.due_date, amount: data.amount ? parseFloat(data.amount) : null, status: data.status,
-      payment_date: data.payment_date, transaction_ref: data.transaction_ref, remarks: data.remarks, location: data.location, created_at: data.created_at || new Date().toISOString()
+      id,
+      ...updateData,
+      bill_file: data.bill_file || null,
+      created_at: data.created_at || new Date().toISOString()
     }
   });
   return id;

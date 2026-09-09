@@ -62,19 +62,58 @@ exports.saveUtilityPayment = async (req, res, next) => {
 exports.patchUtilityPayment = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, payment_date, transaction_ref, amount } = req.body;
+    const { status, payment_date, transaction_ref, amount, bill_file } = req.body;
     // For simplicity, we just fetch, merge, and save
     const payments = await billingService.getUtilityPayments();
     const payment = payments.find(p => p.id === id);
     if (!payment) return res.status(404).json({ error: 'Payment not found' });
     
-    if (status) payment.status = status;
-    if (payment_date) payment.payment_date = payment_date;
-    if (transaction_ref) payment.transaction_ref = transaction_ref;
-    if (amount) payment.amount = amount;
+    if (status !== undefined) payment.status = status;
+    if (payment_date !== undefined) payment.payment_date = payment_date;
+    if (transaction_ref !== undefined) payment.transaction_ref = transaction_ref;
+    if (amount !== undefined) payment.amount = amount;
+    if (bill_file !== undefined) payment.bill_file = bill_file;
     
     await billingService.saveUtilityPayment(payment);
     res.status(200).json({ message: 'Status updated' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.uploadUtilityBill = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No bill file uploaded' });
+    }
+    const billFileUrl = '/uploads/utilities/' + req.file.filename;
+    const { id, utility_type, provider_name, account_number, billing_cycle, location, amount, due_date, status } = req.body;
+
+    let recordId = id;
+    if (!recordId) {
+      const all = await billingService.getUtilityPayments();
+      const exist = all.find(p => p.utility_type === utility_type && p.provider_name === provider_name && p.account_number === account_number && p.billing_cycle === billing_cycle);
+      if (exist) recordId = exist.id;
+    }
+
+    const savedId = await billingService.saveUtilityPayment({
+      id: recordId,
+      utility_type,
+      provider_name,
+      account_number,
+      billing_cycle,
+      location,
+      amount,
+      due_date,
+      status: status || 'Unpaid',
+      bill_file: billFileUrl
+    });
+
+    res.status(200).json({
+      message: 'Bill uploaded successfully',
+      id: savedId,
+      bill_file: billFileUrl
+    });
   } catch (error) {
     next(error);
   }

@@ -46,6 +46,8 @@ router.get('/:id', requireAdmin, purchaseController.getPurchaseById);
 router.put('/:id/status', requireAdmin, purchaseController.updateStatus);
 router.put('/:id/purchase', requireAdmin, upload.fields([{ name: 'invoiceFile', maxCount: 1 }]), purchaseController.markPurchased);
 router.get('/:id/export/pdf', requireAdmin, purchaseController.exportPdf);
+router.delete('/:id', requireAdmin, purchaseController.deletePurchaseRequest);
 
 router.all('/:id/action', purchaseController.handleEmailAction);
 module.exports = router;
+

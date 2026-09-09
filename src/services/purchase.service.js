@@ -460,6 +460,12 @@ const sendApprovalEmail = async (request) => {
     });
 };
 
+const deletePurchaseRequest = async (id) => {
+    return await prisma.purchaseRequest.delete({
+        where: { id }
+    });
+};
+
 module.exports = {
     sendApprovalEmail,
 
@@ -469,5 +475,7 @@ module.exports = {
     updateStatus,
     markPurchased,
     generateExcelReport,
-    generatePdfReport
+    generatePdfReport,
+    deletePurchaseRequest
 };
+

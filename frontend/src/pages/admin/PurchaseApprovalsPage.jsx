@@ -55,6 +55,19 @@ export default function PurchaseApprovalsPage() {
     window.open(url, '_blank');
   };
 
+  const handleDeletePurchase = async (id, requestId) => {
+    if (!window.confirm(`Are you sure you want to delete purchase request ${requestId || id}? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await apiFetch(`/purchase/${id}`, { method: 'DELETE' });
+      toast.success('Purchase request deleted.');
+      fetchPurchases();
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete purchase request');
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Approved': return <Badge status="approved" />;
@@ -82,6 +95,10 @@ export default function PurchaseApprovalsPage() {
       <ViewPurchaseModal 
         purchase={viewPurchase}
         onClose={() => setViewPurchase(null)}
+        onDelete={() => {
+          setViewPurchase(null);
+          handleDeletePurchase(viewPurchase.id, viewPurchase.requestId);
+        }}
         onUpdate={(updated) => {
           setViewPurchase(updated);
           fetchPurchases();
@@ -189,9 +206,19 @@ export default function PurchaseApprovalsPage() {
                   <td style={{ whiteSpace: 'nowrap' }}>{p.approvalPersonEmail.split('@')[0]}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{getStatusBadge(p.status)}</td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <button className="btn btn--outline btn--sm" onClick={() => setViewPurchase(p)}>
-                      View
-                    </button>
+                    <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                      <button className="btn btn--outline btn--sm" onClick={() => setViewPurchase(p)}>
+                        View
+                      </button>
+                      <button
+                        className="btn btn--danger btn--sm"
+                        onClick={() => handleDeletePurchase(p.id, p.requestId)}
+                        title="Delete Request"
+                        style={{ padding: '0.25rem 0.5rem' }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

@@ -128,11 +128,6 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
           <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>&larr; Back</button>
           <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--color-text)' }}>Add Purchase Request</h2>
         </div>
-        <div>
-          <button type="submit" form="add-purchase-form" className="btn btn--primary" disabled={loading}>
-            {loading ? 'Submitting...' : 'Submit Request'}
-          </button>
-        </div>
       </div>
 
       <form onSubmit={handleSubmit} id="add-purchase-form" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -244,7 +239,17 @@ export default function AddPurchaseModal({ onClose, onSuccess }) {
           <input type="email" name="approvalPersonEmail" required placeholder="manager@avanamedical.com" value={formData.approvalPersonEmail} onChange={handleChange} className="form-input" />
         </FormField>
 
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>
+          <button type="button" className="btn btn--outline" onClick={onClose} disabled={loading}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn--primary" disabled={loading}>
+            {loading ? 'Submitting...' : '+ Submit Purchase Request'}
+          </button>
+        </div>
+
       </form>
     </div>
   );
 }
+

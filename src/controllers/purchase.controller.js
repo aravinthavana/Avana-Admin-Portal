@@ -185,6 +185,16 @@ const handleEmailAction = async (req, res) => {
     }
 };
 
+const deletePurchaseRequest = async (req, res) => {
+    try {
+        await purchaseService.deletePurchaseRequest(req.params.id);
+        res.status(200).json({ message: 'Purchase request deleted successfully.' });
+    } catch (error) {
+        console.error('deletePurchaseRequest error:', error);
+        res.status(500).json({ error: 'Failed to delete purchase request.' });
+    }
+};
+
 module.exports = {
     handleEmailAction,
 
@@ -194,5 +204,7 @@ module.exports = {
     updateStatus,
     markPurchased,
     exportExcel,
-    exportPdf
+    exportPdf,
+    deletePurchaseRequest
 };
+

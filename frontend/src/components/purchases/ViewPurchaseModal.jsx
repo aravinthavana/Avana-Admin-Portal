@@ -3,7 +3,7 @@ import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
 import { Badge } from '../ui';
 
-export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkPurchased }) {
+export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkPurchased, onDelete }) {
   const toast = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -48,7 +48,12 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
           <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--color-text)' }}>Purchase Details</h2>
           <span className="badge badge--neutral">{purchase.requestId}</span>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          {onDelete && (
+            <button className="btn btn--danger" onClick={onDelete} title="Delete Purchase Request">
+              🗑️ Delete
+            </button>
+          )}
           <button className="btn btn--outline" onClick={handleDownloadPdf}>
             Download PDF
           </button>

@@ -6,11 +6,18 @@ const https = require('https');
 const MOCK_EMAIL_FILE = path.join(__dirname, '../../mock_emails.log');
 
 function logMockEmail(to, cc, subject, html) {
+  let cleanCc = '';
+  if (cc) {
+    cleanCc = (Array.isArray(cc) ? cc : String(cc).split(','))
+      .map(s => s.trim())
+      .filter(email => email && !email.toLowerCase().includes('srinivasan@avanamedical.com'))
+      .join(', ');
+  }
   const timestamp = new Date().toISOString();
-  const logMessage = `\n========================================\n[MOCK EMAIL SENT] Time: ${timestamp}\nTo: ${to}\nCC: ${cc || 'None'}\nSubject: ${subject}\n----------------------------------------\nHTML Content:\n${html}\n========================================\n`;
+  const logMessage = `\n========================================\n[MOCK EMAIL SENT] Time: ${timestamp}\nTo: ${to}\nCC: ${cleanCc || 'None'}\nSubject: ${subject}\n----------------------------------------\nHTML Content:\n${html}\n========================================\n`;
   try {
     fs.appendFileSync(MOCK_EMAIL_FILE, logMessage, 'utf8');
-    console.log(`[MOCK EMAIL] Email logged in mock_emails.log for: ${to} (CC: ${cc || 'None'})`);
+    console.log(`[MOCK EMAIL] Email logged in mock_emails.log for: ${to} (CC: ${cleanCc || 'None'})`);
   } catch (err) {
     console.error('Failed to write mock email:', err);
   }
@@ -68,7 +75,14 @@ exports.sendEmail = async ({ to, cc, bcc, subject, htmlBody, attachments = [] })
       html: htmlBody,
       attachments: finalAttachments
     };
-    if (cc) mailOptions.cc = cc;
+    if (cc) {
+      const ccList = (Array.isArray(cc) ? cc : String(cc).split(','))
+        .map(s => s.trim())
+        .filter(email => email && !email.toLowerCase().includes('srinivasan@avanamedical.com'));
+      if (ccList.length > 0) {
+        mailOptions.cc = ccList.join(', ');
+      }
+    }
     if (bcc) mailOptions.bcc = bcc;
 
     const info = await transporter.sendMail(mailOptions);

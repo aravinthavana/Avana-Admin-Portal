@@ -155,11 +155,11 @@ exports.sendBookingRequestToAdminNotification = async (booking, host) => {
     }).catch(console.error);
   }
 
-  // 2. Alert email to Admin (with srinivasan@avanamedical.com in CC)
+  // 2. Alert email to Admin
   const adminSubject = `🚨 ACTION REQUIRED: New Conference Room Request - ${booking.name}`;
   sendEmail({
     to: adminEmail,
-    cc: NOTIFICATION_CC,
+    ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
     subject: adminSubject,
     htmlBody: templates.bookingAdminAlert({ booking, host })
   }).catch(console.error);
@@ -204,7 +204,7 @@ exports.sendBookingCancellationNotification = async (booking) => {
   const adminSubject = `❌ Room Booking Cancelled - ${booking.name}`;
   sendEmail({
     to: adminEmail,
-    cc: NOTIFICATION_CC,
+    ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
     subject: adminSubject,
     htmlBody: templates.bookingCancelledAdminAlert({ booking })
   }).catch(console.error);

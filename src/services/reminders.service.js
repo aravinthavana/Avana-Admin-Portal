@@ -79,9 +79,9 @@ const NOTIFICATION_CC = env.NOTIFICATION_CC;
 
 /**
  * Checks for:
- * 1. AMC contracts expiring within 3 weeks (21 days) -> Separate email per AMC + CC srinivasan@avanamedical.com
- * 2. Utility payments due within 4 days -> Separate email per payment + CC srinivasan@avanamedical.com
- * 3. Tax payments due within 1 month (30 days) -> Separate email per tax + CC srinivasan@avanamedical.com
+ * 1. AMC contracts expiring within 3 weeks (21 days) -> Separate email per AMC
+ * 2. Utility payments due within 4 days -> Separate email per payment
+ * 3. Tax payments due within 1 month (30 days) -> Separate email per tax
  * 4. Low stationery stocks (stock < 6) -> Separate email per item to Admin ONLY (no CC)
  * 5. Due custom reminders -> Admin ONLY (no CC)
  */
@@ -137,7 +137,7 @@ exports.checkAndSendReminders = async () => {
       console.log(`[Reminders Service] Sending individual AMC reminder for: ${amc.equipment_name}`);
       await sendEmail({
         to: adminEmail,
-        cc: NOTIFICATION_CC,
+        ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
         subject: `🛠️ AMC Renewal Reminder: ${amc.equipment_name} (${amc.vendor_name || 'Vendor'}) - Expiring ${amc.end_date}`,
         htmlBody: templates.amcIndividualReminder({ amc })
       });
@@ -160,7 +160,7 @@ exports.checkAndSendReminders = async () => {
       console.log(`[Reminders Service] Sending individual Utility reminder for: ${utility.utility_type} (${utility.provider_name})`);
       await sendEmail({
         to: adminEmail,
-        cc: NOTIFICATION_CC,
+        ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
         subject: `⚡ Utility Payment Reminder: ${utility.utility_type} (${utility.provider_name || 'Provider'}) - Due on ${utility.due_date}`,
         htmlBody: templates.utilityIndividualReminder({ utility })
       });
@@ -183,7 +183,7 @@ exports.checkAndSendReminders = async () => {
       console.log(`[Reminders Service] Sending individual Tax reminder for: ${tax.tax_type}`);
       await sendEmail({
         to: adminEmail,
-        cc: NOTIFICATION_CC,
+        ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
         subject: `🏛️ Tax Payment Reminder: ${tax.tax_type} (${tax.authority_name || 'Authority'}) - Due on ${tax.due_date}`,
         htmlBody: templates.taxIndividualReminder({ tax })
       });

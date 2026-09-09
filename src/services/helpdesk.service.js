@@ -69,12 +69,12 @@ exports.sendHelpdeskNotification = async (request, host) => {
     }
   }
 
-  // 2. Alert email to Admin (with NOTIFICATION_CC in CC)
+  // 2. Alert email to Admin
   try {
     const adminHtml = templates.helpdeskAdminAlert(request, host);
     await sendEmail({
       to: adminEmail,
-      cc: NOTIFICATION_CC,
+      ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
       subject: `🚨 ACTION REQUIRED: New Help Desk Request #${request.id}`,
       htmlBody: adminHtml
     });

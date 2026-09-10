@@ -230,7 +230,9 @@ export function HelpdeskTable({ categoryFilter }) {
         }
 
         // Date filter
-        const d = (r.createdAt || r.created_at || '').split('T')[0];
+        const d = categoryFilter === 'conference'
+          ? (r.startDate || r.date || (r.createdAt || r.created_at || '').split('T')[0])
+          : (r.createdAt || r.created_at || '').split('T')[0];
         if (fromDate && d < fromDate) return false;
         if (toDate && d > toDate) return false;
         // Name filter
@@ -245,10 +247,32 @@ export function HelpdeskTable({ categoryFilter }) {
         if (categoryFilter === 'conference') {
           const dateA = a.startDate || a.date || (a.createdAt || a.created_at || '');
           const dateB = b.startDate || b.date || (b.createdAt || b.created_at || '');
+          const timeA = a.bookingType === 'full' ? '00:00' : (a.startTime || '00:00');
+          const timeB = b.bookingType === 'full' ? '00:00' : (b.startTime || '00:00');
+
           if (conferenceTab === 'upcoming') {
-            return dateA.localeCompare(dateB);
+            const dComp = dateA.localeCompare(dateB);
+            if (dComp !== 0) return dComp;
+            return timeA.localeCompare(timeB);
+          } else if (conferenceTab === 'completed') {
+            const dComp = dateB.localeCompare(dateA);
+            if (dComp !== 0) return dComp;
+            return timeB.localeCompare(timeA);
           } else {
-            return dateB.localeCompare(dateA);
+            // 'all' tab: upcoming should show on top (earliest first), then completed (most recent first)
+            const compA = isConferenceCompleted(a);
+            const compB = isConferenceCompleted(b);
+            if (!compA && compB) return -1;
+            if (compA && !compB) return 1;
+            if (!compA) {
+              const dComp = dateA.localeCompare(dateB);
+              if (dComp !== 0) return dComp;
+              return timeA.localeCompare(timeB);
+            } else {
+              const dComp = dateB.localeCompare(dateA);
+              if (dComp !== 0) return dComp;
+              return timeB.localeCompare(timeA);
+            }
           }
         }
         return 0;
@@ -450,11 +474,13 @@ export function HelpdeskTable({ categoryFilter }) {
             <thead>
               <tr>
                 <th scope="col" style={{ width: '6%' }}>#</th>
-                <th scope="col" style={{ width: '12%' }}>Date</th>
+                <th scope="col" style={{ width: categoryFilter === 'conference' ? '15%' : '12%' }}>
+                  {categoryFilter === 'conference' ? 'Meeting Date & Time' : 'Date'}
+                </th>
                 <th scope="col" style={{ width: '12%' }}>Category</th>
                 <th scope="col" style={{ width: '15%' }}>Submitted By</th>
                 <th scope="col" style={{ width: '12%' }}>Location</th>
-                <th scope="col" style={{ width: '20%' }}>Details</th>
+                <th scope="col" style={{ width: categoryFilter === 'conference' ? '17%' : '20%' }}>Details</th>
                 <th scope="col" style={{ width: '11%' }}>Status</th>
                 <th scope="col" style={{ width: '12%' }}>Actions</th>
               </tr>
@@ -473,7 +499,26 @@ export function HelpdeskTable({ categoryFilter }) {
                     <tr key={r.id}>
                       <td style={{ color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.85rem' }}>{shortId}</td>
                       <td style={{ whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
-                        {formatDate(r.createdAt || r.created_at)}
+                        {r.category === 'conference' ? (
+                          <div>
+                            <div style={{ fontWeight: 600, color: 'var(--brand-amber, #b27f0d)' }}>
+                              📅 {formatDate(r.startDate || r.date)}
+                            </div>
+                            {r.endDate && r.endDate !== (r.startDate || r.date) && (
+                              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                                → {formatDate(r.endDate)}
+                              </div>
+                            )}
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                              {r.bookingType === 'full' ? '🔴 Full Day' : `⏰ ${r.startTime || ''} - ${r.endTime || ''}`}
+                            </div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                              Booked: {formatDate(r.createdAt || r.created_at)}
+                            </div>
+                          </div>
+                        ) : (
+                          formatDate(r.createdAt || r.created_at)
+                        )}
                       </td>
                       <td>
                         <span style={{

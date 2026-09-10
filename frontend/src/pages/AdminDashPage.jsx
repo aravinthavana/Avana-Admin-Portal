@@ -337,10 +337,32 @@ export default function AdminDashPage() {
     .sort((a, b) => {
       const dateA = a.startDate || a.date || '';
       const dateB = b.startDate || b.date || '';
+      const timeA = a.bookingType === 'full' ? '00:00' : (a.startTime || '00:00');
+      const timeB = b.bookingType === 'full' ? '00:00' : (b.startTime || '00:00');
+
       if (activeTab === 'upcoming') {
-        return dateA.localeCompare(dateB);
+        const dComp = dateA.localeCompare(dateB);
+        if (dComp !== 0) return dComp;
+        return timeA.localeCompare(timeB);
+      } else if (activeTab === 'completed') {
+        const dComp = dateB.localeCompare(dateA);
+        if (dComp !== 0) return dComp;
+        return timeB.localeCompare(timeA);
       } else {
-        return dateB.localeCompare(dateA);
+        // 'all' tab: upcoming should show on top (earliest first), then completed (most recent first)
+        const compA = isCompleted(a);
+        const compB = isCompleted(b);
+        if (!compA && compB) return -1;
+        if (compA && !compB) return 1;
+        if (!compA) {
+          const dComp = dateA.localeCompare(dateB);
+          if (dComp !== 0) return dComp;
+          return timeA.localeCompare(timeB);
+        } else {
+          const dComp = dateB.localeCompare(dateA);
+          if (dComp !== 0) return dComp;
+          return timeB.localeCompare(timeA);
+        }
       }
     });
 
@@ -434,44 +456,8 @@ export default function AdminDashPage() {
         }
       />
 
-      {/* ── Filters ── */}
-      <div className="card" style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4) var(--space-6)' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
-          <FormField label="Month" htmlFor="filter-month">
-            <select id="filter-month" className="form-select" value={filterMonth}
-              onChange={e => setFilterMonth(e.target.value)} style={{ minWidth: 140 }}>
-              <option value="all">All Months</option>
-              {MONTHS.map((m, i) => (
-                <option key={m} value={String(i + 1).padStart(1, '0')}>{m}</option>
-              ))}
-            </select>
-          </FormField>
-          <FormField label="Year" htmlFor="filter-year">
-            <select id="filter-year" className="form-select" value={filterYear}
-              onChange={e => setFilterYear(e.target.value)} style={{ minWidth: 100 }}>
-              <option value="all">All Years</option>
-              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </FormField>
-          <button type="button" className="btn btn--primary btn--sm" onClick={fetchBookings}
-            style={{ marginBottom: 0, alignSelf: 'flex-end', marginTop: 'var(--space-2)' }}>
-            🔄 Refresh
-          </button>
-        </div>
-      </div>
-
-      {/* ── Stats ── */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: 'var(--space-5)', marginBottom: 'var(--space-6)',
-      }}>
-        <StatCard label="Total Bookings" value={totalBookings} icon="📅" color="var(--brand-amber)" />
-        <StatCard label="Full Day Bookings" value={fullDayBookings} icon="🔴" color="var(--color-error)" />
-        <StatCard label="Time Slot Bookings" value={slotBookings} icon="🕐" color="var(--color-info)" />
-      </div>
-
-      {/* ── Upcoming vs Completed Tabs ── */}
-      <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
+      {/* ── Upcoming vs Completed Tabs (Top) ── */}
+      <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-5)', flexWrap: 'wrap' }}>
         <button
           type="button"
           className={`btn btn--sm ${activeTab === 'upcoming' ? 'btn--primary' : 'btn--outline'}`}
@@ -517,6 +503,42 @@ export default function AdminDashPage() {
             {tabStats.all}
           </span>
         </button>
+      </div>
+
+      {/* ── Stats ── */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: 'var(--space-5)', marginBottom: 'var(--space-6)',
+      }}>
+        <StatCard label="Total Bookings" value={totalBookings} icon="📅" color="var(--brand-amber)" />
+        <StatCard label="Full Day Bookings" value={fullDayBookings} icon="🔴" color="var(--color-error)" />
+        <StatCard label="Time Slot Bookings" value={slotBookings} icon="🕐" color="var(--color-info)" />
+      </div>
+
+      {/* ── Filters ── */}
+      <div className="card" style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4) var(--space-6)' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
+          <FormField label="Month" htmlFor="filter-month">
+            <select id="filter-month" className="form-select" value={filterMonth}
+              onChange={e => setFilterMonth(e.target.value)} style={{ minWidth: 140 }}>
+              <option value="all">All Months</option>
+              {MONTHS.map((m, i) => (
+                <option key={m} value={String(i + 1).padStart(1, '0')}>{m}</option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label="Year" htmlFor="filter-year">
+            <select id="filter-year" className="form-select" value={filterYear}
+              onChange={e => setFilterYear(e.target.value)} style={{ minWidth: 100 }}>
+              <option value="all">All Years</option>
+              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </FormField>
+          <button type="button" className="btn btn--primary btn--sm" onClick={fetchBookings}
+            style={{ marginBottom: 0, alignSelf: 'flex-end', marginTop: 'var(--space-2)' }}>
+            🔄 Refresh
+          </button>
+        </div>
       </div>
 
       {/* ── Table ── */}

@@ -224,12 +224,88 @@ export function UtilityPaymentsPage({ api }) {
     }
   }
 
+  const handleDownloadReport = () => {
+    if (!tableData || tableData.length === 0) {
+      toast.error('No utility records found to generate report.');
+      return;
+    }
+
+    const totalAmount = tableData.reduce((acc, cur) => {
+      const row = editRowData[cur.id] || cur;
+      return acc + (parseFloat(row.amount) || 0);
+    }, 0);
+
+    const paidRecords = tableData.filter(cur => {
+      const row = editRowData[cur.id] || cur;
+      return (row.status || '').toLowerCase() === 'paid';
+    });
+
+    const paidAmount = paidRecords.reduce((acc, cur) => {
+      const row = editRowData[cur.id] || cur;
+      return acc + (parseFloat(row.amount) || 0);
+    }, 0);
+
+    const pendingAmount = totalAmount - paidAmount;
+    const paidCount = paidRecords.length;
+    const pendingCount = tableData.length - paidCount;
+
+    let monthDisplay = filterMonth;
+    try {
+      const [y, m] = filterMonth.split('-').map(Number);
+      if (y && m) {
+        const d = new Date(y, m - 1, 1);
+        monthDisplay = d.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+      }
+    } catch {}
+
+    openLegacyPrintReport({
+      title: 'Utility Payments Report',
+      subtitle: `Billing Cycle: ${monthDisplay} (${filterMonth})`,
+      summary: [
+        { label: 'Billing Month', value: filterMonth },
+        { label: 'Total Connections', value: `${tableData.length}` },
+        { label: 'Total Amount', value: `₹${totalAmount.toLocaleString('en-IN')}` },
+        { label: 'Paid Bills', value: `₹${paidAmount.toLocaleString('en-IN')} (${paidCount})`, color: '#16a34a' },
+        { label: 'Pending / Due', value: `₹${pendingAmount.toLocaleString('en-IN')} (${pendingCount})`, color: pendingCount > 0 ? '#dc2626' : '#16a34a' },
+      ],
+      headers: [
+        { title: '#' },
+        { title: 'Utility Type' },
+        { title: 'Location' },
+        { title: 'Provider' },
+        { title: 'Account / Connection No' },
+        { title: 'Due Date' },
+        { title: 'Amount', align: 'right' },
+        { title: 'Status' },
+        { title: 'Paid On' },
+      ],
+      rows: tableData.map((r, idx) => {
+        const row = editRowData[r.id] || r;
+        const amt = parseFloat(row.amount) || 0;
+        const uType = (row.utility_type || '').toLowerCase();
+        const capType = uType ? uType.charAt(0).toUpperCase() + uType.slice(1) : '—';
+        return [
+          idx + 1,
+          capType,
+          row.location || '—',
+          row.provider_name || '—',
+          row.account_number || '—',
+          formatDate(row.due_date),
+          amt > 0 ? `₹${amt.toLocaleString('en-IN')}` : '—',
+          row.status || 'Unpaid',
+          row.payment_date ? formatDate(row.payment_date) : (row.status === 'Paid' ? 'Paid' : '—'),
+        ];
+      })
+    });
+  };
+
   const utilityTypes = Array.from(new Set(tableData.map(r => r.utility_type).filter(Boolean)));
 
   return (
     <div>
       <PageHeader title="💡 Utility Payments" subtitle="Manage utility bills and payments for each month" action={
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <button type="button" className="btn btn--secondary btn--sm" onClick={handleDownloadReport}>📄 Download Report</button>
           <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowAddForm(true)}>+ Add Connection</button>
         </div>
       } />

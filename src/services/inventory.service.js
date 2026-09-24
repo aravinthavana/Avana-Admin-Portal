@@ -10,12 +10,18 @@ exports.getStock = async (type) => {
 };
 
 exports.saveStock = async (type, stockMap) => {
+  const otherCategory = type === 'printing' ? 'stationery' : (type === 'stationery' ? 'printing' : null);
   for (const [name, qty] of Object.entries(stockMap)) {
     const item = await prisma.inventoryItem.findFirst({ where: { name, category: type } });
     if (item) {
       await prisma.inventoryItem.update({ where: { id: item.id }, data: { currentStock: qty, updatedAt: new Date().toISOString() } });
     } else {
       await prisma.inventoryItem.create({ data: { name, category: type, currentStock: qty, updatedAt: new Date().toISOString() } });
+    }
+    if (otherCategory) {
+      await prisma.inventoryItem.deleteMany({
+        where: { name, category: otherCategory }
+      });
     }
   }
   return true;
@@ -168,38 +174,72 @@ exports.calculateAuditForMonth = (stock, sortedLogs, month, overrides) => {
   return audit;
 };
 
-exports.getStationeryCatalog = async () => {
-  let catalog = {};
-  
-  // 1. One-time migration of legacy JSON to DB if it exists
+exports.cleanupDuplicateInventoryItems = async () => {
   try {
+    // 1. One-time migration of legacy JSON only if unmigrated file exists
     const p1 = path.join(__dirname, '../../stationery_catalog.json');
-    const pMigrated = path.join(__dirname, '../../stationery_catalog.json.migrated');
-    const pToRead = fs.existsSync(p1) ? p1 : (fs.existsSync(pMigrated) ? pMigrated : null);
-    
-    if (pToRead) {
-      const legacyCatalog = JSON.parse(fs.readFileSync(pToRead, 'utf8'));
-      for (const [name, catType] of Object.entries(legacyCatalog)) {
-        const targetCategory = catType === 'printing' ? 'printing' : 'stationery';
-        const existing = await prisma.inventoryItem.findFirst({ where: { name } });
-        if (!existing) {
-          await prisma.inventoryItem.create({
-            data: { name, category: targetCategory, currentStock: 0, updatedAt: new Date().toISOString() }
-          });
-        } else if (existing.category === 'stationery' && targetCategory === 'printing') {
-          await prisma.inventoryItem.update({
-            where: { id: existing.id },
-            data: { category: 'printing' }
-          });
+    if (fs.existsSync(p1)) {
+      try {
+        const legacyCatalog = JSON.parse(fs.readFileSync(p1, 'utf8'));
+        for (const [name, catType] of Object.entries(legacyCatalog)) {
+          const targetCategory = catType === 'printing' ? 'printing' : 'stationery';
+          const existing = await prisma.inventoryItem.findFirst({ where: { name } });
+          if (!existing) {
+            await prisma.inventoryItem.create({
+              data: { name, category: targetCategory, currentStock: 0, updatedAt: new Date().toISOString() }
+            });
+          } else if (existing.category === 'stationery' && targetCategory === 'printing') {
+            await prisma.inventoryItem.update({
+              where: { id: existing.id },
+              data: { category: 'printing' }
+            });
+          }
         }
-      }
-      if (fs.existsSync(p1)) {
         fs.renameSync(p1, p1 + '.migrated');
+      } catch (err) {
+        console.error('Migration error:', err);
       }
     }
-  } catch(e) { console.error('Migration error:', e); }
 
-  // 2. Fetch all items from DB
+    // 2. Remove duplicate records across stationery and printing categories
+    const allItems = await prisma.inventoryItem.findMany({
+      where: { category: { in: ['stationery', 'printing'] } },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    const seen = new Map();
+    for (const item of allItems) {
+      if (!seen.has(item.name)) {
+        seen.set(item.name, item);
+      } else {
+        const kept = seen.get(item.name);
+        // If kept has 0 stock and this item has > 0 stock, keep this item instead
+        if (kept.currentStock === 0 && item.currentStock > 0) {
+          await prisma.inventoryItem.delete({ where: { id: kept.id } });
+          seen.set(item.name, item);
+        } else if (kept.currentStock > 0 && item.currentStock === 0) {
+          await prisma.inventoryItem.delete({ where: { id: item.id } });
+        } else {
+          // If both have same stock (e.g. 0), if one is printing prefer printing
+          if (kept.category === 'stationery' && item.category === 'printing') {
+            await prisma.inventoryItem.delete({ where: { id: kept.id } });
+            seen.set(item.name, item);
+          } else {
+            await prisma.inventoryItem.delete({ where: { id: item.id } });
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Failed to cleanup duplicate inventory items:', e);
+  }
+};
+
+exports.getStationeryCatalog = async () => {
+  let catalog = {};
+
+  await exports.cleanupDuplicateInventoryItems();
+
   try {
     const dbItems = await prisma.inventoryItem.findMany({ where: { category: { in: ['stationery', 'printing'] } } });
     dbItems.forEach(i => {
@@ -215,12 +255,31 @@ exports.getStationeryCatalog = async () => {
 exports.addStationeryCatalogItem = async (itemClean, itemType) => {
   try {
     const category = itemType === 'printing' ? 'printing' : 'stationery';
-    const existing = await prisma.inventoryItem.findFirst({ where: { name: itemClean, category: { in: ['stationery', 'printing'] } } });
-    if (!existing) {
+    const otherCategory = category === 'printing' ? 'stationery' : 'printing';
+
+    const existingSame = await prisma.inventoryItem.findFirst({ where: { name: itemClean, category } });
+    const existingOther = await prisma.inventoryItem.findMany({ where: { name: itemClean, category: otherCategory } });
+
+    if (existingOther.length > 0) {
+      if (!existingSame) {
+        await prisma.inventoryItem.update({
+          where: { id: existingOther[0].id },
+          data: { category, updatedAt: new Date().toISOString() }
+        });
+        for (let i = 1; i < existingOther.length; i++) {
+          await prisma.inventoryItem.delete({ where: { id: existingOther[i].id } });
+        }
+      } else {
+        await prisma.inventoryItem.deleteMany({
+          where: { name: itemClean, category: otherCategory }
+        });
+      }
+    } else if (!existingSame) {
       await prisma.inventoryItem.create({
         data: { name: itemClean, category, currentStock: 0, updatedAt: new Date().toISOString() }
       });
     }
+
     return await exports.getStationeryCatalog();
   } catch(e) {
     console.error('Failed to update stationery catalog in DB:', e);
@@ -238,8 +297,9 @@ exports.checkLowStockAlert = async (item, newQty, type = 'stationery') => {
     const { sendEmail } = require('../utils/notifications');
     const { templates } = require('../utils/email-templates');
     const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
+    const typeLabel = type === 'printing' ? 'Printing' : 'Stationery';
     const subject = `⚠️ Low Stock Alert: "${item}" (${newQty} remaining)`;
-    const htmlBody = templates.lowStockAlert({ item, currentQty: newQty, threshold: 5 });
+    const htmlBody = templates.lowStockAlert({ item, currentQty: newQty, threshold: 5, type });
     
     sendEmail({
       to: adminEmail,
@@ -248,7 +308,6 @@ exports.checkLowStockAlert = async (item, newQty, type = 'stationery') => {
     }).catch(err => console.error('Low stock email alert failed:', err));
   }
 };
-
 
 exports.deleteStationeryCatalogItem = async (itemName) => {
   try {

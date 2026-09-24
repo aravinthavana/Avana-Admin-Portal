@@ -591,25 +591,28 @@ const templates = {
   },
 
   // 12. Low Stationery Stock Alert — to Admin
-  lowStockAlert({ item, currentQty, threshold = 5 }) {
+  lowStockAlert({ item, currentQty, threshold = 5, type = 'stationery' }) {
+    const isPrinting = type === 'printing';
+    const categoryLabel = isPrinting ? 'Printing' : 'Stationery';
     return buildEmail({
-      title: `Low Stock Alert: ${item}`,
-      subtitle: 'Inventory Management Alert',
+      title: `Low ${categoryLabel} Stock Alert: ${item}`,
+      subtitle: `${categoryLabel} Inventory Alert`,
       accentColor: '#d97706',
       bodyHtml: `
-        ${highlightBox('⚠️ Low Stock Warning — Immediate Action Required', '#d97706', '#fffbeb')}
+        ${highlightBox(`⚠️ Low ${categoryLabel} Stock Warning — Immediate Action Required`, '#d97706', '#fffbeb')}
         <p style="margin: 0 0 16px 0; color: #374151;">
           An automated system alert has been triggered because the inventory level for the following item has fallen at or below the threshold of <strong>${threshold} units</strong>:
         </p>
         <table style="${TABLE_WRAP}">
           ${tableRow('Item Name', `<strong>${item}</strong>`)}
+          ${tableRow('Stock Category', `<strong>${categoryLabel} Stock</strong>`)}
           ${tableRow('Current Stock', `<strong style="color:#dc2626; font-size:20px;">${currentQty}</strong>`, true)}
           ${tableRow('Alert Threshold', `${threshold} units`)}
         </table>
         <p style="margin: 16px 0 0 0; color: #374151;">
-          Please log into the Admin portal to manually replenish this item as soon as possible.
+          Please log into the Admin portal to replenish this item.
         </p>
-        ${actionButton('Go to Stationery Stock', `${APP_URL}/helpdesk-admin/stationery-stock`, '#d97706')}
+        ${actionButton(`Go to ${categoryLabel} Stock`, `${APP_URL}/helpdesk-admin/stationery-stock`, '#d97706')}
       `,
     });
   },

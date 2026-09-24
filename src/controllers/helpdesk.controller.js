@@ -197,39 +197,49 @@ exports.updateStatus = async (req, res, next) => {
         if (request.category === 'stationery' || request.category === 'hk_material') {
           try {
             const inventoryService = require('../services/inventory.service');
-            const type = request.category === 'stationery' ? 'stationery' : 'housekeeping';
+            const prisma = require('../config/db');
             let items = [];
             if (request.items) {
               items = typeof request.items === 'string' ? JSON.parse(request.items) : request.items;
             }
             if (Array.isArray(items) && items.length > 0) {
-              const stock = await inventoryService.getStock(type);
               for (const it of items) {
                 const name = it.item || it.name;
                 const qty = parseInt(it.quantity || it.qty || 1, 10);
-                if (name && !isNaN(qty) && qty > 0) {
-                  const previousStock = stock[name] || 0;
-                  let newStock = previousStock - qty;
-                  if (newStock < 0) newStock = 0;
-                  stock[name] = newStock;
+                if (!name || isNaN(qty) || qty <= 0) continue;
 
-                  const logs = await inventoryService.getTransactions(type);
-                  logs.push({
-                    item: name,
-                    type: 'use',
-                    quantity: qty,
-                    previousStock,
-                    newStock,
-                    timestamp: new Date().toISOString(),
-                    remarks: `Auto-deducted from completed Request #${request.id}`
+                // Determine the correct category for this specific item:
+                let itemType = 'housekeeping';
+                if (request.category === 'stationery') {
+                  const existingItem = await prisma.inventoryItem.findFirst({
+                    where: { name, category: { in: ['stationery', 'printing'] } }
                   });
-                  await inventoryService.saveTransactions(type, logs);
-                  if (newStock < previousStock) {
-                    inventoryService.checkLowStockAlert(name, newStock, type).catch(console.error);
-                  }
+                  itemType = existingItem?.category === 'printing' ? 'printing' : 'stationery';
+                }
+
+                const stock = await inventoryService.getStock(itemType);
+                const previousStock = stock[name] ?? 0;
+                let newStock = previousStock - qty;
+                if (newStock < 0) newStock = 0;
+                stock[name] = newStock;
+
+                const logs = await inventoryService.getTransactions(itemType);
+                logs.push({
+                  item: name,
+                  type: 'use',
+                  quantity: qty,
+                  previousStock,
+                  newStock,
+                  timestamp: new Date().toISOString(),
+                  remarks: `Auto-deducted from completed Request #${request.id}`
+                });
+                await inventoryService.saveTransactions(itemType, logs);
+                await inventoryService.saveStock(itemType, { [name]: newStock });
+
+                if (newStock < previousStock) {
+                  inventoryService.checkLowStockAlert(name, newStock, itemType).catch(console.error);
                 }
               }
-              await inventoryService.saveStock(type, stock);
               console.log(`[Helpdesk Auto-Stock] Deducted stock for completed request #${request.id}`);
             }
           } catch (err) {

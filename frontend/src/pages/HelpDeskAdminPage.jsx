@@ -26,6 +26,7 @@ function StationeryPrintingStockWrapper() {
       </div>
       {tab === 'stationery' ? (
         <StockManager
+          key="stationery"
           title="Stationery Stock"
           icon="✏️"
           type="stationery"
@@ -36,6 +37,7 @@ function StationeryPrintingStockWrapper() {
         />
       ) : (
         <StockManager
+          key="printing"
           title="Printing Stock"
           icon="🖨️"
           type="printing"

@@ -219,11 +219,11 @@ exports.checkAndSendReminders = async () => {
 
     for (const item of lowStationeryItems) {
       if (notifiedItems[item.id] === undefined || notifiedItems[item.id] > item.currentStock) {
-        console.log(`[Reminders Service] Sending individual Low Stock alert for: ${item.name} (${item.currentStock} remaining)`);
+        console.log(`[Reminders Service] Sending individual Low Stock alert for: ${item.name} (${item.category}, ${item.currentStock} remaining)`);
         await sendEmail({
           to: adminEmail,
           subject: `🚨 Low Stock Alert: "${item.name}" (${item.currentStock} remaining)`,
-          htmlBody: templates.lowStockAlert({ item: item.name, currentQty: item.currentStock, threshold: 5 })
+          htmlBody: templates.lowStockAlert({ item: item.name, currentQty: item.currentStock, threshold: 5, type: item.category })
         });
         notifiedItems[item.id] = item.currentStock;
         newlyNotifiedCount++;

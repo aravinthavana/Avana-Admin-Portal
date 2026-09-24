@@ -153,18 +153,26 @@ exports.addStationeryItemType = async (req, res, next) => {
       return res.status(400).json({ error: 'Missing item name.' });
     }
     const itemClean = item.trim();
+    const resolvedType = type === 'printing' ? 'printing' : 'stationery';
+    const otherType = resolvedType === 'printing' ? 'stationery' : 'printing';
+
     const catalog = await inventoryService.getStationeryCatalog();
-    if (catalog[itemClean]) {
-      return res.status(400).json({ error: 'Item already exists in catalog.' });
+    if (catalog[itemClean] && catalog[itemClean] === resolvedType) {
+      return res.status(400).json({ error: `Item already exists in ${resolvedType} catalog.` });
     }
 
-    const resolvedType = type || 'stationery';
     const updatedCatalog = await inventoryService.addStationeryCatalogItem(itemClean, resolvedType);
     
     const qty = parseInt(initialStock, 10) || 0;
     const stock = await inventoryService.getStock(resolvedType);
     stock[itemClean] = qty;
     await inventoryService.saveStock(resolvedType, stock);
+
+    // Delete any lingering record in the other category
+    const prisma = require('../config/db');
+    await prisma.inventoryItem.deleteMany({
+      where: { name: itemClean, category: otherType }
+    });
 
     if (qty > 0) {
       const logs = await inventoryService.getTransactions(resolvedType);
@@ -181,7 +189,7 @@ exports.addStationeryItemType = async (req, res, next) => {
     }
 
     await auditLogger.logAdminAction(req, 'CREATE_ITEM', 'Inventory', itemClean, { type: resolvedType, initialStock: qty });
-    res.status(200).json({ message: 'Stationery item added successfully.', catalog: updatedCatalog });
+    res.status(200).json({ message: `${resolvedType === 'printing' ? 'Printing' : 'Stationery'} item added successfully.`, catalog: updatedCatalog });
   } catch (error) {
     next(error);
   }
@@ -240,15 +248,8 @@ exports.deleteStationeryItemType = async (req, res, next) => {
     const itemName = req.params.itemName;
     if (!itemName) return res.status(400).json({ error: "Missing item name." });
     
-    // Remove from catalog
+    // Remove from catalog and database across stationery & printing
     await inventoryService.deleteStationeryCatalogItem(itemName);
-    
-    // Remove from stock
-    const stock = await inventoryService.getStock("stationery");
-    if (stock.hasOwnProperty(itemName)) {
-      delete stock[itemName];
-      await inventoryService.saveStock("stationery", stock);
-    }
     
     res.status(200).json({ message: "Item deleted successfully" });
   } catch (error) { next(error); }

@@ -258,44 +258,158 @@ export function UtilityPaymentsPage({ api }) {
       }
     } catch {}
 
+    const PREFERRED_ORDER = ['landline', 'broadband', 'electricity', 'mobile', 'water', 'other'];
+    const TYPE_META = {
+      landline: { title: '📞 Landline Bills & Payments', label: 'Landline' },
+      broadband: { title: '🌐 Broadband & Internet Payments', label: 'Broadband' },
+      electricity: { title: '⚡ Electricity (EB) Bills & Payments', label: 'Electricity' },
+      mobile: { title: '📱 Mobile Postpaid Bills', label: 'Mobile' },
+      water: { title: '💧 Water Tax & Charges', label: 'Water' },
+      other: { title: '💡 Other Utility Payments', label: 'Other Utilities' },
+    };
+
+    const uniqueTypes = Array.from(
+      new Set(tableData.map(r => (r.utility_type || 'other').toLowerCase()))
+    ).sort((a, b) => {
+      const idxA = PREFERRED_ORDER.indexOf(a);
+      const idxB = PREFERRED_ORDER.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
+    });
+
+    const typeSections = uniqueTypes.map(type => {
+      const typeRecords = tableData.filter(r => (r.utility_type || 'other').toLowerCase() === type);
+      if (typeRecords.length === 0) return null;
+
+      const meta = TYPE_META[type] || {
+        title: `💡 ${(type.charAt(0).toUpperCase() + type.slice(1))} Payments`,
+        label: type.charAt(0).toUpperCase() + type.slice(1)
+      };
+
+      let typeTotal = 0;
+      let typePaidAmount = 0;
+      let typePaidCount = 0;
+
+      const rows = typeRecords.map((r, idx) => {
+        const row = editRowData[r.id] || r;
+        const amt = parseFloat(row.amount) || 0;
+        typeTotal += amt;
+
+        const isPaid = (row.status || '').toLowerCase() === 'paid';
+        if (isPaid) {
+          typePaidAmount += amt;
+          typePaidCount += 1;
+        }
+
+        const statusHtml = isPaid
+          ? `<span style="display:inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">PAID</span>`
+          : `<span style="display:inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; background: #fef3c7; color: #b45309; border: 1px solid #fde68a;">UNPAID</span>`;
+
+        return [
+          idx + 1,
+          row.location || '—',
+          row.provider_name || '—',
+          row.account_number || '—',
+          formatDate(row.due_date),
+          amt > 0 ? `₹${amt.toLocaleString('en-IN')}` : '₹0',
+          statusHtml,
+          row.payment_date ? formatDate(row.payment_date) : (isPaid ? 'Paid' : '—')
+        ];
+      });
+
+      const typePendingAmount = typeTotal - typePaidAmount;
+      const typePendingCount = typeRecords.length - typePaidCount;
+
+      return {
+        sectionTitle: meta.title,
+        subtitle: `${typeRecords.length} connection${typeRecords.length > 1 ? 's' : ''} | Paid: ₹${typePaidAmount.toLocaleString('en-IN')} (${typePaidCount}/${typeRecords.length})${typePendingAmount > 0 ? ` | Pending: ₹${typePendingAmount.toLocaleString('en-IN')} (${typePendingCount})` : ''}`,
+        pageBreakAfter: false,
+        summary: [
+          { label: `${meta.label} Total`, value: `₹${typeTotal.toLocaleString('en-IN')}` },
+          { label: 'Total Paid', value: `₹${typePaidAmount.toLocaleString('en-IN')} (${typePaidCount})`, color: '#16a34a' },
+          { label: 'Pending / Due', value: `₹${typePendingAmount.toLocaleString('en-IN')} (${typePendingCount})`, color: typePendingCount > 0 ? '#dc2626' : '#16a34a' }
+        ],
+        headers: [
+          { title: '#', align: 'center' },
+          { title: 'Location' },
+          { title: 'Provider' },
+          { title: 'Account / Connection No' },
+          { title: 'Due Date' },
+          { title: 'Amount', align: 'right' },
+          { title: 'Status', align: 'center' },
+          { title: 'Paid On', align: 'center' }
+        ],
+        rows,
+        footerRows: [
+          [
+            { content: `Total ${meta.label} (${typeRecords.length} connection${typeRecords.length > 1 ? 's' : ''}):`, colspan: 5, align: 'right' },
+            { content: `₹${typeTotal.toLocaleString('en-IN')}`, align: 'right' },
+            { 
+              content: `<span style="color: #16a34a; font-weight: 800;">Paid: ₹${typePaidAmount.toLocaleString('en-IN')}</span>${typePendingAmount > 0 ? ` &nbsp;|&nbsp; <span style="color: #dc2626; font-weight: 700;">Due: ₹${typePendingAmount.toLocaleString('en-IN')}</span>` : ''}`, 
+              colspan: 2, 
+              align: 'center' 
+            }
+          ]
+        ]
+      };
+    }).filter(Boolean);
+
+    const consolidatedSection = {
+      sectionTitle: '📊 Consolidated Utilities Summary',
+      subtitle: `Summary of all utility categories for ${monthDisplay} (${filterMonth})`,
+      pageBreakAfter: false,
+      headers: [
+        { title: '#', align: 'center' },
+        { title: 'Utility Type' },
+        { title: 'Connections', align: 'center' },
+        { title: 'Total Billed Amount', align: 'right' },
+        { title: 'Total Paid Amount', align: 'right' },
+        { title: 'Pending Amount', align: 'right' },
+        { title: 'Payment Status', align: 'center' }
+      ],
+      rows: uniqueTypes.map((type, idx) => {
+        const recs = tableData.filter(r => (r.utility_type || 'other').toLowerCase() === type);
+        const meta = TYPE_META[type] || { label: type.charAt(0).toUpperCase() + type.slice(1) };
+        const tTot = recs.reduce((acc, r) => acc + (parseFloat((editRowData[r.id] || r).amount) || 0), 0);
+        const tPaid = recs.filter(r => ((editRowData[r.id] || r).status || '').toLowerCase() === 'paid')
+                          .reduce((acc, r) => acc + (parseFloat((editRowData[r.id] || r).amount) || 0), 0);
+        const tDue = tTot - tPaid;
+        const allPaid = tDue <= 0 && tTot > 0;
+        return [
+          idx + 1,
+          meta.label,
+          recs.length,
+          `₹${tTot.toLocaleString('en-IN')}`,
+          `<span style="color: #16a34a; font-weight: 700;">₹${tPaid.toLocaleString('en-IN')}</span>`,
+          tDue > 0 ? `<span style="color: #dc2626; font-weight: 700;">₹${tDue.toLocaleString('en-IN')}</span>` : '₹0',
+          allPaid ? '<span style="color: #16a34a; font-weight: 700;">All Paid (100%)</span>' : (tPaid > 0 ? `<span style="color: #b45309; font-weight: 700;">Partial (${Math.round((tPaid/tTot)*100)}%)</span>` : '<span style="color: #dc2626; font-weight: 700;">Unpaid</span>')
+        ];
+      }),
+      footerRows: [
+        [
+          { content: 'Grand Total:', colspan: 2, align: 'right' },
+          { content: `${tableData.length}`, align: 'center' },
+          { content: `₹${totalAmount.toLocaleString('en-IN')}`, align: 'right' },
+          { content: `<span style="color: #16a34a;">₹${paidAmount.toLocaleString('en-IN')}</span>`, align: 'right' },
+          { content: pendingAmount > 0 ? `<span style="color: #dc2626;">₹${pendingAmount.toLocaleString('en-IN')}</span>` : '₹0', align: 'right' },
+          { content: paidCount === tableData.length ? '100% Paid' : `${Math.round((paidAmount / (totalAmount || 1)) * 100)}% Paid`, align: 'center' }
+        ]
+      ]
+    };
+
     openLegacyPrintReport({
       title: 'Utility Payments Report',
       subtitle: `Billing Cycle: ${monthDisplay} (${filterMonth})`,
       summary: [
         { label: 'Billing Month', value: filterMonth },
         { label: 'Total Connections', value: `${tableData.length}` },
-        { label: 'Total Amount', value: `₹${totalAmount.toLocaleString('en-IN')}` },
-        { label: 'Paid Bills', value: `₹${paidAmount.toLocaleString('en-IN')} (${paidCount})`, color: '#16a34a' },
+        { label: 'Grand Total Amount', value: `₹${totalAmount.toLocaleString('en-IN')}` },
+        { label: 'Total Paid', value: `₹${paidAmount.toLocaleString('en-IN')} (${paidCount})`, color: '#16a34a' },
         { label: 'Pending / Due', value: `₹${pendingAmount.toLocaleString('en-IN')} (${pendingCount})`, color: pendingCount > 0 ? '#dc2626' : '#16a34a' },
       ],
-      headers: [
-        { title: '#' },
-        { title: 'Utility Type' },
-        { title: 'Location' },
-        { title: 'Provider' },
-        { title: 'Account / Connection No' },
-        { title: 'Due Date' },
-        { title: 'Amount', align: 'right' },
-        { title: 'Status' },
-        { title: 'Paid On' },
-      ],
-      rows: tableData.map((r, idx) => {
-        const row = editRowData[r.id] || r;
-        const amt = parseFloat(row.amount) || 0;
-        const uType = (row.utility_type || '').toLowerCase();
-        const capType = uType ? uType.charAt(0).toUpperCase() + uType.slice(1) : '—';
-        return [
-          idx + 1,
-          capType,
-          row.location || '—',
-          row.provider_name || '—',
-          row.account_number || '—',
-          formatDate(row.due_date),
-          amt > 0 ? `₹${amt.toLocaleString('en-IN')}` : '—',
-          row.status || 'Unpaid',
-          row.payment_date ? formatDate(row.payment_date) : (row.status === 'Paid' ? 'Paid' : '—'),
-        ];
-      })
+      sections: [...typeSections, consolidatedSection]
     });
   };
 

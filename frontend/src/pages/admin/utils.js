@@ -79,15 +79,37 @@ export function openLegacyPrintReport({ title, subtitle, docNo, summary = [], de
       </tbody>
     ` : '';
 
+    const tableFooterHtml = (sec.footerRows && sec.footerRows.length > 0) ? `
+      <tfoot>
+        ${sec.footerRows.map(row => `
+          <tr style="border-top: 2px solid #b27f0d; background: #fffdf5; font-weight: bold; font-size: 0.84rem;">
+            ${row.map((cell, cIdx) => {
+              if (cell && typeof cell === 'object' && !Array.isArray(cell)) {
+                const align = cell.align || sec.headers[cIdx]?.align || 'left';
+                const colSpanAttr = cell.colspan ? `colspan="${cell.colspan}"` : '';
+                return `<td style="padding: 0.6rem; text-align: ${align};" ${colSpanAttr}>${cell.content ?? ''}</td>`;
+              }
+              return `<td style="padding: 0.6rem; text-align: ${sec.headers[cIdx]?.align || 'left'};">${cell ?? ''}</td>`;
+            }).join('')}
+          </tr>
+        `).join('')}
+      </tfoot>
+    ` : '';
+
     const tableHtml = (sec.headers && sec.headers.length > 0) ? `
       <table>
         ${tableHeaderHtml}
         ${tableBodyHtml}
+        ${tableFooterHtml}
       </table>
     ` : '';
 
+    const pageBreak = sec.pageBreakAfter !== undefined
+      ? (sec.pageBreakAfter ? 'always' : 'auto')
+      : (sectionsData.length > 1 && sIdx < sectionsData.length - 1 ? 'always' : 'auto');
+
     return `
-      <div style="margin-bottom: 3rem; page-break-after: ${sectionsData.length > 1 && sIdx < sectionsData.length - 1 ? 'always' : 'auto'};">
+      <div style="margin-bottom: 2.5rem; page-break-after: ${pageBreak}; break-inside: avoid; page-break-inside: avoid;">
         ${secTitleHtml}
         ${secSubtitleHtml}
         ${summaryHtml}
@@ -129,6 +151,16 @@ export function openLegacyPrintReport({ title, subtitle, docNo, summary = [], de
             <img src="${logoUrl}" alt="Avana Logo">
           </div>
         </div>
+        ${(summary && summary.length > 0 && sections) ? `
+          <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+            ${summary.map(s => `
+              <div style="background: #f9f9fb; border: 1.5px solid #d4d4d8; border-radius: 8px; padding: 0.7rem 1.2rem; flex: 1; min-width: 140px; text-align: center;">
+                <div style="font-size: 0.72rem; text-transform: uppercase; color: #52525b; font-weight: 700; letter-spacing: 0.05em;">${s.label}</div>
+                <div style="font-size: 1.15rem; font-weight: 800; color: ${s.color || '#172025'}; margin-top: 0.2rem;">${s.value}</div>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
         ${contentHtml}
         <div class="footer">
           Avana Office Admin Portal • Computer Generated Report

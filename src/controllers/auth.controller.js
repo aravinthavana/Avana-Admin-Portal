@@ -30,8 +30,8 @@ exports.login = async (req, res, next) => {
   try {
     const loginIp = req.socket.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
     
-    // Rate limit admin login max 10 attempts per IP per 15 minutes
-    if (isRateLimited(loginIp, 'admin-login', 10, 15 * 60 * 1000)) {
+    // Rate limit admin login max 60 attempts per IP per 15 minutes
+    if (isRateLimited(loginIp, 'admin-login', 60, 15 * 60 * 1000)) {
       return res.status(429).json({ error: 'Too many login attempts. Please wait 15 minutes and try again.' });
     }
 

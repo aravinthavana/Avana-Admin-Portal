@@ -9,6 +9,9 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 
+// Trust reverse proxy (Nginx / Docker) so client IPs are correctly resolved
+app.set('trust proxy', 1);
+
 // Standard middlewares
 app.use(cors());
 app.use(express.json({ limit: '2mb' })); // Body parser with 2MB limit (like legacy getRequestBody)
@@ -25,29 +28,42 @@ const purchaseRoutes = require('./routes/purchase.routes');
 
 const rateLimit = require('express-rate-limit');
 
-// Global Rate Limiter
+// Global Rate Limiter - generous for internal office SPA usage
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300, // Limit each IP to 300 requests per `window`
+  max: 2000, // Limit each IP to 2000 requests per 15 minutes (~133 req/min)
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too many requests, please try again later.' }
+  message: { error: 'Too many requests, please try again later.' },
+  validate: { trustProxy: false }
 });
 
 // Strict Rate Limiter for Auth Routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 15, // Limit each IP to 15 login/auth requests per window
+  max: 60, // Limit each IP to 60 login attempts per 15 min window (accommodates shared office NAT)
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too many authentication attempts, please try again later.' }
+  message: { error: 'Too many authentication attempts, please try again later.' },
+  validate: { trustProxy: false }
+});
+
+// Dedicated Rate Limiter for OTP Generation (prevents email bombing while allowing legitimate requests)
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30, // 30 OTP requests per 15 min per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many OTP requests. Please wait a few minutes before trying again.' },
+  validate: { trustProxy: false }
 });
 
 app.use('/api', globalLimiter);
 app.use('/api/admin/login', authLimiter);
-app.use('/api/employee/login', authLimiter);
-app.use('/api/employee/verify-otp', authLimiter);
 app.use('/api/admin/reset-password', authLimiter);
+app.use('/api/employee/verify-otp', authLimiter);
+app.use('/api/employee/login-password', authLimiter);
+app.use('/api/employee/send-otp', otpLimiter);
 
 // Public Asset Acknowledgement Routes
 const assetTrackerController = require('./controllers/asset-tracker.controller');

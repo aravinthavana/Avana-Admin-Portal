@@ -1684,6 +1684,7 @@ function AllDispatchesHistory({ onRefill }) {
               <div><strong>Requester Email:</strong> {viewDc.requesterEmail || 'N/A'}</div>
               <div><strong>Receiver Name:</strong> {viewDc.receiverName} ({viewDc.receiverPhone || 'No Phone'})</div>
               <div><strong>Destination Address:</strong> {viewDc.toAddress}</div>
+              {viewDc.ccEmails && <div><strong>CC Recipients:</strong> {viewDc.ccEmails}</div>}
               <div><strong>Transporter Name:</strong> {viewDc.transporterName || '—'}</div>
               <div><strong>Transporter Fee:</strong> ₹{viewDc.transporterAmount || 0}</div>
               <div><strong>Courier Billing:</strong> {viewDc.courierBilling || '—'}</div>
@@ -1786,6 +1787,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
       receiverName: dc.receiverName || '',
       receiverPhone: dc.receiverPhone || '',
       toAddress: dc.toAddress || '',
+      ccEmails: dc.ccEmails || '',
       declaration: !!dc.declaration,
       items: refilledItems,
       boxes: refilledBoxes,
@@ -1975,6 +1977,22 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
           errors={errors}
           userEmail={employeeEmail}
         />
+
+        <FormField
+          label="CC Email Recipients (Optional)"
+          hint="Comma-separated emails to receive a copy of the Delivery Challan (PDF) & dispatch alert"
+          htmlFor="cd-cc-emails"
+        >
+          <input
+            id="cd-cc-emails"
+            type="text"
+            autoComplete="off"
+            className="form-input"
+            placeholder="e.g. colleague@avanamedical.com, manager@avanamedical.com"
+            value={form.ccEmails || ''}
+            onChange={e => setForm(f => ({ ...f, ccEmails: e.target.value }))}
+          />
+        </FormField>
 
         <div style={{
           padding: 'var(--space-3) var(--space-4)',

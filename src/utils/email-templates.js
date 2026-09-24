@@ -498,7 +498,8 @@ const templates = {
           ${tableRow('From Address', dispatch.fromAddressText, true)}
           ${tableRow('Transporter', dispatch.transporterName || 'N/A')}
           ${tableRow('No. of Boxes', dispatch.noOfBoxes || 1, true)}
-          ${tableRow('Items Dispatched', itemsList)}
+          ${dispatch.ccEmails ? tableRow('CC Recipients', dispatch.ccEmails) : ''}
+          ${tableRow('Items Dispatched', itemsList, !dispatch.ccEmails)}
         </table>
         <p style="margin: 20px 0 0 0; font-size: 13px; color: #6b7280; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 16px;">
           Please print this copy or note down the DC number for your records. The Admin team has been notified.
@@ -524,6 +525,7 @@ const templates = {
           ${tableRow('Receiver', `${dispatch.receiverName} - ${dispatch.toAddress}`)}
           ${tableRow('Transporter', dispatch.transporterName || 'N/A', true)}
           ${tableRow('No. of Boxes', dispatch.noOfBoxes || 1)}
+          ${dispatch.ccEmails ? tableRow('CC Recipients', dispatch.ccEmails, true) : ''}
         </table>
         ${actionButton('View in Admin Dashboard', `${host}/admin-login`, '#4f46e5')}
       `,

@@ -6,6 +6,17 @@ const { sendEmail } = require('../utils/notifications');
 const { templates } = require('../utils/email-templates');
 const pdfGenerator = require('../utils/courier_pdf_generator');
 
+// Ensure ccEmails column exists in SQLite table
+async function ensureCcEmailsColumn() {
+  try {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "CourierDispatch" ADD COLUMN "ccEmails" TEXT;`);
+    console.log('[Courier] Added ccEmails column to CourierDispatch table.');
+  } catch (e) {
+    // Ignore error if column already exists
+  }
+}
+ensureCcEmailsColumn();
+
 // Seed legacy courier_dispatches.json if table is empty
 async function ensureLegacyDispatchesMigrated() {
   try {
@@ -130,6 +141,9 @@ exports.createDispatch = async (data, requesterEmail, host) => {
     };
   });
 
+  const rawCc = data.ccEmails || data.cc || '';
+  const ccEmails = rawCc ? String(rawCc).replace(/;/g, ',').split(',').map(s => s.trim()).filter(Boolean).join(', ') : null;
+
   const created = await prisma.courierDispatch.create({
     data: {
       dcNo,
@@ -153,6 +167,7 @@ exports.createDispatch = async (data, requesterEmail, host) => {
       weight: data.weight || '',
       status: 'approved',
       requesterEmail: requesterEmail || data.requesterEmail || '',
+      ccEmails: ccEmails || null,
       submittedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       items: {
@@ -164,6 +179,7 @@ exports.createDispatch = async (data, requesterEmail, host) => {
 
   created.declaration = data.declaration || false;
   created.isFragile = data.isFragile || false;
+  created.ccEmails = ccEmails;
 
   // Send Emails
   try {
@@ -176,10 +192,19 @@ exports.createDispatch = async (data, requesterEmail, host) => {
         { filename: `Address_Label_${created.dcNo}.pdf`, content: Buffer.from(labelBytes), contentType: 'application/pdf' }
       ];
 
-      // 1. Separate confirmation email to Employee (NO CC to aravinth)
-      if (requesterEmail) {
+      // 1. Separate confirmation email to Employee + CC to additional emails
+      const recipient = requesterEmail || data.requesterEmail;
+      if (recipient) {
         await sendEmail({
-          to: requesterEmail,
+          to: recipient,
+          cc: ccEmails || undefined,
+          subject: `Delivery Challan #${created.dcNo} Generated`,
+          htmlBody: templates.courierDispatchSubmission(created),
+          attachments
+        });
+      } else if (ccEmails) {
+        await sendEmail({
+          to: ccEmails,
           subject: `Delivery Challan #${created.dcNo} Generated`,
           htmlBody: templates.courierDispatchSubmission(created),
           attachments
@@ -311,6 +336,7 @@ exports.updateTrackingInfo = async (id, data) => {
       for (const email of [...new Set(recipients)]) {
         await sendEmail({ 
           to: email, 
+          cc: dispatch.ccEmails || undefined,
           subject: `Courier Dispatched - DC #${updated.dcNo}`, 
           htmlBody: emailContent,
           attachments: attachments.length > 0 ? attachments : undefined
@@ -435,6 +461,9 @@ exports.updateDispatch = async (id, data, requesterEmail, host) => {
 
   await prisma.courierDispatchItem.deleteMany({ where: { dispatchId: id } });
 
+  const rawCc = data.ccEmails !== undefined ? data.ccEmails : data.cc;
+  const ccEmails = rawCc !== undefined ? (rawCc ? String(rawCc).replace(/;/g, ',').split(',').map(s => s.trim()).filter(Boolean).join(', ') : null) : undefined;
+
   const updated = await prisma.courierDispatch.update({
     where: { id },
     data: {
@@ -455,6 +484,7 @@ exports.updateDispatch = async (id, data, requesterEmail, host) => {
       totalAmount,
       dimensions: data.boxes ? JSON.stringify(data.boxes) : (data.dimensions || ''),
       weight: data.weight || '',
+      ...(ccEmails !== undefined ? { ccEmails } : {}),
       updatedAt: new Date().toISOString(),
       items: {
         create: itemsData
@@ -477,9 +507,11 @@ exports.updateDispatch = async (id, data, requesterEmail, host) => {
     ];
 
     const { sendEmail } = require('../utils/notifications');
-    if (requesterEmail) {
+    const recipient = requesterEmail || updated.requesterEmail;
+    if (recipient) {
       await sendEmail({
-        to: requesterEmail,
+        to: recipient,
+        cc: updated.ccEmails || undefined,
         subject: `Delivery Challan Updated - #${updated.dcNo}`,
         htmlBody: `<p>Your Delivery Challan #${updated.dcNo} has been successfully updated.</p>`,
         attachments

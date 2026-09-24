@@ -756,6 +756,7 @@ export function CourierDispatchPage() {
     receiverPhone: '',
     toAddressSelection: 'other',
     toAddress: '',
+    ccEmails: '',
     transporterName: 'Dexpress',
     docketNo: '',
     transporterAmount: '',
@@ -964,6 +965,18 @@ export function CourierDispatchPage() {
               </div>
             </div>
 
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <FormField label="CC Email Recipients (Optional)" hint="Comma-separated emails to receive a copy of the Delivery Challan (PDF) & dispatch alert">
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. colleague@avanamedical.com, manager@avanamedical.com"
+                  value={addForm.ccEmails || ''}
+                  onChange={e => setAddForm(f => ({ ...f, ccEmails: e.target.value }))}
+                />
+              </FormField>
+            </div>
+
             <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-2)' }}>📦 Dispatched Items</h4>
             {addForm.items.map((it, idx) => (
               <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1137,6 +1150,7 @@ export function CourierDispatchPage() {
           { label: 'From Address', value: d.fromAddressText || '—' },
           { label: 'Consignee Name', value: d.receiverName + (d.receiverPhone ? ' ('+d.receiverPhone+')' : '') },
           { label: 'Delivery Address', value: d.toAddress || '—' },
+          ...(d.ccEmails ? [{ label: 'CC Recipients', value: d.ccEmails }] : []),
           { label: 'Category', value: d.remarksType + (d.remarksOther ? ' - '+d.remarksOther : '') },
           { label: 'Transporter', value: d.transporterName || '—' },
           { label: 'Docket No', value: d.docketNo || '—' },
@@ -1302,13 +1316,14 @@ export function CourierDispatchPage() {
                                 receiverPhone: d.receiverPhone || '',
                                 toAddressSelection: 'other',
                                 toAddress: d.toAddress || '',
+                                ccEmails: d.ccEmails || '',
                                 transporterName: d.transporterName || '',
                                 docketNo: d.docketNo || '',
                                 transporterAmount: d.transporterAmount || '',
                                 items: d.items && d.items.length > 0 ? d.items : [{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }],
                                 declaration: !!d.declaration
                               });
-                              setModalOpen(true);
+                              setAddModalOpen(true);
                               toast.info(`🔄 Recalled DC #${d.dcNo}! All form fields populated.`);
                             }}
                           >

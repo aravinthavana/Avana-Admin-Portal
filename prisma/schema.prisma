@@ -224,6 +224,7 @@ model CourierDispatch {
   updatedAt         String
   parentDispatchId  String?
   mergedRequesters  String?
+  ccEmails          String?
   items             CourierDispatchItem[]
   mergeRequests     CourierMergeRequest[]
 }

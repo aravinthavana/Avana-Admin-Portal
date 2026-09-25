@@ -138,7 +138,7 @@ exports.getCounts = async (req, res, next) => {
 exports.updateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, resolution, category, rejectionReason, approvalRemarks } = req.body;
+    const { status, resolution, category, rejectionReason, approvalRemarks, fulfilledItems, unfulfilledItems } = req.body;
     if (!id || !status) {
       return res.status(400).json({ error: 'Missing ID or status.' });
     }
@@ -188,6 +188,32 @@ exports.updateStatus = async (req, res, next) => {
       request.resolution = `Rejected: ${rejectionReason}`;
     }
 
+    if (status === 'completed' && (request.category === 'stationery' || request.category === 'hk_material')) {
+      if (Array.isArray(unfulfilledItems) && unfulfilledItems.length > 0) {
+        const unfulfilledText = 'Unfulfilled / Out of stock: ' + unfulfilledItems.map(u => `${u.name || u.item} (Qty: ${u.qty || u.quantity || 1})`).join(', ');
+        request.resolution = request.resolution ? `${request.resolution} | ${unfulfilledText}` : unfulfilledText;
+      }
+      if (Array.isArray(fulfilledItems)) {
+        let reqItems = [];
+        if (request.items) {
+          reqItems = typeof request.items === 'string' ? JSON.parse(request.items) : request.items;
+        }
+        if (Array.isArray(reqItems)) {
+          const fulfilledNames = new Map(fulfilledItems.map(f => [(f.name || f.item || '').trim().toLowerCase(), parseInt(f.qty || f.quantity || 0, 10)]));
+          reqItems = reqItems.map(it => {
+            const key = (it.name || it.item || '').trim().toLowerCase();
+            const isFulfilled = fulfilledNames.has(key);
+            return {
+              ...it,
+              fulfilled: isFulfilled,
+              fulfilledQty: isFulfilled ? fulfilledNames.get(key) : 0
+            };
+          });
+          request.items = JSON.stringify(reqItems);
+        }
+      }
+    }
+
     if (await helpdeskService.saveRequest(request)) {
       const host = req.headers.origin || (req.protocol + '://' + req.get('host'));
       if (status === 'completed') {
@@ -198,23 +224,41 @@ exports.updateStatus = async (req, res, next) => {
           try {
             const inventoryService = require('../services/inventory.service');
             const prisma = require('../config/db');
-            let items = [];
-            if (request.items) {
-              items = typeof request.items === 'string' ? JSON.parse(request.items) : request.items;
+            
+            let itemsToDeduct = [];
+            if (Array.isArray(fulfilledItems)) {
+              itemsToDeduct = fulfilledItems;
+            } else if (request.items) {
+              const parsed = typeof request.items === 'string' ? JSON.parse(request.items) : request.items;
+              if (Array.isArray(parsed)) itemsToDeduct = parsed;
             }
-            if (Array.isArray(items) && items.length > 0) {
-              for (const it of items) {
-                const name = it.item || it.name;
+
+            if (itemsToDeduct.length > 0) {
+              for (const it of itemsToDeduct) {
+                const name = (it.item || it.name || '').trim();
                 const qty = parseInt(it.quantity || it.qty || 1, 10);
                 if (!name || isNaN(qty) || qty <= 0) continue;
 
                 // Determine the correct category for this specific item:
                 let itemType = 'housekeeping';
                 if (request.category === 'stationery') {
-                  const existingItem = await prisma.inventoryItem.findFirst({
-                    where: { name, category: { in: ['stationery', 'printing'] } }
-                  });
-                  itemType = existingItem?.category === 'printing' ? 'printing' : 'stationery';
+                  if (it.type === 'printing' || it.type === 'stationery') {
+                    itemType = it.type;
+                  } else {
+                    const existingItem = await prisma.inventoryItem.findFirst({
+                      where: { name, category: { in: ['stationery', 'printing'] } }
+                    });
+                    if (existingItem) {
+                      itemType = existingItem.category;
+                    } else {
+                      // Case-insensitive fallback
+                      const allCatItems = await prisma.inventoryItem.findMany({
+                        where: { category: { in: ['stationery', 'printing'] } }
+                      });
+                      const match = allCatItems.find(x => x.name.trim().toLowerCase() === name.toLowerCase());
+                      itemType = match?.category === 'printing' ? 'printing' : 'stationery';
+                    }
+                  }
                 }
 
                 const stock = await inventoryService.getStock(itemType);

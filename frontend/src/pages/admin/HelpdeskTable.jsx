@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import {
-  helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi,
+  helpdeskApi, stationeryApi, housekeepingApi, printingApi, amcApi, utilityApi, taxApi, adminApi,
   assetTrackerApi, courierApi, pettyCashApi, travelApi, billWarrantyApi, otherStockApi, remindersApi,
 } from '../../lib/api';
 import {
@@ -153,9 +153,12 @@ export function HelpdeskTable({ categoryFilter }) {
   const [approveBookingId, setApproveBookingId] = useState(null);
   const [approvalRemarks, setApprovalRemarks] = useState('');
   const [approveCategory, setApproveCategory] = useState('');
-  const [completeRequestId, setCompleteRequestId] = useState(null);
-  const [completeCategory, setCompleteCategory] = useState('');
+  const [completeRequest, setCompleteRequest] = useState(null);
+  const [fulfillmentItems, setFulfillmentItems] = useState([]);
+  const [stockMap, setStockMap] = useState({});
+  const [loadingStock, setLoadingStock] = useState(false);
   const [completionRemarks, setCompletionRemarks] = useState('');
+  const [submittingComplete, setSubmittingComplete] = useState(false);
   const [conferenceTab, setConferenceTab] = useState('upcoming'); // 'upcoming' | 'completed' | 'all'
 
   const fetchRequests = useCallback(async () => {
@@ -323,6 +326,158 @@ export function HelpdeskTable({ categoryFilter }) {
       }
       return null;
     } catch { return null; }
+  }
+
+  async function openCompleteModal(req) {
+    setCompleteRequest(req);
+    setCompletionRemarks('');
+    const rawItems = parseItems(req.items);
+
+    if (rawItems.length > 0) {
+      setLoadingStock(true);
+      try {
+        let fetchedStock = {};
+        let pStock = {};
+        if (req.category === 'hk_material') {
+          fetchedStock = await housekeepingApi.getStock().catch(() => ({}));
+        } else {
+          const [sStock, printingStock] = await Promise.all([
+            stationeryApi.getStock().catch(() => ({})),
+            printingApi.getStock().catch(() => ({})),
+          ]);
+          pStock = printingStock || {};
+          fetchedStock = { ...(sStock || {}), ...pStock };
+        }
+        setStockMap(fetchedStock || {});
+
+        const itemsState = rawItems.map(it => {
+          const name = it.name || it.item || '';
+          const reqQty = parseInt(it.qty || it.quantity || 1, 10);
+          const currentStock = fetchedStock[name] !== undefined ? fetchedStock[name] : null;
+          const isPrinting = it.type === 'printing' || (req.category === 'stationery' && pStock && pStock[name] !== undefined);
+          const isHk = req.category === 'hk_material' || it.type === 'housekeeping';
+          const type = isHk ? 'housekeeping' : (isPrinting ? 'printing' : 'stationery');
+
+          return {
+            name,
+            requestedQty: isNaN(reqQty) ? 1 : reqQty,
+            fulfilledQty: isNaN(reqQty) ? 1 : reqQty,
+            checked: true,
+            currentStock,
+            type,
+          };
+        });
+        setFulfillmentItems(itemsState);
+      } catch (err) {
+        console.error('Failed to load stock data for fulfillment:', err);
+        setFulfillmentItems(rawItems.map(it => ({
+          name: it.name || it.item || '',
+          requestedQty: parseInt(it.qty || it.quantity || 1, 10) || 1,
+          fulfilledQty: parseInt(it.qty || it.quantity || 1, 10) || 1,
+          checked: true,
+          currentStock: null,
+          type: it.type || (req.category === 'hk_material' ? 'housekeeping' : 'stationery'),
+        })));
+      } finally {
+        setLoadingStock(false);
+      }
+    } else {
+      setFulfillmentItems([]);
+      setStockMap({});
+    }
+  }
+
+  function toggleFulfillItem(idx) {
+    setFulfillmentItems(prev => prev.map((item, i) => {
+      if (i !== idx) return item;
+      const nextChecked = !item.checked;
+      return {
+        ...item,
+        checked: nextChecked,
+        fulfilledQty: nextChecked ? item.requestedQty : 0,
+      };
+    }));
+  }
+
+  function updateFulfillQty(idx, val) {
+    const parsed = parseInt(val, 10);
+    setFulfillmentItems(prev => prev.map((item, i) => {
+      if (i !== idx) return item;
+      return {
+        ...item,
+        fulfilledQty: isNaN(parsed) ? 0 : parsed,
+      };
+    }));
+  }
+
+  function checkAllItems(checked) {
+    setFulfillmentItems(prev => prev.map(item => ({
+      ...item,
+      checked,
+      fulfilledQty: checked ? item.requestedQty : 0,
+    })));
+  }
+
+  async function submitCompletion() {
+    if (!completeRequest) return;
+    setSubmittingComplete(true);
+
+    try {
+      let fulfilledList = undefined;
+      let unfulfilledList = undefined;
+
+      if (fulfillmentItems.length > 0) {
+        fulfilledList = [];
+        unfulfilledList = [];
+
+        fulfillmentItems.forEach(it => {
+          if (it.checked && it.fulfilledQty > 0) {
+            fulfilledList.push({
+              name: it.name,
+              qty: it.fulfilledQty,
+              requestedQty: it.requestedQty,
+              type: it.type,
+            });
+            if (it.fulfilledQty < it.requestedQty) {
+              unfulfilledList.push({
+                name: it.name,
+                qty: it.requestedQty - it.fulfilledQty,
+                reason: 'Partially fulfilled',
+              });
+            }
+          } else {
+            unfulfilledList.push({
+              name: it.name,
+              qty: it.requestedQty,
+              reason: 'Not fulfilled / Out of stock',
+            });
+          }
+        });
+      }
+
+      await helpdeskApi.updateStatus(
+        completeRequest.id,
+        'completed',
+        completionRemarks || undefined,
+        completeRequest.category,
+        undefined,
+        undefined,
+        fulfilledList,
+        unfulfilledList
+      );
+
+      toast.success('Request completed successfully! ✅');
+      setRequests(prev => {
+        const updated = prev.map(r => r.id === completeRequest.id ? { ...r, status: 'completed' } : r);
+        setPendingCount(updated.filter(r => (r.status || '').toLowerCase() === 'pending').length);
+        return updated;
+      });
+      setCompleteRequest(null);
+    } catch (err) {
+      toast.error(err.message || 'Failed to complete request');
+    } finally {
+      setSubmittingComplete(false);
+    }
   }
 
   const label = categoryFilter ? CATEGORY_LABELS[categoryFilter] || categoryFilter : 'All';
@@ -589,7 +744,7 @@ export function HelpdeskTable({ categoryFilter }) {
                             <>
                               <button type="button" className="btn btn--sm btn--secondary"
                                 title="Mark Complete"
-                                onClick={() => { setCompleteRequestId(r.id); setCompleteCategory(r.category); setCompletionRemarks(''); }}
+                                onClick={() => openCompleteModal(r)}
                                 aria-label="Mark as completed">
                                 ✅ Complete
                               </button>
@@ -702,35 +857,273 @@ export function HelpdeskTable({ categoryFilter }) {
       </Modal>
 
       <Modal
-        isOpen={!!completeRequestId}
-        onClose={() => setCompleteRequestId(null)}
-        title="Complete Service Request"
+        isOpen={!!completeRequest}
+        onClose={() => { if (!submittingComplete) setCompleteRequest(null); }}
+        title={fulfillmentItems.length > 0 ? "📦 Fulfill & Complete Service Request" : "✅ Complete Service Request"}
+        size={fulfillmentItems.length > 0 ? "lg" : ""}
         footer={
           <>
-            <button type="button" className="btn btn--secondary" onClick={() => setCompleteRequestId(null)}>Cancel</button>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => setCompleteRequest(null)}
+              disabled={submittingComplete}
+            >
+              Cancel
+            </button>
             <button
               type="button"
               className="btn btn--primary"
-              onClick={() => {
-                handleStatus(completeRequestId, 'completed', completeCategory, undefined, completionRemarks);
-                setCompleteRequestId(null);
-              }}
+              onClick={submitCompletion}
+              disabled={submittingComplete || loadingStock}
             >
-              Confirm Complete
+              {submittingComplete ? <Spinner size="sm" /> : 'Confirm Complete'}
             </button>
           </>
         }
       >
-        <FormField label="Resolution Remarks (Optional)" htmlFor="hd-comp-remarks">
-          <textarea
-            id="hd-comp-remarks"
-            className="form-textarea"
-            rows={3}
-            placeholder="e.g., Issue resolved, items delivered, etc..."
-            value={completionRemarks}
-            onChange={e => setCompletionRemarks(e.target.value)}
-          />
-        </FormField>
+        {completeRequest && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            {/* Requester Summary */}
+            <div style={{
+              background: 'var(--color-surface-alt, #f8fafc)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md, 8px)',
+              padding: '10px 14px',
+              fontSize: '0.85rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '8px'
+            }}>
+              <div>
+                <strong>#{String(completeRequest.id).slice(0, 8).toUpperCase()}</strong>
+                <span style={{ margin: '0 8px', color: 'var(--color-text-muted)' }}>•</span>
+                <span>{completeRequest.name || completeRequest.requester_name || 'Requester'}</span>
+                {(completeRequest.location || completeRequest.floor) && (
+                  <>
+                    <span style={{ margin: '0 8px', color: 'var(--color-text-muted)' }}>•</span>
+                    <span>📍 {completeRequest.location || completeRequest.floor}</span>
+                  </>
+                )}
+              </div>
+              <span style={{
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                padding: '2px 8px',
+                borderRadius: '12px',
+                background: 'var(--color-info-bg)',
+                color: 'var(--color-info)',
+                border: '1px solid var(--color-info-border)'
+              }}>
+                {CATEGORY_LABELS[completeRequest.category] || completeRequest.category}
+              </span>
+            </div>
+
+            {loadingStock ? (
+              <div style={{ textAlign: 'center', padding: 'var(--space-4)' }}>
+                <Spinner size="sm" />
+                <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: 8 }}>
+                  Loading inventory stock...
+                </div>
+              </div>
+            ) : fulfillmentItems.length > 0 ? (
+              <div>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '8px'
+                }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                    Select Items to Fulfill ({fulfillmentItems.filter(i => i.checked).length} of {fulfillmentItems.length} selected):
+                  </label>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      type="button"
+                      className="btn btn--sm btn--secondary"
+                      style={{ padding: '2px 8px', fontSize: '0.75rem' }}
+                      onClick={() => checkAllItems(true)}
+                    >
+                      ✓ Select All
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn--sm btn--secondary"
+                      style={{ padding: '2px 8px', fontSize: '0.75rem' }}
+                      onClick={() => checkAllItems(false)}
+                    >
+                      ✕ Deselect All
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md, 8px)',
+                  overflow: 'hidden',
+                  marginBottom: '10px'
+                }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--color-surface-alt, #f8fafc)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
+                        <th style={{ padding: '8px 10px', width: '40px', textAlign: 'center' }}>Fulfill</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'left' }}>Item Name</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', width: '120px' }}>In Stock</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', width: '80px' }}>Req. Qty</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', width: '90px' }}>Fulfill Qty</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fulfillmentItems.map((item, idx) => {
+                        const inStock = item.currentStock;
+                        const hasStockInfo = inStock !== null && inStock !== undefined;
+                        const isZeroStock = hasStockInfo && inStock <= 0;
+                        const isUnderStock = hasStockInfo && inStock < item.requestedQty;
+
+                        return (
+                          <tr
+                            key={idx}
+                            style={{
+                              borderBottom: idx < fulfillmentItems.length - 1 ? '1px solid var(--color-border-light, #f1f5f9)' : 'none',
+                              background: !item.checked ? 'rgba(0,0,0,0.02)' : (isZeroStock ? 'rgba(239, 68, 68, 0.04)' : 'transparent'),
+                              opacity: !item.checked ? 0.6 : 1,
+                              transition: 'background 0.2s',
+                            }}
+                          >
+                            <td style={{ padding: '8px 10px', textAlign: 'center', verticalAlign: 'middle' }}>
+                              <input
+                                type="checkbox"
+                                checked={item.checked}
+                                onChange={() => toggleFulfillItem(idx)}
+                                style={{ accentColor: 'var(--brand-amber, #b27f0d)', cursor: 'pointer', transform: 'scale(1.15)' }}
+                              />
+                            </td>
+                            <td style={{ padding: '8px 10px', verticalAlign: 'middle' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                <span style={{ fontWeight: 600, color: item.checked ? 'var(--color-text)' : 'var(--color-text-muted)', textDecoration: item.checked ? 'none' : 'line-through' }}>
+                                  {item.name}
+                                </span>
+                                <span style={{
+                                  fontSize: '0.7rem',
+                                  fontWeight: 600,
+                                  padding: '1px 6px',
+                                  borderRadius: '8px',
+                                  background: item.type === 'printing' ? 'rgba(124, 58, 237, 0.12)' : (item.type === 'housekeeping' ? 'rgba(5, 150, 105, 0.12)' : 'rgba(217, 119, 6, 0.12)'),
+                                  color: item.type === 'printing' ? '#7c3aed' : (item.type === 'housekeeping' ? '#059669' : '#b27f0d'),
+                                }}>
+                                  {item.type === 'printing' ? '🖨️ Printing' : (item.type === 'housekeeping' ? '🧹 Housekeeping' : '✏️ Stationery')}
+                                </span>
+                              </div>
+                              {!item.checked && (
+                                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontStyle: 'italic', display: 'block', marginTop: '2px' }}>
+                                  (Skipped — will NOT be deducted from stock)
+                                </span>
+                              )}
+                              {item.checked && isZeroStock && (
+                                <span style={{ fontSize: '0.72rem', color: 'var(--color-danger, #dc2626)', fontWeight: 600, display: 'block', marginTop: '2px' }}>
+                                  ⚠️ Stock is 0 in inventory. Uncheck if you don't have this item!
+                                </span>
+                              )}
+                            </td>
+                            <td style={{ padding: '8px 10px', textAlign: 'center', verticalAlign: 'middle' }}>
+                              {hasStockInfo ? (
+                                <span style={{
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600,
+                                  padding: '2px 8px',
+                                  borderRadius: '10px',
+                                  background: isZeroStock ? 'rgba(220, 38, 38, 0.12)' : (isUnderStock ? 'rgba(217, 119, 6, 0.12)' : 'rgba(22, 163, 74, 0.12)'),
+                                  color: isZeroStock ? 'var(--color-danger, #dc2626)' : (isUnderStock ? 'var(--color-warning, #d97706)' : 'var(--color-success, #16a34a)'),
+                                }}>
+                                  {isZeroStock ? '0 (Out)' : inStock}
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>—</span>
+                              )}
+                            </td>
+                            <td style={{ padding: '8px 10px', textAlign: 'center', verticalAlign: 'middle', fontWeight: 600 }}>
+                              {item.requestedQty}
+                            </td>
+                            <td style={{ padding: '8px 10px', textAlign: 'center', verticalAlign: 'middle' }}>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                disabled={!item.checked}
+                                className="form-input"
+                                style={{
+                                  width: '60px',
+                                  padding: '3px 6px',
+                                  textAlign: 'center',
+                                  fontSize: '0.85rem',
+                                  opacity: item.checked ? 1 : 0.4,
+                                }}
+                                value={item.fulfilledQty}
+                                onChange={e => {
+                                  const val = e.target.value.replace(/\D/g, '');
+                                  updateFulfillQty(idx, val);
+                                }}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Banner notice */}
+                {fulfillmentItems.some(i => !i.checked) ? (
+                  <div style={{
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    background: 'rgba(217, 119, 6, 0.1)',
+                    border: '1px solid rgba(217, 119, 6, 0.25)',
+                    color: '#92400e',
+                    fontSize: '0.8rem',
+                    marginBottom: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <span>⚠️</span>
+                    <span>
+                      <strong>{fulfillmentItems.filter(i => !i.checked).length} item(s) unchecked:</strong> These items will <strong>NOT</strong> be deducted from inventory and will be reported as unfulfilled.
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    background: 'rgba(22, 163, 74, 0.08)',
+                    border: '1px solid rgba(22, 163, 74, 0.2)',
+                    color: '#166534',
+                    fontSize: '0.8rem',
+                    marginBottom: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <span>✓</span>
+                    <span>All requested items will be fulfilled and deducted from stock.</span>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            <FormField label="Resolution Remarks (Optional)" htmlFor="hd-comp-remarks">
+              <textarea
+                id="hd-comp-remarks"
+                className="form-textarea"
+                rows={2}
+                placeholder="e.g., Items dispatched, partial delivery, etc..."
+                value={completionRemarks}
+                onChange={e => setCompletionRemarks(e.target.value)}
+              />
+            </FormField>
+          </div>
+        )}
       </Modal>
 
       {/* ── Details Preview Modal ── */}
@@ -911,15 +1304,43 @@ export function HelpdeskTable({ categoryFilter }) {
                           </tr>
                         </thead>
                         <tbody>
-                          {itemsList.map((i, idx) => (
-                            <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                              <td style={{ padding: '6px 8px' }}>
-                                {i.item || i.name || 'Item'}
-                                {i.remarks && <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', display: 'block' }}>{i.remarks}</span>}
-                              </td>
-                              <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600 }}>{i.qty || i.quantity || 1}</td>
-                            </tr>
-                          ))}
+                          {itemsList.map((i, idx) => {
+                            const itemName = i.item || i.name || 'Item';
+                            const itemType = i.type;
+                            return (
+                              <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                <td style={{ padding: '6px 8px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                    <span style={{ fontWeight: 500 }}>{itemName}</span>
+                                    {itemType && (
+                                      <span style={{
+                                        fontSize: '0.7rem',
+                                        fontWeight: 600,
+                                        padding: '1px 6px',
+                                        borderRadius: '8px',
+                                        background: itemType === 'printing' ? 'rgba(124, 58, 237, 0.12)' : (itemType === 'housekeeping' ? 'rgba(5, 150, 105, 0.12)' : 'rgba(217, 119, 6, 0.12)'),
+                                        color: itemType === 'printing' ? '#7c3aed' : (itemType === 'housekeeping' ? '#059669' : '#b27f0d'),
+                                      }}>
+                                        {itemType === 'printing' ? '🖨️ Printing' : (itemType === 'housekeeping' ? '🧹 Housekeeping' : '✏️ Stationery')}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {i.fulfilled === false && (
+                                    <div style={{ color: 'var(--color-danger, #dc2626)', fontSize: '0.75rem', fontWeight: 600, marginTop: '2px' }}>
+                                      ❌ Unfulfilled / Out of stock
+                                    </div>
+                                  )}
+                                  {i.fulfilled === true && (
+                                    <div style={{ color: 'var(--color-success, #16a34a)', fontSize: '0.75rem', fontWeight: 600, marginTop: '2px' }}>
+                                      ✅ Fulfilled: {i.fulfilledQty ?? (i.qty || i.quantity || 1)}
+                                    </div>
+                                  )}
+                                  {i.remarks && <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', display: 'block' }}>{i.remarks}</span>}
+                                </td>
+                                <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600 }}>{i.qty || i.quantity || 1}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>

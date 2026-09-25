@@ -10,18 +10,12 @@ exports.getStock = async (type) => {
 };
 
 exports.saveStock = async (type, stockMap) => {
-  const otherCategory = type === 'printing' ? 'stationery' : (type === 'stationery' ? 'printing' : null);
   for (const [name, qty] of Object.entries(stockMap)) {
     const item = await prisma.inventoryItem.findFirst({ where: { name, category: type } });
     if (item) {
       await prisma.inventoryItem.update({ where: { id: item.id }, data: { currentStock: qty, updatedAt: new Date().toISOString() } });
     } else {
       await prisma.inventoryItem.create({ data: { name, category: type, currentStock: qty, updatedAt: new Date().toISOString() } });
-    }
-    if (otherCategory) {
-      await prisma.inventoryItem.deleteMany({
-        where: { name, category: otherCategory }
-      });
     }
   }
   return true;

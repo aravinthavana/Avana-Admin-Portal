@@ -401,7 +401,7 @@ function RequestTracker() {
 }
 
 /* ─── Item Selector (multi-item with quantity & stock validation) ─── */
-function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Select items' }) {
+function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Select items', itemType = null }) {
   const [search, setSearch] = useState('');
 
   function toggleItem(item) {
@@ -413,7 +413,7 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
     if (exists) {
       onChange(selected.filter(s => s.name !== item));
     } else {
-      onChange([...selected, { name: item, qty: 1 }]);
+      onChange([...selected, { name: item, qty: 1, ...(itemType ? { type: itemType } : {}) }]);
     }
   }
 
@@ -532,7 +532,21 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
                 return (
                   <tr key={sel.name} style={{ borderBottom: '1px solid var(--color-border-light)' }}>
                     <td style={{ padding: 'var(--space-2)' }}>
-                      <div style={{ fontWeight: 500 }}>{sel.name}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                        <span>{sel.name}</span>
+                        {sel.type && (
+                          <span style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            padding: '1px 6px',
+                            borderRadius: '10px',
+                            background: sel.type === 'printing' ? 'rgba(124, 58, 237, 0.12)' : (sel.type === 'housekeeping' ? 'rgba(5, 150, 105, 0.12)' : 'rgba(217, 119, 6, 0.12)'),
+                            color: sel.type === 'printing' ? '#7c3aed' : (sel.type === 'housekeeping' ? '#059669' : '#b27f0d'),
+                          }}>
+                            {sel.type === 'printing' ? '🖨️ Printing' : (sel.type === 'housekeeping' ? '🧹 Housekeeping' : '✏️ Stationery')}
+                          </span>
+                        )}
+                      </div>
                       {isOverStock && (
                         <div style={{ color: 'var(--color-danger)', fontSize: '0.78rem', fontWeight: 600, marginTop: '3px' }}>
                           ⚠️ Low stock, order below the available stock (Available: {available})
@@ -706,6 +720,7 @@ function HkMaterialForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }
             items={HK_ITEMS}
             selected={selectedItems}
             stockMap={hkStock}
+            itemType="housekeeping"
             onChange={items => setForm(f => ({ ...f, items }))}
             label="Select Items (required)"
           />
@@ -773,6 +788,7 @@ function StationeryForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }
             items={displayItems}
             selected={selectedItems}
             stockMap={stockMap}
+            itemType={tab}
             onChange={items => setForm(f => ({ ...f, items, item_type: tab }))}
             label="Select Items (required)"
           />

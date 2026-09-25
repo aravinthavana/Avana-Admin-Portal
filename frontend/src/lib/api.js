@@ -160,10 +160,10 @@ export const helpdeskApi = {
   getAll: () =>
     request('/helpdesk', {}, 'admin'),
 
-  updateStatus: (id, status, resolution, category, rejectionReason, approvalRemarks) =>
+  updateStatus: (id, status, resolution, category, rejectionReason, approvalRemarks, fulfilledItems, unfulfilledItems) =>
     request(`/helpdesk/${id}/status`, {
       method: 'PATCH',
-      body: JSON.stringify({ status, resolution, category, rejectionReason, approvalRemarks }),
+      body: JSON.stringify({ status, resolution, category, rejectionReason, approvalRemarks, fulfilledItems, unfulfilledItems }),
     }, 'admin'),
 
   delete: (id) =>

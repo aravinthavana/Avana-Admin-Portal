@@ -1,6 +1,5 @@
 const env = require('../config/env');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/db');
 const xlsx = require('xlsx');
 const { templates } = require('../utils/email-templates');
 const { sendEmail } = require('./helpdesk.service'); // we'll check how emails are sent
@@ -29,22 +28,37 @@ const sendMail = async (options) => {
     }
 };
 
-const generateRequestId = async () => {
+const generateRequestId = async (offset = 0) => {
     const year = new Date().getFullYear();
-    const count = await prisma.purchaseRequest.count({
+    const prefix = `PUR-${year}-`;
+    const records = await prisma.purchaseRequest.findMany({
         where: {
             requestId: {
-                startsWith: `PUR-${year}-`
+                startsWith: prefix
             }
+        },
+        select: {
+            requestId: true
         }
     });
-    const nextNum = (count + 1).toString().padStart(4, '0');
-    return `PUR-${year}-${nextNum}`;
+
+    let maxNum = 0;
+    for (const r of records) {
+        if (!r.requestId) continue;
+        const match = r.requestId.match(new RegExp(`^PUR-${year}-(\\d+)`));
+        if (match) {
+            const num = parseInt(match[1], 10);
+            if (!isNaN(num) && num > maxNum) {
+                maxNum = num;
+            }
+        }
+    }
+
+    const nextNum = (maxNum + 1 + offset).toString().padStart(4, '0');
+    return `${prefix}${nextNum}`;
 };
 
 const createPurchaseRequest = async (data) => {
-    const requestId = await generateRequestId();
-    
     let unitAmount = parseFloat(data.unitAmount);
     if (isNaN(unitAmount)) unitAmount = 0;
 
@@ -86,31 +100,44 @@ const createPurchaseRequest = async (data) => {
 
     const requestedBy = data.requestedBy || env.ADMIN_EMAIL || 'karthicksankar@avanamedical.com';
 
-    const request = await prisma.purchaseRequest.create({
-        data: {
-            itemsJson: data.itemsJson || null,
-            requestId,
-            itemName: itemName || 'Purchase Item',
-            quantity,
-            unitAmount,
-            hasGst: Boolean(hasGst),
-            gstPercentage,
-            gstAmount,
-            finalAmount,
-            modeOfPurchase: data.modeOfPurchase || 'Others',
-            storeName: data.storeName || null,
-            purchaseLink: data.purchaseLink || null,
-            itemImage: data.itemImage || null,
-            reason: data.reason || 'Purchase Request',
-            approvalPersonEmail: data.approvalPersonEmail,
-            requestedBy,
-            status: 'Pending Approval',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+    let request = null;
+    let attempts = 0;
+    while (attempts < 10) {
+        const requestId = await generateRequestId(attempts);
+        attempts++;
+        try {
+            request = await prisma.purchaseRequest.create({
+                data: {
+                    itemsJson: data.itemsJson || null,
+                    requestId,
+                    itemName: itemName || 'Purchase Item',
+                    quantity,
+                    unitAmount,
+                    hasGst: Boolean(hasGst),
+                    gstPercentage,
+                    gstAmount,
+                    finalAmount,
+                    modeOfPurchase: data.modeOfPurchase || 'Others',
+                    storeName: data.storeName || null,
+                    purchaseLink: data.purchaseLink || null,
+                    itemImage: data.itemImage || null,
+                    reason: data.reason || 'Purchase Request',
+                    approvalPersonEmail: data.approvalPersonEmail,
+                    requestedBy,
+                    status: 'Pending Approval',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                }
+            });
+            break;
+        } catch (err) {
+            if (err.code === 'P2002' && attempts < 10) {
+                console.warn(`[Purchase] Duplicate requestId ${requestId} encountered, retrying attempt ${attempts}...`);
+                continue;
+            }
+            throw err;
         }
-    });
-
-
+    }
 
     return request;
 };

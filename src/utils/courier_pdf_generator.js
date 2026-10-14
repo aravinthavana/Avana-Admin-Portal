@@ -50,11 +50,35 @@ function amountInWords(amount) {
   return result;
 }
 
+// ── Sanitize text for standard font WinAnsi encoding ──────────────
+function sanitizeForPdf(text) {
+  if (text === null || text === undefined) return '';
+  return String(text)
+    // Non-breaking hyphens, figure dashes, en/em dashes, minus signs -> standard hyphen
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, '-')
+    // Non-breaking spaces, thin spaces, zero-width spaces -> standard space or empty
+    .replace(/[\u00A0\u2000-\u200A\u202F\u205F]/g, ' ')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    // Curly / smart single quotes -> standard apostrophe
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    // Curly / smart double quotes -> standard double quote
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    // Bullets -> hyphen
+    .replace(/[\u2022\u25CF\u25CB\u25AA]/g, '-')
+    // Currency symbols (e.g. ₹ -> Rs.)
+    .replace(/\u20B9/g, 'Rs. ')
+    // Ellipsis -> ...
+    .replace(/\u2026/g, '...')
+    // Replace any remaining non-WinAnsi / non-ASCII character that could break StandardFonts
+    .replace(/[^\x00-\x7F\xA0-\xFF]/g, ' ');
+}
+
 // ── Text wrapper ─────────────────────────────────────────────────
 function wrapText(text, maxChars) {
   if (!text) return [];
+  const safeText = sanitizeForPdf(text);
   const lines = [];
-  for (const rawLine of text.split('\n')) {
+  for (const rawLine of safeText.split('\n')) {
     if (rawLine.length <= maxChars) { lines.push(rawLine); continue; }
     let cur = '';
     for (const word of rawLine.split(' ')) {
@@ -80,16 +104,17 @@ function drawCell(page, x, y, w, h, opts = {}) {
 }
 
 function drawText(page, text, x, y, opts = {}) {
+  const safeText = sanitizeForPdf(text);
   const { font, size = 9, color = rgb(0, 0, 0), maxWidth, align = 'left' } = opts;
   let drawX = x;
   if (align === 'center' && maxWidth) {
-    const tw = font.widthOfTextAtSize(String(text), size);
+    const tw = font.widthOfTextAtSize(safeText, size);
     drawX = x + (maxWidth - tw) / 2;
   } else if (align === 'right' && maxWidth) {
-    const tw = font.widthOfTextAtSize(String(text), size);
+    const tw = font.widthOfTextAtSize(safeText, size);
     drawX = x + maxWidth - tw;
   }
-  page.drawText(String(text), { x: drawX, y, size, font, color });
+  page.drawText(safeText, { x: drawX, y, size, font, color });
 }
 
 // ── DC Copy PDF ──────────────────────────────────────────────────
@@ -493,7 +518,8 @@ async function generateShippingLabelPDF({ from, to, isFragile }) {
 
   function wrapAddr(text, maxChars) {
     if (!text) return [];
-    return text.split('\n').flatMap(line => {
+    const safeText = sanitizeForPdf(text);
+    return safeText.split('\n').flatMap(line => {
       const words = line.split(' ');
       const lines = [];
       let cur = '';
@@ -508,6 +534,10 @@ async function generateShippingLabelPDF({ from, to, isFragile }) {
       if (cur) lines.push(cur.trim());
       return lines;
     });
+  }
+
+  function safeDrawText(text, opts = {}) {
+    page.drawText(sanitizeForPdf(text), opts);
   }
 
   // Determine height of the shipping label section
@@ -535,7 +565,7 @@ async function generateShippingLabelPDF({ from, to, isFragile }) {
     height: 32,
     color: AMBER,
   });
-  page.drawText('AVANA GROUP • PARCEL SHIPPING LABEL', {
+  safeDrawText('AVANA GROUP - PARCEL SHIPPING LABEL', {
     x: 25,
     y: labelTopY - 22,
     size: 11,
@@ -554,24 +584,24 @@ async function generateShippingLabelPDF({ from, to, isFragile }) {
     height: 20,
     color: LGRAY,
   });
-  page.drawText('TO (RECEIVER)', { x: 25, y: contentTop - 14, size: 9, font: fontB, color: BLACK });
+  safeDrawText('TO (RECEIVER)', { x: 25, y: contentTop - 14, size: 9, font: fontB, color: BLACK });
 
-  const toName = (to?.name || 'Receiver').toUpperCase();
-  const toPhone = to?.phone ? `Phone: +91 ${to.phone}` : '';
+  const toName = sanitizeForPdf((to?.name || 'Receiver').toUpperCase());
+  const toPhone = to?.phone ? sanitizeForPdf(`Phone: +91 ${to.phone}`) : '';
   const toAddrLines = wrapAddr(to?.address || '', 38);
 
   let toY = contentTop - 35;
-  page.drawText(toName, { x: 25, y: toY, size: 11, font: fontB, color: BLACK });
+  safeDrawText(toName, { x: 25, y: toY, size: 11, font: fontB, color: BLACK });
   toY -= 14;
 
   if (toPhone) {
-    page.drawText(toPhone, { x: 25, y: toY, size: 9, font: fontB, color: GRAY });
+    safeDrawText(toPhone, { x: 25, y: toY, size: 9, font: fontB, color: GRAY });
     toY -= 13;
   }
 
   for (const line of toAddrLines) {
     if (toY > contentTop - halfContentH + 5) {
-      page.drawText(line, { x: 25, y: toY, size: 9, font, color: BLACK });
+      safeDrawText(line, { x: 25, y: toY, size: 9, font, color: BLACK });
       toY -= 12;
     }
   }
@@ -593,24 +623,24 @@ async function generateShippingLabelPDF({ from, to, isFragile }) {
     height: 20,
     color: LGRAY,
   });
-  page.drawText('FROM (SENDER)', { x: 25, y: fromTop - 14, size: 9, font: fontB, color: BLACK });
+  safeDrawText('FROM (SENDER)', { x: 25, y: fromTop - 14, size: 9, font: fontB, color: BLACK });
 
-  const fromName = (from?.name || 'Sender').toUpperCase();
-  const fromPhone = from?.phone ? `Phone: +91 ${from.phone}` : '';
+  const fromName = sanitizeForPdf((from?.name || 'Sender').toUpperCase());
+  const fromPhone = from?.phone ? sanitizeForPdf(`Phone: +91 ${from.phone}`) : '';
   const fromAddrLines = wrapAddr(from?.address || '', 38);
 
   let fromY = fromTop - 35;
-  page.drawText(fromName, { x: 25, y: fromY, size: 10, font: fontB, color: BLACK });
+  safeDrawText(fromName, { x: 25, y: fromY, size: 10, font: fontB, color: BLACK });
   fromY -= 13;
 
   if (fromPhone) {
-    page.drawText(fromPhone, { x: 25, y: fromY, size: 8.5, font, color: GRAY });
+    safeDrawText(fromPhone, { x: 25, y: fromY, size: 8.5, font, color: GRAY });
     fromY -= 12;
   }
 
   for (const line of fromAddrLines) {
     if (fromY > labelBottomY + 12) {
-      page.drawText(line, { x: 25, y: fromY, size: 8.5, font, color: BLACK });
+      safeDrawText(line, { x: 25, y: fromY, size: 8.5, font, color: BLACK });
       fromY -= 11;
     }
   }
@@ -641,7 +671,7 @@ async function generateShippingLabelPDF({ from, to, isFragile }) {
     });
     const headerMsg = 'FRAGILE - HANDLE WITH CARE';
     const msgW = fontB.widthOfTextAtSize(headerMsg, 12);
-    page.drawText(headerMsg, {
+    safeDrawText(headerMsg, {
       x: (pageWidth - msgW) / 2,
       y: fragileBoxY + fragileBoxH - 20,
       size: 12,
@@ -675,7 +705,7 @@ async function generateShippingLabelPDF({ from, to, isFragile }) {
     if (!imageEmbedded) {
       const symbol = 'HANDLE WITH CARE';
       const symW = fontB.widthOfTextAtSize(symbol, 20);
-      page.drawText(symbol, {
+      safeDrawText(symbol, {
         x: (pageWidth - symW) / 2,
         y: fragileBoxY + 130,
         size: 20,
@@ -687,7 +717,7 @@ async function generateShippingLabelPDF({ from, to, isFragile }) {
     // Bottom warning subtitle
     const warn1 = 'DELICATE SURGICAL EQUIPMENT & GLASSWARE';
     const w1W = fontB.widthOfTextAtSize(warn1, 9.5);
-    page.drawText(warn1, {
+    safeDrawText(warn1, {
       x: (pageWidth - w1W) / 2,
       y: fragileBoxY + 30,
       size: 9.5,
@@ -695,9 +725,9 @@ async function generateShippingLabelPDF({ from, to, isFragile }) {
       color: RED,
     });
 
-    const warn2 = 'DO NOT DROP • DO NOT STACK HEAVY WEIGHT';
+    const warn2 = 'DO NOT DROP - DO NOT STACK HEAVY WEIGHT';
     const w2W = font.widthOfTextAtSize(warn2, 8.5);
-    page.drawText(warn2, {
+    safeDrawText(warn2, {
       x: (pageWidth - w2W) / 2,
       y: fragileBoxY + 16,
       size: 8.5,

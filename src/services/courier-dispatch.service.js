@@ -183,45 +183,47 @@ exports.createDispatch = async (data, requesterEmail, host) => {
 
   // Send Emails
   try {
+    const attachments = [];
     try {
       const dcBytes = await pdfGenerator.generateDCCopyPDF(created);
+      attachments.push({ filename: `DC_Copy_${created.dcNo}.pdf`, content: Buffer.from(dcBytes), contentType: 'application/pdf' });
+    } catch (pdfErr) {
+      console.error('Failed to generate DC Copy PDF:', pdfErr);
+    }
+
+    try {
       const labelBytes = await pdfGenerator.generateAddressLabelPDF(created);
+      attachments.push({ filename: `Address_Label_${created.dcNo}.pdf`, content: Buffer.from(labelBytes), contentType: 'application/pdf' });
+    } catch (labelErr) {
+      console.error('Failed to generate Address Label PDF:', labelErr);
+    }
 
-      const attachments = [
-        { filename: `DC_Copy_${created.dcNo}.pdf`, content: Buffer.from(dcBytes), contentType: 'application/pdf' },
-        { filename: `Address_Label_${created.dcNo}.pdf`, content: Buffer.from(labelBytes), contentType: 'application/pdf' }
-      ];
-
-      // 1. Separate confirmation email to Employee + CC to additional emails
-      const recipient = requesterEmail || data.requesterEmail;
-      if (recipient) {
-        await sendEmail({
-          to: recipient,
-          cc: ccEmails || undefined,
-          subject: `Delivery Challan #${created.dcNo} Generated`,
-          htmlBody: templates.courierDispatchSubmission(created),
-          attachments
-        });
-      } else if (ccEmails) {
-        await sendEmail({
-          to: ccEmails,
-          subject: `Delivery Challan #${created.dcNo} Generated`,
-          htmlBody: templates.courierDispatchSubmission(created),
-          attachments
-        });
-      }
-      
-      // 2. Alert email to Admin
+    // 1. Separate confirmation email to Employee + CC to additional emails
+    const recipient = requesterEmail || data.requesterEmail;
+    if (recipient) {
       await sendEmail({
-        to: env.ADMIN_EMAIL,
-        subject: `New Courier Dispatch (#${created.dcNo})`,
-        htmlBody: templates.courierDispatchAdminAlert(created, host),
+        to: recipient,
+        cc: ccEmails || undefined,
+        subject: `Delivery Challan #${created.dcNo} Generated`,
+        htmlBody: templates.courierDispatchSubmission(created),
         attachments
       });
-
-    } catch (pdfErr) {
-      console.error('Failed to generate or send Courier PDFs:', pdfErr);
+    } else if (ccEmails) {
+      await sendEmail({
+        to: ccEmails,
+        subject: `Delivery Challan #${created.dcNo} Generated`,
+        htmlBody: templates.courierDispatchSubmission(created),
+        attachments
+      });
     }
+    
+    // 2. Alert email to Admin
+    await sendEmail({
+      to: env.ADMIN_EMAIL,
+      subject: `New Courier Dispatch (#${created.dcNo})`,
+      htmlBody: templates.courierDispatchAdminAlert(created, host),
+      attachments
+    });
   } catch (err) {
     console.error('Failed to send Courier Dispatch emails:', err);
   }
@@ -498,13 +500,21 @@ exports.updateDispatch = async (id, data, requesterEmail, host) => {
 
   try {
     const pdfGenerator = require('../utils/courier_pdf_generator');
-    const dcBytes = await pdfGenerator.generateDCCopyPDF(updated);
-    const labelBytes = await pdfGenerator.generateAddressLabelPDF(updated);
-    
-    const attachments = [
-      { filename: `DC_${updated.dcNo}.pdf`, content: dcBytes, contentType: 'application/pdf' },
-      { filename: `Label_${updated.dcNo}.pdf`, content: labelBytes, contentType: 'application/pdf' }
-    ];
+    const attachments = [];
+
+    try {
+      const dcBytes = await pdfGenerator.generateDCCopyPDF(updated);
+      attachments.push({ filename: `DC_${updated.dcNo}.pdf`, content: dcBytes, contentType: 'application/pdf' });
+    } catch (pdfErr) {
+      console.error('Failed to generate updated DC Copy PDF:', pdfErr);
+    }
+
+    try {
+      const labelBytes = await pdfGenerator.generateAddressLabelPDF(updated);
+      attachments.push({ filename: `Label_${updated.dcNo}.pdf`, content: labelBytes, contentType: 'application/pdf' });
+    } catch (labelErr) {
+      console.error('Failed to generate updated Address Label PDF:', labelErr);
+    }
 
     const { sendEmail } = require('../utils/notifications');
     const recipient = requesterEmail || updated.requesterEmail;

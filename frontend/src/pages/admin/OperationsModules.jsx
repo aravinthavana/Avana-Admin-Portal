@@ -108,7 +108,11 @@ export function AssetTrackerPage() {
     
     const items = Object.entries(returnItemsState)
       .filter(([_, state]) => state.selected)
-      .map(([id, state]) => ({ itemId: parseInt(id, 10) || id, condition: state.condition }));
+      .map(([id, state]) => ({
+        itemId: String(id),
+        status: state.status || (state.condition === 'Missing' ? 'Missing' : 'Returned'),
+        condition: state.condition || (state.status === 'Missing' ? 'Missing' : 'Reusable')
+      }));
 
     try {
       await assetTrackerApi.returnAssets(selectedHandover.id, items, returnRemarks);
@@ -330,8 +334,12 @@ export function AssetTrackerPage() {
                       <td>
                         <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.85rem' }}>
                           {(h.items || []).map((it, i) => (
-                            <li key={it.id || i} style={{ textDecoration: it.status === 'Returned' ? 'line-through' : 'none', color: it.status === 'Returned' ? 'var(--color-text-muted)' : 'inherit' }}>
+                            <li key={it.id || i} style={{
+                              textDecoration: it.status === 'Returned' || it.status === 'Missing' ? 'line-through' : 'none',
+                              color: it.status === 'Returned' ? 'var(--color-text-muted)' : it.status === 'Missing' ? 'var(--color-danger, #dc2626)' : 'inherit'
+                            }}>
                               <strong>{it.itemName}</strong> {it.serialNo ? `(${it.serialNo})` : ''}
+                              {it.status === 'Missing' && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--color-danger, #dc2626)', fontWeight: 600 }}>(Missing)</span>}
                             </li>
                           ))}
                         </ul>
@@ -360,7 +368,7 @@ export function AssetTrackerPage() {
                             setSelectedHandover(h);
                             setReturnRemarks('');
                             setReturnItemsState((h.items || []).reduce((acc, it) => {
-                              if (it.status === 'Assigned') acc[it.id] = { selected: false, condition: 'Reusable' };
+                              if (it.status === 'Assigned') acc[it.id] = { selected: false, status: 'Returned', condition: 'Reusable' };
                               return acc;
                             }, {}));
                             setDetailsModalOpen(true);
@@ -495,7 +503,7 @@ export function AssetTrackerPage() {
               <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                 <button type="button" className="btn btn--secondary" onClick={() => setDetailsModalOpen(false)}>Close</button>
                 {Object.keys(returnItemsState).length > 0 && (
-                  <button type="button" className="btn btn--primary" disabled={submitting} onClick={handleReturn}>
+                  <button type="button" className="btn btn--primary" disabled={submitting || !Object.values(returnItemsState).some(s => s.selected)} onClick={handleReturn}>
                     {submitting ? 'Processing...' : 'Submit Selected Returns'}
                   </button>
                 )}
@@ -516,27 +524,93 @@ export function AssetTrackerPage() {
               {(selectedHandover.items || []).map((it, idx) => (
                 <div key={it.id || idx} style={{ padding: 'var(--space-3)', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', display: 'flex', flexWrap: 'wrap', gap: 'var(--space-3)', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
-                    <div style={{ fontWeight: 600, textDecoration: it.status === 'Returned' ? 'line-through' : 'none' }}>{it.itemName}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{it.serialNo || 'No Serial'} • {it.condition}</div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: it.status === 'Returned' ? 'var(--color-warning)' : 'var(--color-success)' }}>{it.status}</div>
+                    <div style={{ fontWeight: 600, textDecoration: it.status === "Returned" || it.status === "Missing" ? "line-through" : "none" }}>{it.itemName}</div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>{it.serialNo || "No Serial"} • {it.condition}</div>
+                    <div style={{
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      color: it.status === "Returned" ? "var(--color-warning)" : it.status === "Missing" ? "var(--color-danger, #dc2626)" : "var(--color-success)"
+                    }}>
+                      {it.status === "Missing" ? "⚠️ Missing" : it.status}
+                    </div>
                   </div>
                   
-                  {it.status === 'Assigned' && returnItemsState[it.id] && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', background: 'var(--color-surface)', padding: 'var(--space-2) var(--space-3)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', fontSize: '0.85rem' }}>
-                        <input type="checkbox" checked={returnItemsState[it.id].selected} onChange={e => {
-                          setReturnItemsState(prev => ({ ...prev, [it.id]: { ...prev[it.id], selected: e.target.checked } }));
-                        }} />
+                  {it.status === "Assigned" && returnItemsState[it.id] && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", background: "var(--color-surface)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}>
+                      {/* Mark Return Option */}
+                      <label style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", cursor: "pointer", fontSize: "0.85rem" }}>
+                        <input
+                          type="checkbox"
+                          checked={returnItemsState[it.id].selected && returnItemsState[it.id].status === "Returned"}
+                          onChange={e => {
+                            const checked = e.target.checked;
+                            setReturnItemsState(prev => ({
+                              ...prev,
+                              [it.id]: {
+                                ...prev[it.id],
+                                selected: checked,
+                                status: checked ? "Returned" : "Assigned",
+                                condition: prev[it.id]?.condition === "Missing" ? "Reusable" : (prev[it.id]?.condition || "Reusable")
+                              }
+                            }));
+                          }}
+                        />
                         <strong>Mark Return</strong>
                       </label>
-                      {returnItemsState[it.id].selected && (
-                        <select className="form-select form-select--sm" value={returnItemsState[it.id].condition} onChange={e => {
-                          setReturnItemsState(prev => ({ ...prev, [it.id]: { ...prev[it.id], condition: e.target.value } }));
-                        }}>
+
+                      {returnItemsState[it.id].selected && returnItemsState[it.id].status === "Returned" && (
+                        <select
+                          className="form-select form-select--sm"
+                          value={returnItemsState[it.id].condition}
+                          onChange={e => {
+                            const val = e.target.value;
+                            if (val === "Missing") {
+                              setReturnItemsState(prev => ({
+                                ...prev,
+                                [it.id]: { ...prev[it.id], status: "Missing", condition: "Missing" }
+                              }));
+                            } else {
+                              setReturnItemsState(prev => ({
+                                ...prev,
+                                [it.id]: { ...prev[it.id], status: "Returned", condition: val }
+                              }));
+                            }
+                          }}
+                        >
                           <option value="Reusable">Reusable</option>
                           <option value="Damaged">Damaged</option>
+                          <option value="Missing">Missing</option>
                         </select>
                       )}
+
+                      {/* Missing Option */}
+                      <label style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "var(--space-2)",
+                        cursor: "pointer",
+                        fontSize: "0.85rem",
+                        color: returnItemsState[it.id].selected && returnItemsState[it.id].status === "Missing" ? "var(--color-danger, #dc2626)" : "inherit",
+                        marginLeft: "var(--space-2)"
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={returnItemsState[it.id].selected && returnItemsState[it.id].status === "Missing"}
+                          onChange={e => {
+                            const checked = e.target.checked;
+                            setReturnItemsState(prev => ({
+                              ...prev,
+                              [it.id]: {
+                                ...prev[it.id],
+                                selected: checked,
+                                status: checked ? "Missing" : "Assigned",
+                                condition: checked ? "Missing" : "Reusable"
+                              }
+                            }));
+                          }}
+                        />
+                        <strong>Missing</strong>
+                      </label>
                     </div>
                   )}
                 </div>

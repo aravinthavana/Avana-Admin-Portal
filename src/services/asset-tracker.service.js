@@ -154,36 +154,48 @@ exports.acknowledgeAssets = async (id, signatureName, remarks) => {
 };
 
 exports.processReturn = async (id, returnedItems, remarks) => {
-  const handover = await prisma.assetHandover.findUnique({ where: { id }, include: { items: true } });
+  const handover = await prisma.assetHandover.findUnique({ where: { id: String(id) }, include: { items: true } });
   if (!handover) return null;
 
   if (Array.isArray(returnedItems) && returnedItems.length > 0) {
     for (const item of returnedItems) {
-      if (typeof item === 'string') {
+      if (typeof item === "string") {
         // Fallback for old API callers passing array of IDs
         await prisma.assetHandoverItem.update({
-          where: { id: item },
-          data: { status: 'Returned', returnedAt: new Date().toISOString() }
+          where: { id: String(item) },
+          data: { status: "Returned", returnedAt: new Date().toISOString() }
         });
       } else {
+        const itemTargetId = String(item.itemId || item.id);
+        const itemStatus = item.status === "Missing" || item.condition === "Missing" ? "Missing" : (item.status || "Returned");
+        const itemCondition = item.condition || (itemStatus === "Missing" ? "Missing" : "Reusable");
         await prisma.assetHandoverItem.update({
-          where: { id: item.itemId },
-          data: { status: 'Returned', condition: item.condition || 'Reusable', returnedAt: new Date().toISOString() }
+          where: { id: itemTargetId },
+          data: {
+            status: itemStatus,
+            condition: itemCondition,
+            returnedAt: itemStatus === "Missing" ? null : new Date().toISOString()
+          }
         });
       }
     }
   } else {
     // Mark all as returned
     await prisma.assetHandoverItem.updateMany({
-      where: { handoverId: id },
-      data: { status: 'Returned', returnedAt: new Date().toISOString() }
+      where: { handoverId: String(id) },
+      data: { status: "Returned", returnedAt: new Date().toISOString() }
     });
   }
 
+  // Determine overall handover status based on remaining items
+  const allItems = await prisma.assetHandoverItem.findMany({ where: { handoverId: String(id) } });
+  const hasRemainingAssigned = allItems.some(it => it.status === "Assigned");
+  const newHandoverStatus = hasRemainingAssigned ? handover.status : "Resigned/Returned";
+
   const updated = await prisma.assetHandover.update({
-    where: { id },
+    where: { id: String(id) },
     data: {
-      status: 'Resigned/Returned',
+      status: newHandoverStatus,
       remarks: remarks ? (handover.remarks ? `${handover.remarks} | Return: ${remarks}` : remarks) : handover.remarks,
       updatedAt: new Date().toISOString()
     },

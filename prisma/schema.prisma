@@ -93,6 +93,8 @@ model AmcVisit {
   contact_number    String?
   remarks           String?
   status            String?     @default("Pending")
+  reminder_sent_for String?
+  reminder_sent_at  String?
   created_at        String?
   contract          AmcContract @relation(fields: [amc_id], references: [id], onDelete: Cascade)
 }

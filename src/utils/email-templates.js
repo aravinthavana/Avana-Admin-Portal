@@ -673,6 +673,40 @@ const templates = {
     });
   },
 
+    // 13.1b AMC Upcoming Service Visit Reminder — 2 Days Notice
+  amcUpcomingVisitReminder({ contract, visit }) {
+    const equipment = contract.amc_name || contract.equipment_name || 'Equipment';
+    const vendor = contract.vendor_contact || contract.vendor_name || 'Vendor';
+    const visitNum = visit.visit_no ? `Visit #${visit.visit_no}` : 'Upcoming Service Visit';
+    return buildEmail({
+      title: `Upcoming AMC Visit Reminder: ${equipment} (${visitNum})`,
+      subtitle: `Scheduled Next Visit: ${visit.next_service_date || 'Upcoming'}`,
+      accentColor: '#d97706',
+      bodyHtml: `
+        ${highlightBox('🛠️ AMC Upcoming Service Visit Reminder — 2 Days Notice', '#d97706', '#fffbeb')}
+        <p style="margin: 0 0 16px 0; color: #374151;">
+          This is an automated reminder that a scheduled AMC service visit is due in <strong>2 days</strong>:
+        </p>
+        <table style="${TABLE_WRAP}">
+          ${tableRow('Equipment / AMC Name', `<strong>${equipment}</strong>`)}
+          ${tableRow('Visit Number', `<strong>${visitNum}</strong>`, true)}
+          ${tableRow('Scheduled Next Visit Date', `<strong style="color: #d97706; font-size: 15px;">${visit.next_service_date || 'N/A'}</strong>`)}
+          ${tableRow('Last Visit Date', visit.last_service_date || visit.scheduled_date || 'N/A', true)}
+          ${tableRow('Vendor / Service Provider', vendor)}
+          ${tableRow('Vendor Phone', contract.vendor_phone || 'N/A', true)}
+          ${tableRow('Assigned Technician', `${visit.service_person || 'N/A'} ${visit.contact_number ? `(${visit.contact_number})` : ''}`)}
+          ${tableRow('Location / Units', contract.units_location || 'N/A', true)}
+          ${tableRow('Visit Status', `<strong style="color: #2563eb;">${visit.status || 'Scheduled'}</strong>`)}
+          ${tableRow('Service Remarks / Scope', visit.remarks || contract.coverage_specs || 'N/A', true)}
+        </table>
+        <p style="margin: 16px 0 0 0; color: #374151;">
+          Please coordinate with the vendor/technician to ensure facility access and timely service execution.
+        </p>
+        ${actionButton('View AMC Visit Logs', `${APP_URL}/helpdesk-admin/amc`, '#d97706')}
+      `,
+    });
+  },
+
   // 13.2 Utility Payment Due Reminder — to Admin & CC
   utilityIndividualReminder({ utility }) {
     return buildEmail({

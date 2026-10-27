@@ -234,6 +234,14 @@ exports.checkAndSendReminders = async () => {
       fs.writeFileSync(lowStockStateFile, JSON.stringify(notifiedItems));
     } catch (e) { console.error('Failed to save low stock state:', e); }
 
+    // 2b. Check upcoming AMC visit reminders (2 days notice)
+    let amcVisitCount = 0;
+    try {
+      amcVisitCount = await exports.checkAndSendAmcVisitReminders();
+    } catch (e) {
+      console.error('[Reminders Service] Error checking AMC visit reminders:', e);
+    }
+
     const totalDeadlines = expiringAmcs.length + dueUtilities.length + dueTaxes.length;
     if (totalDeadlines === 0 && readyReminders.length === 0 && newlyNotifiedCount === 0) {
       console.log('[Reminders Service] No upcoming deadlines or low stock alerts found today.');
@@ -248,6 +256,78 @@ exports.checkAndSendReminders = async () => {
     };
   } catch (err) {
     console.error('[Reminders Service] Error running checkAndSendReminders:', err);
+    throw err;
+  }
+};
+
+/**
+ * Checks for AMC service visits whose next_service_date is scheduled 2 days from now.
+ * Sends an email reminder to Admin (and NOTIFICATION_CC if configured).
+ * Updates visit.reminder_sent_for = visit.next_service_date to prevent duplicate emails.
+ */
+exports.checkAndSendAmcVisitReminders = async () => {
+  try {
+    const adminEmail = env.ADMIN_EMAIL;
+    const NOTIFICATION_CC = env.NOTIFICATION_CC;
+    const now = new Date();
+    // Today in YYYY-MM-DD
+    const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
+
+    const visits = await prisma.amcVisit.findMany({
+      where: {
+        next_service_date: { not: null }
+      },
+      include: {
+        contract: true
+      }
+    });
+
+    let sentCount = 0;
+
+    for (const v of visits) {
+      if (!v.next_service_date) continue;
+      const nextDateStr = v.next_service_date.trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(nextDateStr)) continue;
+
+      // Calculate calendar day difference
+      const [y1, m1, d1] = nextDateStr.split('-').map(Number);
+      const [y2, m2, d2] = todayStr.split('-').map(Number);
+      const utc1 = Date.UTC(y1, m1 - 1, d1);
+      const utc2 = Date.UTC(y2, m2 - 1, d2);
+      const diffDays = Math.round((utc1 - utc2) / (1000 * 60 * 60 * 24));
+
+      // Requirement: reminder email sent 2 days before the next scheduled visit
+      // Send if 0 <= diffDays <= 2 and not already sent for this specific next_service_date
+      if (diffDays >= 0 && diffDays <= 2 && v.reminder_sent_for !== nextDateStr) {
+        const contract = v.contract || {};
+        const equipment = contract.amc_name || contract.equipment_name || 'Equipment';
+        console.log(`[Reminders Service] Sending 2-day AMC visit reminder for: ${equipment} (Visit #${v.visit_no || '1'}, scheduled: ${nextDateStr})`);
+
+        await sendEmail({
+          to: adminEmail,
+          ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
+          subject: `🛠️ AMC Upcoming Visit Reminder: ${equipment} (Visit #${v.visit_no || 1}) - Due ${nextDateStr}`,
+          htmlBody: templates.amcUpcomingVisitReminder({ contract, visit: v })
+        });
+
+        await prisma.amcVisit.update({
+          where: { id: v.id },
+          data: {
+            reminder_sent_for: nextDateStr,
+            reminder_sent_at: new Date().toISOString()
+          }
+        });
+
+        sentCount++;
+      }
+    }
+
+    if (sentCount > 0) {
+      console.log(`[Reminders Service] Sent ${sentCount} AMC upcoming visit reminder(s).`);
+    }
+    return sentCount;
+  } catch (err) {
+    console.error('[Reminders Service] Error running checkAndSendAmcVisitReminders:', err);
     throw err;
   }
 };

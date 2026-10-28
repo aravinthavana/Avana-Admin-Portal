@@ -456,8 +456,8 @@ export function AMCPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-3)', fontSize: '0.88rem' }}>
                       <div style={{ background: '#f8fafc', padding: 'var(--space-2) var(--space-3)', borderRadius: 6 }}>
                         <div style={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'uppercase', fontWeight: 600 }}>Visit Date</div>
-                        <div style={{ fontWeight: 600, marginTop: 2, color: v.last_service_date ? '#0f172a' : '#94a3b8' }}>
-                          {v.last_service_date || 'Not recorded'}
+                        <div style={{ fontWeight: 600, marginTop: 2, color: v.last_service_date ? '#0f172a' : (v.scheduled_date ? '#2563eb' : '#94a3b8') }}>
+                          {v.last_service_date || (v.scheduled_date ? `Scheduled: ${v.scheduled_date}` : 'Not recorded')}
                         </div>
                       </div>
 

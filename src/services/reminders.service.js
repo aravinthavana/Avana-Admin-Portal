@@ -278,7 +278,11 @@ exports.checkAndSendAmcVisitReminders = async () => {
         next_service_date: { not: null }
       },
       include: {
-        contract: true
+        contract: {
+          include: {
+            visits: { orderBy: { visit_no: 'asc' } }
+          }
+        }
       }
     });
 
@@ -300,14 +304,56 @@ exports.checkAndSendAmcVisitReminders = async () => {
       // Send if 0 <= diffDays <= 2 and not already sent for this specific next_service_date
       if (diffDays >= 0 && diffDays <= 2 && v.reminder_sent_for !== nextDateStr) {
         const contract = v.contract || {};
-        const equipment = contract.amc_name || contract.equipment_name || 'Equipment';
-        console.log(`[Reminders Service] Sending 2-day AMC visit reminder for: ${equipment} (Visit #${v.visit_no || '1'}, scheduled: ${nextDateStr})`);
+        const contractVisits = contract.visits || [];
+
+        // 1. Determine Upcoming Visit Number & Last Service Date
+        let upcomingVisitNumber = v.visit_no || 1;
+        let lastServiceDate = v.last_service_date || null;
+
+        if (v.status === 'Completed' || v.last_service_date) {
+          // If v is the completed visit log that scheduled the NEXT visit
+          upcomingVisitNumber = (v.visit_no || 1) + 1;
+          lastServiceDate = v.last_service_date;
+        } else {
+          // v itself is the scheduled pending visit. Check previous completed visits in the contract
+          const priorCompletedVisits = contractVisits.filter(pv => 
+            (pv.visit_no < (v.visit_no || 1)) && (pv.last_service_date || pv.status === 'Completed')
+          );
+          if (priorCompletedVisits.length > 0) {
+            const lastCompleted = priorCompletedVisits[priorCompletedVisits.length - 1];
+            lastServiceDate = lastCompleted.last_service_date;
+          }
+        }
+
+        if (!lastServiceDate && contract.last_service) {
+          lastServiceDate = contract.last_service;
+        }
+
+        const amcName = contract.amc_name || contract.equipment_name || 'AMC Service';
+        const vendorDetails = contract.vendor_name || contract.vendor_contact || 'N/A';
+        const contactPerson = contract.vendor_contact || 'Vendor Representative';
+        const contactPhone = contract.vendor_phone || '';
+        const location = contract.units_location || 'N/A';
+        const totalVisits = contract.no_of_visits || contractVisits.length || null;
+
+        console.log(`[Reminders Service] Sending upcoming AMC visit reminder for: ${amcName} (Upcoming Visit #${upcomingVisitNumber}, scheduled: ${nextDateStr})`);
 
         await sendEmail({
           to: adminEmail,
           ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
-          subject: `🛠️ AMC Upcoming Visit Reminder: ${equipment} (Visit #${v.visit_no || 1}) - Due ${nextDateStr}`,
-          htmlBody: templates.amcUpcomingVisitReminder({ contract, visit: v })
+          subject: `🛠️ AMC Upcoming Visit Reminder: ${amcName} (Visit #${upcomingVisitNumber}) - Due ${nextDateStr}`,
+          htmlBody: templates.amcUpcomingVisitReminder({
+            amcName,
+            vendorDetails,
+            contactPerson,
+            contactPhone,
+            lastServiceDate: lastServiceDate || 'None / Initial Service',
+            upcomingServiceDate: nextDateStr,
+            location,
+            upcomingVisitNumber,
+            totalVisits,
+            contract
+          })
         });
 
         await prisma.amcVisit.update({

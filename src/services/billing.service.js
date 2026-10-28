@@ -165,6 +165,24 @@ exports.saveAMCVisit = async (amc_id, data) => {
     create: { id, ...payload, created_at: data.created_at || new Date().toISOString() }
   });
 
+  // If next_service_date is scheduled on Visit N, cascade scheduled_date to Visit N+1 if pending
+  if (payload.next_service_date && payload.visit_no) {
+    try {
+      const nextVisitNo = payload.visit_no + 1;
+      const nextVisit = await prisma.amcVisit.findFirst({
+        where: { amc_id, visit_no: nextVisitNo }
+      });
+      if (nextVisit && !nextVisit.last_service_date && nextVisit.status !== 'Completed') {
+        await prisma.amcVisit.update({
+          where: { id: nextVisit.id },
+          data: { scheduled_date: payload.next_service_date }
+        });
+      }
+    } catch (e) {
+      console.error('[Billing Service] Error cascading scheduled date to next visit:', e);
+    }
+  }
+
   // Check and trigger reminder if the scheduled next visit is within 2 days
   try {
     const { checkAndSendAmcVisitReminders } = require('./reminders.service');

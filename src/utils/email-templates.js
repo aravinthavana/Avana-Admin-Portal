@@ -674,33 +674,44 @@ const templates = {
   },
 
     // 13.1b AMC Upcoming Service Visit Reminder — 2 Days Notice
-  amcUpcomingVisitReminder({ contract, visit }) {
-    const equipment = contract.amc_name || contract.equipment_name || 'Equipment';
-    const vendor = contract.vendor_contact || contract.vendor_name || 'Vendor';
-    const visitNum = visit.visit_no ? `Visit #${visit.visit_no}` : 'Upcoming Service Visit';
+  amcUpcomingVisitReminder(data) {
+    const contract = data.contract || {};
+    const amcName = data.amcName || contract.amc_name || contract.equipment_name || 'AMC Contract';
+    const vendorDetails = data.vendorDetails || contract.vendor_name || contract.vendor_contact || 'N/A';
+    const contactPerson = data.contactPerson || contract.vendor_contact || 'Vendor Representative';
+    const contactPhone = data.contactPhone || contract.vendor_phone || '';
+    const lastServiceDate = data.lastServiceDate || 'None / Initial Service';
+    const upcomingServiceDate = data.upcomingServiceDate || (data.visit ? data.visit.next_service_date : 'Upcoming');
+    const location = data.location || contract.units_location || 'N/A';
+    const upcomingVisitNumber = data.upcomingVisitNumber || (data.visit ? (data.visit.visit_no || 1) : 1);
+    const totalVisits = data.totalVisits || contract.no_of_visits || null;
+
+    const visitLabel = totalVisits ? `Visit #${upcomingVisitNumber} of ${totalVisits}` : `Visit #${upcomingVisitNumber}`;
+
+    const whoShouldWeContact = contactPhone
+      ? `<strong>${contactPerson}</strong> &nbsp;•&nbsp; <a href="tel:${contactPhone}" style="color: #2563eb; text-decoration: none; font-weight: 600;">📞 ${contactPhone}</a>`
+      : `<strong>${contactPerson}</strong>`;
+
     return buildEmail({
-      title: `Upcoming AMC Visit Reminder: ${equipment} (${visitNum})`,
-      subtitle: `Scheduled Next Visit: ${visit.next_service_date || 'Upcoming'}`,
+      title: `Upcoming AMC Service Visit: ${amcName} (${visitLabel})`,
+      subtitle: `Scheduled Upcoming Service Date: ${upcomingServiceDate}`,
       accentColor: '#d97706',
       bodyHtml: `
-        ${highlightBox('🛠️ AMC Upcoming Service Visit Reminder — 2 Days Notice', '#d97706', '#fffbeb')}
-        <p style="margin: 0 0 16px 0; color: #374151;">
-          This is an automated reminder that a scheduled AMC service visit is due in <strong>2 days</strong>:
+        ${highlightBox('🔔 AMC Upcoming Service Visit Reminder — 2 Days Notice', '#d97706', '#fffbeb')}
+        <p style="margin: 0 0 16px 0; color: #374151; font-size: 15px;">
+          This is an automated reminder that the upcoming maintenance service for <strong>${amcName}</strong> is scheduled in <strong>2 days</strong>:
         </p>
         <table style="${TABLE_WRAP}">
-          ${tableRow('Equipment / AMC Name', `<strong>${equipment}</strong>`)}
-          ${tableRow('Visit Number', `<strong>${visitNum}</strong>`, true)}
-          ${tableRow('Scheduled Next Visit Date', `<strong style="color: #d97706; font-size: 15px;">${visit.next_service_date || 'N/A'}</strong>`)}
-          ${tableRow('Last Visit Date', visit.last_service_date || visit.scheduled_date || 'N/A', true)}
-          ${tableRow('Vendor / Service Provider', vendor)}
-          ${tableRow('Vendor Phone', contract.vendor_phone || 'N/A', true)}
-          ${tableRow('Assigned Technician', `${visit.service_person || 'N/A'} ${visit.contact_number ? `(${visit.contact_number})` : ''}`)}
-          ${tableRow('Location / Units', contract.units_location || 'N/A', true)}
-          ${tableRow('Visit Status', `<strong style="color: #2563eb;">${visit.status || 'Scheduled'}</strong>`)}
-          ${tableRow('Service Remarks / Scope', visit.remarks || contract.coverage_specs || 'N/A', true)}
+          ${tableRow('AMC Name', `<strong>${amcName}</strong>`)}
+          ${tableRow('Upcoming Visit Number', `<strong style="color: #d97706; font-size: 15px;">${visitLabel}</strong>`, true)}
+          ${tableRow('Upcoming Service Date', `<strong style="color: #d97706; font-size: 15px;">${upcomingServiceDate}</strong>`)}
+          ${tableRow('Last Service Date', lastServiceDate, true)}
+          ${tableRow('Location', location)}
+          ${tableRow('Vendor Details', vendorDetails, true)}
+          ${tableRow('Who Should We Contact', whoShouldWeContact)}
         </table>
-        <p style="margin: 16px 0 0 0; color: #374151;">
-          Please coordinate with the vendor/technician to ensure facility access and timely service execution.
+        <p style="margin: 18px 0 0 0; color: #374151; font-size: 14px;">
+          Please coordinate with <strong>${contactPerson}</strong> to confirm technician arrival and ensure necessary site access for this upcoming visit.
         </p>
         ${actionButton('View AMC Visit Logs', `${APP_URL}/helpdesk-admin/amc`, '#d97706')}
       `,

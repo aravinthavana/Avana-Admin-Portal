@@ -401,20 +401,65 @@ function RequestTracker() {
 }
 
 /* ─── Item Selector (multi-item with quantity & stock validation) ─── */
-function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Select items', itemType = null }) {
+function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Select items', itemType = null, allowCustomItems = false }) {
   const [search, setSearch] = useState('');
+  const [customName, setCustomName] = useState('');
+  const [customQty, setCustomQty] = useState('1');
+  const [customRemarks, setCustomRemarks] = useState('');
+  const [customError, setCustomError] = useState('');
+
+  function handleAddCustom() {
+    const trimmed = customName.trim();
+    if (!trimmed) {
+      setCustomError('Please enter the item name.');
+      return;
+    }
+    const q = parseInt(customQty, 10);
+    if (isNaN(q) || q <= 0) {
+      setCustomError('Quantity must be at least 1.');
+      return;
+    }
+
+    const existsIndex = selected.findIndex(s => (s.name || '').trim().toLowerCase() === trimmed.toLowerCase());
+    if (existsIndex >= 0) {
+      const updated = [...selected];
+      updated[existsIndex] = {
+        ...updated[existsIndex],
+        qty: (parseInt(updated[existsIndex].qty, 10) || 0) + q,
+        remarks: customRemarks.trim() || updated[existsIndex].remarks,
+        isCustom: true,
+        type: 'unlisted'
+      };
+      onChange(updated);
+    } else {
+      onChange([...selected, {
+        name: trimmed,
+        qty: q,
+        remarks: customRemarks.trim(),
+        isCustom: true,
+        type: 'unlisted'
+      }]);
+    }
+
+    // Reset input fields so employee can immediately enter the next item to add!
+    setCustomName('');
+    setCustomQty('1');
+    setCustomRemarks('');
+    setCustomError('');
+  }
 
   function toggleItem(item) {
+    const exists = selected.find(s => s.name === item);
+    if (exists) {
+      onChange(selected.filter(s => s.name !== item));
+      return;
+    }
+
     const hasStock = stockMap && stockMap[item] !== undefined;
     const isOutOfStock = hasStock && stockMap[item] <= 0 && item !== 'Other';
     if (isOutOfStock) return;
 
-    const exists = selected.find(s => s.name === item);
-    if (exists) {
-      onChange(selected.filter(s => s.name !== item));
-    } else {
-      onChange([...selected, { name: item, qty: 1, ...(itemType ? { type: itemType } : {}) }]);
-    }
+    onChange([...selected, { name: item, qty: 1, ...(itemType ? { type: itemType } : {}) }]);
   }
 
   function updateQty(item, val) {
@@ -505,15 +550,111 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
         })}
         {filteredItems.length === 0 && (
           <div style={{ padding: 'var(--space-3)', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-            No items found.
+            No items found{search ? ` matching "${search}"` : ''}.
+            {allowCustomItems && (
+              <div style={{ marginTop: '4px', color: '#b27f0d', fontWeight: 600 }}>
+                👉 Enter the unlisted item in the box below to request it!
+              </div>
+            )}
           </div>
         )}
       </div>
 
+      {allowCustomItems && (
+        <div style={{
+          marginTop: 'var(--space-3)',
+          marginBottom: 'var(--space-4)',
+          background: '#fdfbf7',
+          border: '1.5px dashed #b27f0d',
+          borderRadius: 'var(--radius-md)',
+          padding: 'var(--space-4)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1.2rem' }}>📝</span>
+              <div>
+                <strong style={{ fontSize: '0.95rem', color: '#172025' }}>
+                  Enter the item if not listed
+                </strong>
+                <div style={{ fontSize: '0.78rem', color: '#6b7280' }}>
+                  Can't find an item in the list above? Enter the item name, required quantity, and remarks below:
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)', alignItems: 'flex-end' }}>
+            <div style={{ flex: '2 1 200px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                Item Name <span style={{ color: '#dc2626' }}>*</span>
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. Whiteboard Duster Magnetic"
+                value={customName}
+                onChange={e => { setCustomName(e.target.value); if (customError) setCustomError(''); }}
+                style={{ width: '100%', fontSize: '0.88rem' }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustom(); } }}
+              />
+            </div>
+
+            <div style={{ maxWidth: 110 }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                Qty Required <span style={{ color: '#dc2626' }}>*</span>
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                className="form-input"
+                value={customQty}
+                onChange={e => setCustomQty(e.target.value.replace(/\D/g, ''))}
+                placeholder="1"
+                style={{ width: '100%', textAlign: 'center', fontSize: '0.88rem' }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustom(); } }}
+              />
+            </div>
+
+            <div style={{ flex: '3 1 240px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                Remarks / Specifications
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. Brand, color, size, reason"
+                value={customRemarks}
+                onChange={e => setCustomRemarks(e.target.value)}
+                style={{ width: '100%', fontSize: '0.88rem' }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustom(); } }}
+              />
+            </div>
+
+            <div>
+              <button
+                type="button"
+                className="btn btn--primary"
+                style={{ padding: '0.55rem 1.1rem', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+                onClick={handleAddCustom}
+                title="Add this item and enter the next one"
+              >
+                <span>+ Add Item</span>
+              </button>
+            </div>
+          </div>
+          {customError && (
+            <div style={{ color: '#dc2626', fontSize: '0.8rem', fontWeight: 600, marginTop: '6px' }}>
+              ⚠ {customError}
+            </div>
+          )}
+        </div>
+      )}
+
       {selected.length > 0 && (
         <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', display: 'block', marginBottom: 'var(--space-2)' }}>
-            Selected Items & Quantities
+            Selected Items & Quantities ({selected.length})
           </label>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
@@ -527,14 +668,25 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
               {selected.map(sel => {
                 const hasStock = stockMap && stockMap[sel.name] !== undefined;
                 const available = hasStock ? stockMap[sel.name] : null;
-                const isOverStock = hasStock && available !== null && sel.qty > available && sel.name !== 'Other';
+                const isOverStock = !sel.isCustom && sel.type !== 'unlisted' && hasStock && available !== null && sel.qty > available && sel.name !== 'Other';
 
                 return (
                   <tr key={sel.name} style={{ borderBottom: '1px solid var(--color-border-light)' }}>
                     <td style={{ padding: 'var(--space-2)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500, flexWrap: 'wrap' }}>
                         <span>{sel.name}</span>
-                        {sel.type && (
+                        {sel.isCustom || sel.type === 'unlisted' ? (
+                          <span style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            padding: '1px 6px',
+                            borderRadius: '10px',
+                            background: 'rgba(178, 127, 13, 0.15)',
+                            color: '#b27f0d',
+                          }}>
+                            📝 Unlisted Item
+                          </span>
+                        ) : sel.type && (
                           <span style={{
                             fontSize: '0.72rem',
                             fontWeight: 600,
@@ -547,6 +699,11 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
                           </span>
                         )}
                       </div>
+                      {sel.remarks && (
+                        <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                          💬 Remarks: {sel.remarks}
+                        </div>
+                      )}
                       {isOverStock && (
                         <div style={{ color: 'var(--color-danger)', fontSize: '0.78rem', fontWeight: 600, marginTop: '3px' }}>
                           ⚠️ Low stock, order below the available stock (Available: {available})
@@ -791,6 +948,7 @@ function StationeryForm({ form, setForm, errors, locations = DEFAULT_LOCATIONS }
             itemType={tab}
             onChange={items => setForm(f => ({ ...f, items, item_type: tab }))}
             label="Select Items (required)"
+            allowCustomItems={true}
           />
           {errors.items && <span className="form-error" role="alert">⚠ {errors.items}</span>}
         </div>
@@ -2249,7 +2407,7 @@ function HelpdeskRequestView() {
       }
       if (stockData?.housekeepingStock) {
         for (const it of form.items || []) {
-          if (it.name === 'Other') continue;
+          if (it.name === 'Other' || it.isCustom || it.type === 'unlisted') continue;
           const avail = stockData.housekeepingStock[it.name];
           if (avail !== undefined && avail <= 0) {
             e.items = `"${it.name}" is out of stock.`;
@@ -2265,7 +2423,7 @@ function HelpdeskRequestView() {
       if (!form.location && !form.floor) e.location = 'Location is required';
       if (stockData?.stock) {
         for (const it of form.items || []) {
-          if (it.name === 'Other') continue;
+          if (it.name === 'Other' || it.isCustom || it.type === 'unlisted') continue;
           const avail = stockData.stock[it.name];
           if (avail !== undefined && avail <= 0) {
             e.items = `"${it.name}" is out of stock.`;

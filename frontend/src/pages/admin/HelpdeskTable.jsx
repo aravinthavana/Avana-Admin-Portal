@@ -123,12 +123,14 @@ function printGeneralServiceRequest(r) {
     headers: itemsList.length > 0 ? [
       { title: '#', align: 'center' },
       { title: 'Item Name', align: 'left' },
-      { title: 'Quantity', align: 'right' }
+      { title: 'Quantity', align: 'right' },
+      { title: 'Remarks / Notes', align: 'left' }
     ] : [],
     rows: itemsList.length > 0 ? itemsList.map((it, idx) => [
       idx + 1,
-      it.item || it.name,
-      it.qty || it.quantity || 1
+      (it.item || it.name) + (it.isCustom || it.type === 'unlisted' ? ' [Unlisted]' : ''),
+      it.qty || it.quantity || 1,
+      it.remarks || '—'
     ]) : []
   });
 }
@@ -502,7 +504,7 @@ export function HelpdeskTable({ categoryFilter }) {
       ],
       rows: filtered.map((req, idx) => {
         const parsed = parseItems(req.items);
-        const itemStr = parsed.length > 0 ? `<br/><strong>Items:</strong> ${parsed.map(i => `${i.item || i.name}(${i.qty || i.quantity || 1})`).join(', ')}` : '';
+        const itemStr = parsed.length > 0 ? `<br/><strong>Items:</strong> ${parsed.map(i => `${i.item || i.name}${i.isCustom || i.type === 'unlisted' ? ' [Unlisted]' : ''}(${i.qty || i.quantity || 1})${i.remarks ? ` - "${i.remarks}"` : ''}`).join(', ')}` : '';
         const details = req.exact_query || req.description || req.details || '—';
         return [
           idx + 1,
@@ -1312,7 +1314,18 @@ export function HelpdeskTable({ categoryFilter }) {
                                 <td style={{ padding: '6px 8px' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                     <span style={{ fontWeight: 500 }}>{itemName}</span>
-                                    {itemType && (
+                                    {(i.isCustom || itemType === 'unlisted') ? (
+                                      <span style={{
+                                        fontSize: '0.7rem',
+                                        fontWeight: 600,
+                                        padding: '1px 6px',
+                                        borderRadius: '8px',
+                                        background: 'rgba(178, 127, 13, 0.15)',
+                                        color: '#b27f0d',
+                                      }}>
+                                        📝 Unlisted Item
+                                      </span>
+                                    ) : itemType && (
                                       <span style={{
                                         fontSize: '0.7rem',
                                         fontWeight: 600,
@@ -1335,7 +1348,11 @@ export function HelpdeskTable({ categoryFilter }) {
                                       ✅ Fulfilled: {i.fulfilledQty ?? (i.qty || i.quantity || 1)}
                                     </div>
                                   )}
-                                  {i.remarks && <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', display: 'block' }}>{i.remarks}</span>}
+                                  {i.remarks && (
+                                    <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem', display: 'block', marginTop: '2px' }}>
+                                      💬 Remarks: {i.remarks}
+                                    </span>
+                                  )}
                                 </td>
                                 <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600 }}>{i.qty || i.quantity || 1}</td>
                               </tr>

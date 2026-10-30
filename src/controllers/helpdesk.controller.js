@@ -238,6 +238,7 @@ exports.updateStatus = async (req, res, next) => {
                 const name = (it.item || it.name || '').trim();
                 const qty = parseInt(it.quantity || it.qty || 1, 10);
                 if (!name || isNaN(qty) || qty <= 0) continue;
+                if (it.isCustom || it.type === 'unlisted') continue;
 
                 // Determine the correct category for this specific item:
                 let itemType = 'housekeeping';

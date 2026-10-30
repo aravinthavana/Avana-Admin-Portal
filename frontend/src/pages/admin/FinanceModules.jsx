@@ -154,8 +154,8 @@ export function UtilityPaymentsPage({ api }) {
         billing_cycle: filterMonth,
         due_date: data.due_date,
         amount: data.amount,
-        status: data.status || 'Unpaid',
-        payment_date: data.payment_date,
+        status: data.status || (data.payment_date ? 'Paid' : 'Unpaid'),
+        payment_date: data.payment_date || null,
         transaction_ref: data.transaction_ref
       };
 
@@ -175,12 +175,32 @@ export function UtilityPaymentsPage({ api }) {
   };
 
   async function handleMarkAsPaid(id, recordId) {
-    if (!recordId) return;
     setSavingRows(prev => ({ ...prev, [id]: true }));
     try {
-      const r = tableData.find(x => x.id === id);
-      await api.update(recordId, { ...r, status: 'Paid', payment_date: new Date().toISOString().split('T')[0] });
-      toast.success('Marked as Paid.');
+      const today = new Date().toISOString().split('T')[0];
+      const cur = editRowData[id] || tableData.find(x => x.id === id);
+      const payDate = cur?.payment_date || today;
+      const payload = {
+        utility_type: cur.utility_type,
+        provider_name: cur.provider_name,
+        account_number: cur.account_number,
+        location: cur.location,
+        remarks: cur.remarks,
+        billing_cycle: filterMonth,
+        due_date: cur.due_date,
+        amount: cur.amount,
+        status: 'Paid',
+        payment_date: payDate,
+        transaction_ref: cur.transaction_ref
+      };
+
+      if (recordId) {
+        await api.update(recordId, payload);
+      } else {
+        await api.save(payload);
+      }
+      toast.success(`Marked as Paid (${payDate}).`);
+      setEditRowData(prev => { const n = {...prev}; delete n[id]; return n; });
       await fetchRecords();
     } catch (err) { 
       toast.error(err.message); 
@@ -453,13 +473,14 @@ export function UtilityPaymentsPage({ api }) {
                       <table className="table">
                         <thead>
                           <tr>
-                            <th scope="col" style={{ width: 150 }}>Location</th>
+                            <th scope="col" style={{ width: 140 }}>Location</th>
                             <th scope="col">Provider</th>
                             <th scope="col">Account No</th>
-                            <th scope="col" style={{ width: 140 }}>Due Date</th>
-                            <th scope="col" style={{ width: 140 }}>Amount (₹)</th>
-                            <th scope="col">Status</th>
-                            <th scope="col" style={{ width: 140 }}>Bill</th>
+                            <th scope="col" style={{ width: 135 }}>Due Date</th>
+                            <th scope="col" style={{ width: 130 }}>Amount (₹)</th>
+                            <th scope="col" style={{ width: 110 }}>Status</th>
+                            <th scope="col" style={{ width: 140 }}>Paid Date</th>
+                            <th scope="col" style={{ width: 135 }}>Bill</th>
                             <th scope="col">Actions</th>
                           </tr>
                         </thead>
@@ -483,7 +504,43 @@ export function UtilityPaymentsPage({ api }) {
                               <td>
                                 <input type="number" className="form-input" style={{ padding: '0.25rem' }} value={rowData.amount || ''} onChange={e => handleRowChange(r.id, 'amount', e.target.value)} />
                               </td>
-                              <td><Badge status={r.status === 'Paid' ? 'success' : (r.status === 'Overdue' ? 'danger' : 'warning')} label={r.status || 'Unpaid'} /></td>
+                              <td>
+                                <select
+                                  className="form-select"
+                                  style={{ padding: '0.25rem', fontSize: '0.82rem', width: '100%' }}
+                                  value={rowData.status || 'Unpaid'}
+                                  onChange={e => {
+                                    const nextStatus = e.target.value;
+                                    handleRowChange(r.id, 'status', nextStatus);
+                                    if (nextStatus === 'Paid' && !rowData.payment_date) {
+                                      const today = new Date().toISOString().split('T')[0];
+                                      handleRowChange(r.id, 'payment_date', today);
+                                    } else if (nextStatus === 'Unpaid' && rowData.payment_date) {
+                                      handleRowChange(r.id, 'payment_date', '');
+                                    }
+                                  }}
+                                >
+                                  <option value="Unpaid">Unpaid</option>
+                                  <option value="Paid">Paid</option>
+                                  <option value="Overdue">Overdue</option>
+                                </select>
+                              </td>
+                              <td>
+                                <input
+                                  type="date"
+                                  className="form-input"
+                                  style={{ padding: '0.25rem', width: '100%', fontSize: '0.85rem' }}
+                                  value={rowData.payment_date || ''}
+                                  onChange={e => {
+                                    const nextDate = e.target.value;
+                                    handleRowChange(r.id, 'payment_date', nextDate);
+                                    if (nextDate && rowData.status !== 'Paid') {
+                                      handleRowChange(r.id, 'status', 'Paid');
+                                    }
+                                  }}
+                                  title="Date when bill was paid (editable)"
+                                />
+                              </td>
                               <td>
                                 <input
                                   type="file"
@@ -542,11 +599,14 @@ export function UtilityPaymentsPage({ api }) {
                                 )}
                               </td>
                               <td>
-                                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                                <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
                                   {isEditing && (
-                                    <button type="button" className="btn btn--sm btn--primary" onClick={() => saveRow(r.id)} disabled={isSaving}>{isSaving ? '...' : 'Save'}</button>
+                                    <>
+                                      <button type="button" className="btn btn--sm btn--primary" onClick={() => saveRow(r.id)} disabled={isSaving}>{isSaving ? '...' : 'Save'}</button>
+                                      <button type="button" className="btn btn--sm btn--ghost" onClick={() => setEditRowData(prev => { const n = {...prev}; delete n[r.id]; return n; })} title="Cancel edits">✕</button>
+                                    </>
                                   )}
-                                  {r.isExisting && r.status !== 'Paid' && !isEditing && (
+                                  {rowData.status !== 'Paid' && (
                                     <button type="button" className="btn btn--sm btn--outline" onClick={() => handleMarkAsPaid(r.id, r.recordId)} disabled={isSaving}>💸 Mark Paid</button>
                                   )}
                                   {r.isExisting && (
@@ -581,6 +641,35 @@ export function UtilityPaymentsPage({ api }) {
             <FormField label="Location"><input type="text" className="form-input" value={addForm.location||''} onChange={e=>setAddForm(f=>({...f, location: e.target.value}))} /></FormField>
             <FormField label="Due Date"><input type="date" className="form-input" value={addForm.due_date||''} onChange={e=>setAddForm(f=>({...f, due_date: e.target.value}))} /></FormField>
             <FormField label="Amount"><input type="number" step="0.01" className="form-input" value={addForm.amount||''} onChange={e=>setAddForm(f=>({...f, amount: e.target.value}))} /></FormField>
+            <FormField label="Payment Status">
+              <select className="form-input" value={addForm.status || 'Unpaid'} onChange={e => {
+                const st = e.target.value;
+                setAddForm(f => ({
+                  ...f,
+                  status: st,
+                  payment_date: st === 'Paid' && !f.payment_date ? new Date().toISOString().split('T')[0] : (st === 'Unpaid' ? '' : f.payment_date)
+                }));
+              }}>
+                <option value="Unpaid">Unpaid</option>
+                <option value="Paid">Paid</option>
+                <option value="Overdue">Overdue</option>
+              </select>
+            </FormField>
+            <FormField label="Paid Date">
+              <input
+                type="date"
+                className="form-input"
+                value={addForm.payment_date || ''}
+                onChange={e => {
+                  const pDate = e.target.value;
+                  setAddForm(f => ({
+                    ...f,
+                    payment_date: pDate,
+                    status: pDate ? 'Paid' : f.status
+                  }));
+                }}
+              />
+            </FormField>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
             <button type="button" className="btn btn--secondary" onClick={() => setShowAddForm(false)}>Cancel</button>

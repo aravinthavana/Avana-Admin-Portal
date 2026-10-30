@@ -62,7 +62,7 @@ exports.saveUtilityPayment = async (req, res, next) => {
 exports.patchUtilityPayment = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, payment_date, transaction_ref, amount, bill_file } = req.body;
+    const { status, payment_date, transaction_ref, amount, bill_file, due_date, location, remarks } = req.body;
     // For simplicity, we just fetch, merge, and save
     const payments = await billingService.getUtilityPayments();
     const payment = payments.find(p => p.id === id);
@@ -73,6 +73,9 @@ exports.patchUtilityPayment = async (req, res, next) => {
     if (transaction_ref !== undefined) payment.transaction_ref = transaction_ref;
     if (amount !== undefined) payment.amount = amount;
     if (bill_file !== undefined) payment.bill_file = bill_file;
+    if (due_date !== undefined) payment.due_date = due_date;
+    if (location !== undefined) payment.location = location;
+    if (remarks !== undefined) payment.remarks = remarks;
     
     await billingService.saveUtilityPayment(payment);
     res.status(200).json({ message: 'Status updated' });

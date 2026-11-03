@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
+import { LuLock, LuBuilding2, LuPlus, LuTrash2, LuKeyRound, LuMapPin, LuChevronRight } from 'react-icons/lu';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi, globalAddressApi,
@@ -43,7 +44,7 @@ export function LoginAuditPage() {
       {error && <Alert type="error">{error}</Alert>}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
-          : logins.length === 0 ? <EmptyState icon="🔐" title="No login records" />
+          : logins.length === 0 ? <EmptyState icon={<LuLock size={40} style={{ color: "var(--brand-amber)" }} />} title="No login records" />
           : (
             <div className="table-wrapper">
               <table className="table" aria-label="Employee login audit">
@@ -122,7 +123,7 @@ export function LocationsManagementSection() {
     setAdding(true);
     try {
       await locationsApi.createLocation(newLocationName.trim());
-      toast.success('Location added successfully! 🏢');
+      toast.success('Location added successfully!');
       setNewLocationName('');
       fetchLocations();
     } catch (err) {
@@ -148,7 +149,7 @@ export function LocationsManagementSection() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h3 style={{ fontFamily: 'var(--font-heading)', margin: '0 0 0.25rem 0', fontSize: '1.1rem', color: '#172025' }}>
-            🏢 Office Locations & Floor Directory
+            Office Locations & Floor Directory
           </h3>
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
             Configure office locations available for employees in helpdesk service forms
@@ -166,14 +167,14 @@ export function LocationsManagementSection() {
           onChange={e => setNewLocationName(e.target.value)}
         />
         <button type="submit" className={'btn btn--primary' + (adding ? ' btn--loading' : '')} disabled={adding || !newLocationName.trim()}>
-          {adding ? '' : '➕ Add Location'}
+          {adding ? '' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><LuPlus size={14} /> Add Location</span>}
         </button>
       </form>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 'var(--space-6)' }}><Spinner size="md" label="Loading locations…" /></div>
       ) : locations.length === 0 ? (
-        <EmptyState icon="🏢" title="No locations configured" description="Add your first office location above." />
+        <EmptyState icon={<LuBuilding2 size={40} style={{ color: "var(--brand-amber)" }} />} title="No locations configured" description="Add your first office location above." />
       ) : (
         <div className="table-wrapper">
           <table className="table" aria-label="Office Locations Table">
@@ -190,19 +191,12 @@ export function LocationsManagementSection() {
                   <td style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>{idx + 1}</td>
                   <td>
                     <div style={{ fontWeight: 600, color: '#172025', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span>📍</span>
+                      <LuMapPin size={15} style={{ color: "var(--brand-amber)" }} />
                       <span>{loc.name}</span>
                     </div>
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    <button
-                      type="button"
-                      className="btn btn--sm btn--danger"
-                      onClick={() => setDeleteLocation(loc)}
-                      title="Delete Location"
-                    >
-                      🗑️
-                    </button>
+                    <button type="button" className="btn btn--sm btn--outline" onClick={() => setDeleteLocation(loc)} title="Delete Location" style={{ color: "#dc2626", borderColor: "#e4e4e7", display: "inline-flex", alignItems: "center", padding: "0.4rem 0.5rem" }} aria-label="Delete Location"><LuTrash2 size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -292,7 +286,7 @@ export function AdminSettings() {
       />
       <div className="card" style={{ maxWidth: 600 }}>
         <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1rem' }}>
-          🔑 Change Admin Password
+          Change Admin Password
         </h3>
         <form autoComplete="off" onSubmit={handleSubmit} noValidate>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>

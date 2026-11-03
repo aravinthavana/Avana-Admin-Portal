@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { assetTrackerApi } from '../lib/api';
 import { Spinner, Alert } from '../components/ui';
+import { LuCheck, LuPackage, LuPenTool } from 'react-icons/lu';
 
 export default function AssetAcknowledgementPage() {
   const [searchParams] = useSearchParams();
@@ -72,7 +73,7 @@ export default function AssetAcknowledgementPage() {
         {/* Header Branding */}
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
           <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-primary-dark)', marginBottom: 'var(--space-1)' }}>
-            🏢 Avana Group Admin Portal
+            Avana Group Admin Portal
           </h1>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
             Corporate Office Asset Handover Acknowledgement Form
@@ -83,7 +84,7 @@ export default function AssetAcknowledgementPage() {
 
         {submitted ? (
           <div className="card" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
-            <div style={{ fontSize: '3.5rem', marginBottom: 'var(--space-3)' }}>✅</div>
+            <div style={{ marginBottom: 'var(--space-3)', display: 'flex', justifyContent: 'center' }}><LuCheck size={52} color="#16a34a" /></div>
             <h2 style={{ color: '#16a34a', marginBottom: 'var(--space-2)' }}>Acknowledgement Confirmed</h2>
             <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)', lineHeight: 1.6 }}>
               Thank you, <strong>{handover?.name}</strong>! Your digital acknowledgement for the issued office assets has been recorded successfully.
@@ -118,7 +119,7 @@ export default function AssetAcknowledgementPage() {
             </div>
 
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 'var(--space-3)' }}>
-              📦 Assigned Company Assets
+              Assigned Company Assets
             </h3>
 
             {/* Assets Table */}
@@ -199,7 +200,7 @@ export default function AssetAcknowledgementPage() {
                 disabled={submitting || !agreed}
                 style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: 'var(--space-2)' }}
               >
-                {submitting ? <Spinner size="sm" /> : '✍️ Sign & Confirm Asset Handover'}
+                {submitting ? <Spinner size="sm" /> : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><LuPenTool size={15} /> Sign & Confirm Asset Handover</span>}
               </button>
             </form>
 

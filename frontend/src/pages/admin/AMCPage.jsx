@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  LuFileText, LuPhone, LuPencil, LuPlus, LuDownload, LuPrinter,
+  LuWrench, LuCalendar, LuBell, LuSave, LuCheck, LuEye, LuTrash2,
+  LuClock, LuChevronRight
+} from 'react-icons/lu';
 import { useToast } from '../../context/ToastContext';
 import { amcApi } from '../../lib/api';
 import {
@@ -233,7 +238,7 @@ export function AMCPage() {
         customHtml: `
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
             <div style="background: #f9f9fb; padding: 1rem; border-radius: 6px; border: 1px solid #e4e4e7;">
-              <h4 style="color: #172025; margin-bottom: 0.75rem; font-size: 0.95rem;">📄 Contract Specifications</h4>
+              <h4 style="color: #172025; margin-bottom: 0.75rem; font-size: 0.95rem;"><span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuFileText size={15} /> Contract Specifications</span></h4>
               <div style="font-size: 0.88rem; line-height: 1.8;">
                 <div><strong>Doc No:</strong> ${c.doc_no || '-'}</div>
                 <div><strong>Units / Location:</strong> ${c.units_location || '-'}</div>
@@ -246,7 +251,7 @@ export function AMCPage() {
               </div>
             </div>
             <div style="background: #f9f9fb; padding: 1rem; border-radius: 6px; border: 1px solid #e4e4e7;">
-              <h4 style="color: #172025; margin-bottom: 0.75rem; font-size: 0.95rem;">📞 Vendor & Contact Info</h4>
+              <h4 style="color: #172025; margin-bottom: 0.75rem; font-size: 0.95rem;"><span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuPhone size={15} /> Vendor & Contact Info</span></h4>
               <div style="font-size: 0.88rem; line-height: 1.8;">
                 <div><strong>Vendor Contact:</strong> ${c.vendor_contact || '-'}</div>
                 <div><strong>Contact Phone:</strong> ${c.vendor_phone || '-'}</div>
@@ -276,7 +281,7 @@ export function AMCPage() {
     return (
       <div>
         <PageHeader
-          title={editId ? "✏️ Edit AMC Contract" : "➕ Add New AMC Contract"}
+          title={editId ? "Edit AMC Contract" : "Add New AMC Contract"}
           subtitle="Enter AMC details and number of scheduled visits"
           action={
             <button type="button" className="btn btn--outline btn--sm" onClick={() => setShowForm(false)}>
@@ -286,7 +291,7 @@ export function AMCPage() {
         />
         <div className="card">
           <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1.1rem', color: 'var(--color-primary-dark)' }}>
-            {editId ? "✏️ Edit AMC Contract" : "➕ Add New AMC Contract"}
+            {editId ? "Edit AMC Contract" : "Add New AMC Contract"}
           </h3>
           <form autoComplete="off" onSubmit={handleSaveContract}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: 'var(--space-4)' }}>
@@ -349,12 +354,12 @@ export function AMCPage() {
     return (
       <div>
         <PageHeader
-          title={`📋 ${viewModal.amc_name || viewModal.equipment_name || 'AMC'} Details`}
+          title={`${viewModal.amc_name || viewModal.equipment_name || 'AMC'} Details`}
           subtitle="Contract specifications and individual service visit logs"
           action={
             <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
               <button type="button" className="btn btn--secondary btn--sm" onClick={() => handleDownloadSingleAMC(viewModal)}>
-                📄 Download PDF
+                <LuPrinter size={14} style={{ marginRight: "0.35rem" }} /> Download PDF
               </button>
               <button type="button" className="btn btn--outline btn--sm" onClick={() => setViewModal(null)}>
                 ← Back to Contracts
@@ -367,7 +372,7 @@ export function AMCPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
             <div style={{ background: '#f8fafc', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
-                <h4 style={{ color: 'var(--color-primary-dark)', margin: 0, fontSize: '0.95rem' }}>📄 Contract Specifications</h4>
+                <h4 style={{ color: 'var(--color-primary-dark)', margin: 0, fontSize: '0.95rem' }}><span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuFileText size={15} /> Contract Specifications</span></h4>
                 <Badge status={expired ? 'danger' : 'success'} label={expired ? 'Expired AMC' : 'Active AMC'} />
               </div>
               <div style={{ fontSize: '0.88rem', lineHeight: 1.8 }}>
@@ -381,7 +386,7 @@ export function AMCPage() {
             </div>
             
             <div style={{ background: '#f8fafc', padding: 'var(--space-4)', borderRadius: 'var(--radius)', border: '1px solid #e2e8f0' }}>
-              <h4 style={{ color: 'var(--color-primary-dark)', marginBottom: 'var(--space-3)', fontSize: '0.95rem' }}>📞 Vendor & Contact Info</h4>
+              <h4 style={{ color: 'var(--color-primary-dark)', marginBottom: 'var(--space-3)', fontSize: '0.95rem' }}><span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuPhone size={15} /> Vendor & Contact Info</span></h4>
               <div style={{ fontSize: '0.88rem', lineHeight: 1.8 }}>
                 <div><strong>Vendor Contact:</strong> {viewModal.vendor_contact || '-'}</div>
                 <div><strong>Contact Phone:</strong> {viewModal.vendor_phone || '-'}</div>
@@ -395,7 +400,7 @@ export function AMCPage() {
 
           {/* Visits Summary Pills */}
           <div style={{ display: 'flex', gap: 'var(--space-3)', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 'var(--radius)', padding: 'var(--space-3) var(--space-4)', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
-            <span style={{ fontSize: '1.2rem' }}>🛠️</span>
+            <LuWrench size={18} style={{ color: "var(--brand-amber)" }} />
             <div style={{ fontSize: '0.9rem', color: '#1e3a8a' }}>
               <strong>Total Visits:</strong> {viewModal.no_of_visits || visits.length} &nbsp;|&nbsp;
               <strong> Completed:</strong> <span style={{ color: '#16a34a', fontWeight: 600 }}>{completedCount}</span> &nbsp;|&nbsp;
@@ -406,10 +411,10 @@ export function AMCPage() {
           {/* Individual Visit Logs List */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)', borderBottom: '2px solid #e2e8f0', paddingBottom: 'var(--space-2)' }}>
             <h4 style={{ fontSize: '1.05rem', color: '#172025', margin: 0 }}>
-              📅 Visit Logs ({visits.length})
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuCalendar size={15} /> Visit Logs</span> ({visits.length})
             </h4>
             <small style={{ color: 'var(--color-text-muted)' }}>
-              Click <strong>"✏️ Edit Visit"</strong> on any log to update dates, technician, or status.
+              Click <strong>"Edit Visit"</strong> on any log to update dates, technician, or status.
             </small>
           </div>
 
@@ -450,7 +455,7 @@ export function AMCPage() {
                         className="btn btn--sm btn--primary"
                         onClick={() => openEditVisit(v, i)}
                       >
-                        ✏️ Edit Visit
+                        <LuPencil size={13} style={{ marginRight: "0.25rem" }} /> Edit Visit
                       </button>
                     </div>
 
@@ -469,7 +474,7 @@ export function AMCPage() {
                             <span>
                               {v.next_service_date}
                               <span style={{ display: 'inline-block', marginLeft: 6, fontSize: '0.72rem', background: '#fef3c7', color: '#92400e', padding: '1px 6px', borderRadius: 4 }}>
-                                🔔 2-day reminder
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}><LuBell size={13} /> 2-day reminder</span>
                               </span>
                             </span>
                           ) : 'Not scheduled'}
@@ -509,7 +514,7 @@ export function AMCPage() {
           <Modal
             isOpen={!!editingVisit}
             onClose={() => setEditingVisit(null)}
-            title={`✏️ Edit Visit #${editVisitForm.visit_no}`}
+            title={`<LuPencil size={13} style={{ marginRight: "0.25rem" }} /> Edit Visit #${editVisitForm.visit_no}`}
             size="md"
           >
             <form autoComplete="off" onSubmit={handleSaveEditedVisit}>
@@ -532,7 +537,7 @@ export function AMCPage() {
                     onChange={e => setEditVisitForm(f => ({ ...f, next_service_date: e.target.value }))}
                   />
                   <small style={{ color: '#b45309', fontSize: '0.75rem' }}>
-                    🔔 A reminder email will be automatically sent to the Admin 2 days before this date.
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", verticalAlign: "middle" }}><LuBell size={14} /> A reminder email</span> will be automatically sent to the Admin 2 days before this date.
                   </small>
                 </FormField>
 
@@ -604,7 +609,7 @@ export function AMCPage() {
                   className={`btn btn--primary${saving ? ' btn--loading' : ''}`}
                   disabled={saving}
                 >
-                  💾 Save Visit Details
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuSave size={14} /> Save Visit Details</span>
                 </button>
               </div>
             </form>
@@ -621,11 +626,11 @@ export function AMCPage() {
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>AMC Contracts</span>
       </div>
 
@@ -635,7 +640,7 @@ export function AMCPage() {
         action={
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>
-              📄 Download PDF Report
+              <LuPrinter size={14} style={{ marginRight: "0.35rem" }} /> Download PDF Report
             </button>
             <button type="button" className="btn btn--primary" onClick={openNew}>
               + Add AMC Contract
@@ -654,7 +659,7 @@ export function AMCPage() {
           onClick={() => setActiveTab('active')}
           style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}
         >
-          <span>✅ Active AMC</span>
+          <span>Active AMC</span>
           <span style={{
             background: activeTab === 'active' ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
             color: activeTab === 'active' ? '#ffffff' : '#475569',
@@ -690,7 +695,7 @@ export function AMCPage() {
           <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
         ) : displayedContracts.length === 0 ? (
           <EmptyState
-            icon={activeTab === 'active' ? "📋" : "⌛"}
+            icon={activeTab === "active" ? <LuFileText size={40} style={{ color: "var(--brand-amber)" }} /> : <LuClock size={40} style={{ color: "var(--brand-amber)" }} />}
             title={activeTab === 'active' ? "No Active AMC Contracts" : "No Expired AMC Contracts"}
             description={
               activeTab === 'active'
@@ -749,31 +754,35 @@ export function AMCPage() {
                             onClick={() => setViewModal(c)}
                             title="View visit logs and contract details"
                           >
-                            🔍 Visits & Details
+                            <LuEye size={13} style={{ marginRight: "0.25rem" }} /> Visits & Details
                           </button>
                           <button
                             type="button"
                             className="btn btn--sm btn--secondary"
                             onClick={() => openEdit(c)}
                             title="Edit contract details"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                           >
-                            ✏️ Edit
+                            <LuPencil size={13} /> Edit
                           </button>
                           <button
                             type="button"
                             className="btn btn--sm btn--secondary"
                             onClick={() => handleDownloadSingleAMC(c)}
                             title="Download PDF"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                           >
-                            📄 PDF
+                            <LuDownload size={13} /> PDF
                           </button>
                           <button
                             type="button"
-                            className="btn btn--sm btn--danger"
+                            className="btn btn--sm btn--outline"
                             onClick={() => handleDeleteContract(c.id)}
                             title="Delete contract"
+                            style={{ color: '#dc2626', borderColor: '#e4e4e7', display: 'inline-flex', alignItems: 'center', padding: '0.4rem 0.5rem' }}
+                            aria-label="Delete contract"
                           >
-                            🗑️
+                            <LuTrash2 size={14} />
                           </button>
                         </div>
                       </td>

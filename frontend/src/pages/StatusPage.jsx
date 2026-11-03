@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { AvanaLogo, Badge, Spinner, EmptyState, Alert } from '../components/ui';
+import { LuClock, LuCalendar, LuRefreshCw } from 'react-icons/lu';
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 function formatDate(dateStr) {
@@ -76,7 +77,7 @@ export default function StatusPage() {
           background: 'var(--color-error-bg)', color: 'var(--color-error)',
           border: '1px solid var(--color-error-border)',
         }}>
-          🔴 Full Day
+          Full Day
         </span>
       );
     }
@@ -90,7 +91,7 @@ export default function StatusPage() {
         background: 'var(--color-warning-bg)', color: 'var(--color-warning)',
         border: '1px solid var(--color-warning-border)',
       }}>
-        🕐 {display}
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}><LuClock size={13} /> {display}</span>
       </span>
     );
   }
@@ -135,7 +136,7 @@ export default function StatusPage() {
             style={{ textDecoration: 'none' }}
             aria-label="Go to conference room booking page"
           >
-            📅 Book Conference Room
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuCalendar size={15} /> Book Conference Room</span>
           </Link>
         </div>
       </header>
@@ -163,7 +164,7 @@ export default function StatusPage() {
             aria-label="Refresh bookings"
             style={{ flexShrink: 0 }}
           >
-            🔄 Refresh
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}><LuRefreshCw size={13} /> Refresh</span>
           </button>
         </div>
 
@@ -211,7 +212,7 @@ export default function StatusPage() {
 
           {!loading && !error && bookings.length === 0 && (
             <EmptyState
-              icon="📭"
+              icon={<LuCalendar size={36} style={{ color: "var(--brand-amber)" }} />}
               title="No upcoming bookings"
               description="The conference room is currently available. Be the first to book it!"
             />

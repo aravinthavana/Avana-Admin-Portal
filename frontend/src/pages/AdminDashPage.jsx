@@ -4,6 +4,10 @@ import { useToast } from '../context/ToastContext';
 import { adminApi } from '../lib/api';
 import { openLegacyPrintReport } from './admin/utils';
 import {
+  LuCalendar, LuClock, LuEye, LuCheck, LuX, LuTrash2, LuRefreshCw,
+  LuPrinter, LuLock, LuKeyRound, LuCircleCheck, LuSun,
+} from 'react-icons/lu';
+import {
   Badge, Spinner, EmptyState, Alert, ConfirmModal, Modal,
   FormField, PageHeader, StatCard,
 } from '../components/ui';
@@ -66,7 +70,7 @@ function LoginAuditSection() {
         onClick={toggle}
         aria-expanded={open}
       >
-        <span>🔐 Employee Login Audit</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuLock size={15} /> Employee Login Audit</span>
         <span style={{ fontSize: '1.2rem', transition: 'transform var(--transition-base)', transform: open ? 'rotate(180deg)' : 'none' }}>
           ▾
         </span>
@@ -77,7 +81,7 @@ function LoginAuditSection() {
           {loading && <div style={{ textAlign: 'center', padding: 'var(--space-6)' }}><Spinner size="md" /></div>}
           {error && <Alert type="error">{error}</Alert>}
           {!loading && !error && logins.length === 0 && (
-            <EmptyState icon="🔐" title="No login records" />
+            <EmptyState icon={<LuLock size={36} style={{ color: "var(--brand-amber)" }} />} title="No login records" />
           )}
           {!loading && !error && logins.length > 0 && (
             <div className="table-wrapper">
@@ -145,7 +149,7 @@ function ChangePasswordPanel() {
   return (
     <div className="card" style={{ marginTop: 'var(--space-6)' }}>
       <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1rem' }}>
-        🔑 Change Admin Password
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuKeyRound size={15} /> Change Admin Password</span>
       </h3>
       <form autoComplete="off" onSubmit={handleSubmit} noValidate>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)' }}>
@@ -447,11 +451,11 @@ export default function AdminDashPage() {
   return (
     <div style={{ padding: 'var(--space-6)', maxWidth: 1200, margin: '0 auto' }}>
       <PageHeader
-        title="📅 Conference Room Bookings"
+        title="Conference Room Bookings"
         subtitle="Manage and review all conference room reservations"
         action={
           <button type="button" className="btn btn--secondary btn--sm" onClick={handleDownloadCSV}>
-              📄 Download Report
+              <LuPrinter size={14} style={{ marginRight: "0.35rem" }} /> Download Report
             </button>
         }
       />
@@ -464,7 +468,7 @@ export default function AdminDashPage() {
           onClick={() => setActiveTab('upcoming')}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          <span>📅 Upcoming Bookings</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuCalendar size={14} /> Upcoming Bookings</span>
           <span style={{
             background: activeTab === 'upcoming' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
             color: activeTab === 'upcoming' ? '#fff' : 'var(--color-text-main, #333)',
@@ -479,7 +483,7 @@ export default function AdminDashPage() {
           onClick={() => setActiveTab('completed')}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          <span>🏁 Completed Bookings</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuCircleCheck size={14} /> Completed Bookings</span>
           <span style={{
             background: activeTab === 'completed' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
             color: activeTab === 'completed' ? '#fff' : 'var(--color-text-main, #333)',
@@ -494,7 +498,7 @@ export default function AdminDashPage() {
           onClick={() => setActiveTab('all')}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          <span>📋 All Bookings</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuCalendar size={14} /> All Bookings</span>
           <span style={{
             background: activeTab === 'all' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
             color: activeTab === 'all' ? '#fff' : 'var(--color-text-main, #333)',
@@ -510,9 +514,9 @@ export default function AdminDashPage() {
         display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
         gap: 'var(--space-5)', marginBottom: 'var(--space-6)',
       }}>
-        <StatCard label="Total Bookings" value={totalBookings} icon="📅" color="var(--brand-amber)" />
-        <StatCard label="Full Day Bookings" value={fullDayBookings} icon="🔴" color="var(--color-error)" />
-        <StatCard label="Time Slot Bookings" value={slotBookings} icon="🕐" color="var(--color-info)" />
+        <StatCard label="Total Bookings" value={totalBookings} icon={<LuCalendar size={22} style={{ color: "var(--brand-amber)" }} />} color="var(--brand-amber)" />
+        <StatCard label="Full Day Bookings" value={fullDayBookings} icon={<LuSun size={22} style={{ color: "var(--color-error)" }} />} color="var(--color-error)" />
+        <StatCard label="Time Slot Bookings" value={slotBookings} icon={<LuClock size={22} style={{ color: "var(--color-info)" }} />} color="var(--color-info)" />
       </div>
 
       {/* ── Filters ── */}
@@ -536,7 +540,7 @@ export default function AdminDashPage() {
           </FormField>
           <button type="button" className="btn btn--primary btn--sm" onClick={fetchBookings}
             style={{ marginBottom: 0, alignSelf: 'flex-end', marginTop: 'var(--space-2)' }}>
-            🔄 Refresh
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}><LuRefreshCw size={13} /> Refresh</span>
           </button>
         </div>
       </div>
@@ -551,7 +555,7 @@ export default function AdminDashPage() {
           </div>
         )}
         {!loading && filtered.length === 0 && (
-          <EmptyState icon="📭" title="No bookings found" description="Try adjusting the month/year filter." />
+          <EmptyState icon={<LuCalendar size={36} style={{ color: "var(--brand-amber)" }} />} title="No bookings found" description="Try adjusting the month/year filter." />
         )}
         {!loading && filtered.length > 0 && (
           <div className="table-wrapper">
@@ -640,7 +644,7 @@ export default function AdminDashPage() {
                             onClick={() => setActiveDetailBooking(b)}
                             aria-label={`View details for booking by ${b.name}`}
                           >
-                            🔍 Details
+                            <LuEye size={13} style={{ marginRight: "0.25rem" }} /> Details
                           </button>
                           {(b.status || 'pending') === 'pending' && (
                             <>
@@ -651,7 +655,7 @@ export default function AdminDashPage() {
                                 onClick={() => { setApproveBookingId(b.id); setApprovalRemarks(''); }}
                                 aria-label={`Approve booking by ${b.name}`}
                               >
-                                Approve ✅
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}><LuCheck size={13} /> Approve</span>
                               </button>
                               <button
                                 type="button"
@@ -660,7 +664,7 @@ export default function AdminDashPage() {
                                 onClick={() => { setRejectBookingId(b.id); setRejectionReason(''); }}
                                 aria-label={`Reject booking by ${b.name}`}
                               >
-                                Reject ❌
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}><LuX size={13} /> Reject</span>
                               </button>
                             </>
                           )}
@@ -670,7 +674,7 @@ export default function AdminDashPage() {
                             onClick={() => setConfirmDelete(b.id)}
                             aria-label={`Delete booking by ${b.name}`}
                           >
-                            🗑️ Delete
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}><LuTrash2 size={13} /> Delete</span>
                           </button>
                         </div>
                       </td>
@@ -705,7 +709,7 @@ export default function AdminDashPage() {
       <Modal
         isOpen={!!activeDetailBooking}
         onClose={() => setActiveDetailBooking(null)}
-        title="📅 Conference Room Reservation Details"
+        title="Conference Room Reservation Details"
         footer={
           activeDetailBooking && (
             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
@@ -714,7 +718,7 @@ export default function AdminDashPage() {
                 className="btn btn--primary"
                 onClick={() => printSingleBooking(activeDetailBooking)}
               >
-                🖨️ Print Slip
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}><LuPrinter size={13} /> Print Slip</span>
               </button>
               <button type="button" className="btn btn--secondary" onClick={() => setActiveDetailBooking(null)}>
                 Close
@@ -814,7 +818,7 @@ export default function AdminDashPage() {
                 {hasFood ? (
                   <div style={{ background: '#fdf5e6', border: '1px solid #b27f0d', borderRadius: '8px', padding: '0.75rem 1rem' }}>
                     <div style={{ fontWeight: 700, color: '#b27f0d', fontSize: '0.9rem', marginBottom: 2 }}>
-                      🍽️ Food Selected: {foodName}
+                      Food Selected: {foodName}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#172025' }}>
                       <strong>Quantity:</strong> {b.foodCount || 1} portions

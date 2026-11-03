@@ -240,7 +240,7 @@ export function AdminLayout() {
               className="portal-header__logout-btn portal-header__logout-btn--admin"
               aria-label="Log Out of Admin Portal"
             >
-              🚪 Log Out
+              <LuLogOut size={14} style={{ marginRight: "0.35rem" }} /> Log Out
             </button>
           </div>
         </div>
@@ -291,7 +291,7 @@ export function ConferenceAdminLayout() {
               to="/helpdesk-admin"
               className="portal-header__dash-btn"
             >
-              📋 Help Desk Admin
+              <LuLayoutDashboard size={14} style={{ marginRight: "0.35rem" }} /> Help Desk Admin
             </NavLink>
             <button
               type="button"

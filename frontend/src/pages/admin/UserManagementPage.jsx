@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  LuUsers, LuCircleCheck, LuBan, LuBuilding2, LuSearch, LuShield,
+  LuActivity, LuPhone, LuMapPin, LuPencil, LuKeyRound, LuTrash2,
+  LuUserPlus, LuChevronRight,
+} from 'react-icons/lu';
 import { useToast } from '../../context/ToastContext';
 import { userManagementApi, locationsApi } from '../../lib/api';
 import {
@@ -270,28 +275,28 @@ export default function UserManagementPage() {
         marginBottom: '1.5rem'
       }}>
         <StatCard
-          icon="👥"
+          icon={<LuUsers size={22} style={{ color: "var(--brand-charcoal, #172025)" }} />}
           label="Total Users"
           value={stats.total}
           subtext="Registered employee directory"
           color="var(--brand-charcoal, #172025)"
         />
         <StatCard
-          icon="✅"
+          icon={<LuCircleCheck size={22} style={{ color: "var(--color-success, #16a34a)" }} />}
           label="Active Accounts"
           value={stats.active}
           subtext="Can log in & submit requests"
           color="var(--color-success, #16a34a)"
         />
         <StatCard
-          icon="🚫"
+          icon={<LuBan size={22} style={{ color: "var(--color-error, #dc2626)" }} />}
           label="Deactivated"
           value={stats.inactive}
           subtext="Blocked from signing in"
           color="var(--color-error, #dc2626)"
         />
         <StatCard
-          icon="🏢"
+          icon={<LuBuilding2 size={22} style={{ color: "var(--brand-amber, #b27f0d)" }} />}
           label="Departments"
           value={stats.depts}
           subtext="Operational business units"
@@ -309,7 +314,7 @@ export default function UserManagementPage() {
         }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--color-text-muted)' }}>
-              🔍 Search Employees
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuSearch size={14} /> Search Employees</span>
             </label>
             <input
               type="text"
@@ -323,7 +328,7 @@ export default function UserManagementPage() {
 
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--color-text-muted)' }}>
-              🏢 Department
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuBuilding2 size={14} /> Department</span>
             </label>
             <select
               className="form-input"
@@ -340,7 +345,7 @@ export default function UserManagementPage() {
 
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--color-text-muted)' }}>
-              🛡️ Role
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuShield size={14} /> Role</span>
             </label>
             <select
               className="form-input"
@@ -357,7 +362,7 @@ export default function UserManagementPage() {
 
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--color-text-muted)' }}>
-              🚦 Account Status
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuActivity size={14} /> Account Status</span>
             </label>
             <select
               className="form-input"
@@ -384,7 +389,7 @@ export default function UserManagementPage() {
           </div>
         ) : users.length === 0 ? (
           <EmptyState
-            icon="👥"
+            icon={<LuUsers size={22} style={{ color: "var(--brand-charcoal, #172025)" }} />}
             title="No Users Found"
             description={search || selectedDept !== 'all' || selectedRole !== 'all' || selectedStatus !== 'all'
               ? "No employees match your active filters. Try adjusting your search query."
@@ -460,7 +465,7 @@ export default function UserManagementPage() {
                       <td style={{ fontSize: '0.85rem' }}>
                         {user.phone ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--color-text)' }}>
-                            <span>📞</span> {user.phone}
+                            <LuPhone size={13} style={{ color: "var(--brand-amber)" }} /> {user.phone}
                           </div>
                         ) : (
                           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
@@ -497,7 +502,7 @@ export default function UserManagementPage() {
                       <td style={{ fontSize: '0.85rem' }}>
                         {user.location ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <span>📍</span> {user.location}
+                            <LuMapPin size={13} style={{ color: "var(--brand-amber)" }} /> {user.location}
                           </span>
                         ) : (
                           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
@@ -556,7 +561,7 @@ export default function UserManagementPage() {
                             onClick={() => handleOpenEditModal(user)}
                             style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
                           >
-                            ✏️ Edit
+                            <LuPencil size={13} style={{ marginRight: "0.25rem" }} /> Edit
                           </button>
                           <button
                             className="btn btn--outline btn--sm"
@@ -564,21 +569,9 @@ export default function UserManagementPage() {
                             onClick={() => { setPasswordUser(user); setNewPassword(''); }}
                             style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
                           >
-                            🔑 Password
+                            <LuKeyRound size={13} style={{ marginRight: "0.25rem" }} /> Password
                           </button>
-                          <button
-                            className="btn btn--outline btn--sm"
-                            title="Delete User"
-                            onClick={() => setDeletingUser(user)}
-                            style={{
-                              padding: '0.25rem 0.5rem',
-                              fontSize: '0.75rem',
-                              color: 'var(--color-error, #dc2626)',
-                              borderColor: 'var(--color-error-border, #fecaca)'
-                            }}
-                          >
-                            🗑️
-                          </button>
+                          <button className="btn btn--outline btn--sm" title="Delete User" onClick={() => setDeletingUser(user)} style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem", color: "var(--color-error, #dc2626)", borderColor: "var(--color-error-border, #fecaca)", display: "inline-flex", alignItems: "center" }} aria-label="Delete User"><LuTrash2 size={13} /></button>
                         </div>
                       </td>
                     </tr>
@@ -725,7 +718,7 @@ export default function UserManagementPage() {
         <Modal
           isOpen={!!editingUser}
           onClose={() => setEditingUser(null)}
-          title={`✏️ Edit User: ${editingUser.name}`}
+          title={`<LuPencil size={13} style={{ marginRight: "0.25rem" }} /> Edit User: ${editingUser.name}`}
         >
           <form onSubmit={handleUpdateUser}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -843,7 +836,7 @@ export default function UserManagementPage() {
         <Modal
           isOpen={!!passwordUser}
           onClose={() => setPasswordUser(null)}
-          title={`🔑 Reset Password: ${passwordUser.name}`}
+          title={`Reset Password: ${passwordUser.name}`}
         >
           <form onSubmit={handleResetPassword}>
             <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>

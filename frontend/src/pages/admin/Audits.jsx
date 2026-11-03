@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
+import {
+  LuChartBar, LuSparkles, LuPrinter, LuChevronRight,
+  LuPencil, LuCheck, LuX,
+} from 'react-icons/lu';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi,
@@ -59,15 +63,15 @@ export function StationeryAudit() {
 
   return (
     <div>
-      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Stationery Audit</span>
       </div>
 
@@ -77,7 +81,9 @@ export function StationeryAudit() {
         action={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
             <input type="month" className="form-input" value={month} onChange={e => setMonth(e.target.value)} />
-            <button type="button" className="btn btn--secondary" onClick={() => window.print()}>🖨️ Download PDF</button>
+            <button type="button" className="btn btn--secondary" onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+              <LuPrinter size={15} /> Download PDF
+            </button>
           </div>
         }
       />
@@ -85,7 +91,7 @@ export function StationeryAudit() {
       {error && <Alert type="error">{error}</Alert>}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
-          : Object.keys(audit).length === 0 ? <EmptyState icon="📊" title="No audit records" />
+          : Object.keys(audit).length === 0 ? <EmptyState icon={<LuChartBar size={40} style={{ color: 'var(--brand-amber)' }} />} title="No audit records" />
           : (
             <div className="table-wrapper">
               <table className="table" aria-label="Stationery monthly audit">
@@ -136,8 +142,8 @@ export function StationeryAudit() {
                               <button className="btn btn--sm btn--primary" onClick={() => handleSave(itemName)} disabled={submitting}>{submitting ? 'Saving...' : 'Save'}</button>
                             </div>
                           ) : (
-                            <button className="btn btn--sm btn--outline" onClick={() => handleEdit(itemName, a)}>
-                              ✏️ Edit
+                            <button className="btn btn--sm btn--outline" onClick={() => handleEdit(itemName, a)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                              <LuPencil size={13} /> Edit
                             </button>
                           )}
                         </td>
@@ -202,15 +208,15 @@ export function HousekeepingAudit() {
 
   return (
     <div>
-      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Housekeeping Audit</span>
       </div>
 
@@ -220,7 +226,9 @@ export function HousekeepingAudit() {
         action={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
             <input type="month" className="form-input" value={month} onChange={e => setMonth(e.target.value)} />
-            <button type="button" className="btn btn--secondary" onClick={() => window.print()}>🖨️ Download PDF</button>
+            <button type="button" className="btn btn--secondary" onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+              <LuPrinter size={15} /> Download PDF
+            </button>
           </div>
         }
       />
@@ -228,7 +236,7 @@ export function HousekeepingAudit() {
       {error && <Alert type="error">{error}</Alert>}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
-          : Object.keys(audit).length === 0 ? <EmptyState icon="🧴" title="No audit records" description="No housekeeping stock transactions found for this month." />
+          : Object.keys(audit).length === 0 ? <EmptyState icon={<LuSparkles size={40} style={{ color: 'var(--brand-amber)' }} />} title="No audit records" description="No housekeeping stock transactions found for this month." />
           : (
             <div className="table-wrapper">
               <table className="table" aria-label="Housekeeping monthly audit">
@@ -279,8 +287,8 @@ export function HousekeepingAudit() {
                               <button className="btn btn--sm btn--primary" onClick={() => handleSave(itemName)} disabled={submitting}>{submitting ? 'Saving...' : 'Save'}</button>
                             </div>
                           ) : (
-                            <button className="btn btn--sm btn--outline" onClick={() => handleEdit(itemName, a)}>
-                              ✏️ Edit
+                            <button className="btn btn--sm btn--outline" onClick={() => handleEdit(itemName, a)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                              <LuPencil size={13} /> Edit
                             </button>
                           )}
                         </td>

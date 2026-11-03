@@ -14,7 +14,8 @@ import { PrintHeader } from './PrintHeader';
 import {
   LuListFilter, LuCalendar, LuClock, LuCircleCheck, LuCheckCheck,
   LuCircleX, LuPrinter, LuTrash2, LuCheck, LuX, LuSearch,
-  LuUser, LuMail, LuPhone, LuBuilding2, LuEye, LuCircleAlert
+  LuUser, LuMail, LuPhone, LuBuilding2, LuEye, LuCircleAlert,
+  LuRefreshCw, LuInbox
 } from 'react-icons/lu';
 
 /* ─── Skeleton Rows ───────────────────────────────────────── */
@@ -540,7 +541,7 @@ export function HelpdeskTable({ categoryFilter }) {
         unfulfilledList
       );
 
-      toast.success('Request completed successfully! ✅');
+      toast.success('Request completed successfully!');
       setRequests(prev => {
         const updated = prev.map(r => r.id === completeRequest.id ? { ...r, status: 'completed' } : r);
         setPendingCount(updated.filter(r => (r.status || '').toLowerCase() === 'pending').length);
@@ -607,13 +608,13 @@ export function HelpdeskTable({ categoryFilter }) {
         </div>
       )}
       <PageHeader
-        title={`📋 ${label} Requests${!categoryFilter && pendingCount > 0 ? ` (${pendingCount} pending)` : ''}`}
+        title={`${label} Requests${!categoryFilter && pendingCount > 0 ? ` (${pendingCount} pending)` : ''}`}
         subtitle={`Manage help desk requests${categoryFilter ? ` for ${CATEGORY_LABELS[categoryFilter] || categoryFilter}` : ''}`}
         action={
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-            <button type="button" className="btn btn--secondary btn--sm" onClick={handleLegacyPDF}>📄 Download PDF</button>
+            <button type="button" className="btn btn--secondary btn--sm" onClick={handleLegacyPDF} style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuPrinter size={14} /> Download PDF</button>
             <button type="button" className="btn btn--secondary btn--sm" onClick={fetchRequests}>
-              🔄 Refresh
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}><LuRefreshCw size={13} /> Refresh</span>
             </button>
           </div>
         }
@@ -804,7 +805,7 @@ export function HelpdeskTable({ categoryFilter }) {
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {!loading && filtered.length === 0 && (
-          <EmptyState icon="📭" title="No requests found" description="Adjust the filters or check back later." />
+          <EmptyState icon={<LuInbox size={36} style={{ color: "var(--brand-amber)" }} />} title="No requests found" description="Adjust the filters or check back later." />
         )}
         <div className="table-wrapper">
           <table className="table" aria-label="Help desk requests" style={{ width: '100%', minWidth: '960px' }}>
@@ -1268,7 +1269,7 @@ export function HelpdeskTable({ categoryFilter }) {
                               )}
                               {item.checked && isZeroStock && (
                                 <span style={{ fontSize: '0.72rem', color: 'var(--color-danger, #dc2626)', fontWeight: 600, display: 'block', marginTop: '2px' }}>
-                                  ⚠️ Stock is 0 in inventory. Uncheck if you don't have this item!
+                                  Stock is 0 in inventory. Uncheck if you don't have this item!
                                 </span>
                               )}
                             </td>
@@ -1509,7 +1510,7 @@ export function HelpdeskTable({ categoryFilter }) {
                     {hasFood ? (
                       <div style={{ background: '#fdf5e6', border: '1px solid #b27f0d', borderRadius: '8px', padding: '0.75rem 1rem' }}>
                         <div style={{ fontWeight: 700, color: '#b27f0d', fontSize: '0.9rem', marginBottom: 2 }}>
-                          🍽️ Food Selected: {foodName}
+                          Food Selected: {foodName}
                         </div>
                         <div style={{ fontSize: '0.85rem', color: '#172025' }}>
                           <strong>Quantity:</strong> {r.foodCount || 1} portions
@@ -1568,7 +1569,7 @@ export function HelpdeskTable({ categoryFilter }) {
                                         background: 'rgba(178, 127, 13, 0.15)',
                                         color: '#b27f0d',
                                       }}>
-                                        📝 Unlisted Item
+                                        Unlisted Item
                                       </span>
                                     ) : itemType && (
                                       <span style={{
@@ -1579,23 +1580,23 @@ export function HelpdeskTable({ categoryFilter }) {
                                         background: itemType === 'printing' ? 'rgba(124, 58, 237, 0.12)' : (itemType === 'housekeeping' ? 'rgba(5, 150, 105, 0.12)' : 'rgba(217, 119, 6, 0.12)'),
                                         color: itemType === 'printing' ? '#7c3aed' : (itemType === 'housekeeping' ? '#059669' : '#b27f0d'),
                                       }}>
-                                        {itemType === 'printing' ? '🖨️ Printing' : (itemType === 'housekeeping' ? '🧹 Housekeeping' : '✏️ Stationery')}
+                                        {itemType === 'printing' ? 'Printing' : (itemType === 'housekeeping' ? 'Housekeeping' : 'Stationery')}
                                       </span>
                                     )}
                                   </div>
                                   {i.fulfilled === false && (
                                     <div style={{ color: 'var(--color-danger, #dc2626)', fontSize: '0.75rem', fontWeight: 600, marginTop: '2px' }}>
-                                      ❌ Unfulfilled / Out of stock
+                                      Unfulfilled / Out of stock
                                     </div>
                                   )}
                                   {i.fulfilled === true && (
                                     <div style={{ color: 'var(--color-success, #16a34a)', fontSize: '0.75rem', fontWeight: 600, marginTop: '2px' }}>
-                                      ✅ Fulfilled: {i.fulfilledQty ?? (i.qty || i.quantity || 1)}
+                                      Fulfilled: {i.fulfilledQty ?? (i.qty || i.quantity || 1)}
                                     </div>
                                   )}
                                   {i.remarks && (
                                     <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem', display: 'block', marginTop: '2px' }}>
-                                      💬 Remarks: {i.remarks}
+                                      Remarks: {i.remarks}
                                     </span>
                                   )}
                                 </td>

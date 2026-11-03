@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { employeeApi, adminApi } from '../lib/api';
 import { AvanaLogo, Alert, Spinner } from '../components/ui';
+import { LuShield, LuSmartphone, LuKeyRound } from 'react-icons/lu';
 import '../styles/Login.css';
 
 const ALLOWED_DOMAINS = ['avanamedical.com', 'avanasurgical.com'];
@@ -280,7 +281,7 @@ export default function LoginPage() {
         onClick={() => setShowAdminModal(true)}
         aria-label="Admin sign in"
       >
-        🔐 Admin Sign In
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuShield size={16} /> Admin Sign In</span>
       </button>
 
       {/* Login card */}
@@ -305,7 +306,7 @@ export default function LoginPage() {
             onClick={() => setMode('otp')}
             type="button"
           >
-            📱 OTP Login
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuSmartphone size={16} /> OTP Login</span>
           </button>
           <button
             role="tab"
@@ -316,7 +317,7 @@ export default function LoginPage() {
             onClick={() => setMode('password')}
             type="button"
           >
-            🔑 Password Login
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuKeyRound size={16} /> Password Login</span>
           </button>
         </div>
 

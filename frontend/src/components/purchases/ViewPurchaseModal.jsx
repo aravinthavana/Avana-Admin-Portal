@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LuTrash2, LuDownload } from 'react-icons/lu';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
 import { Badge } from '../ui';
@@ -51,11 +52,11 @@ export default function ViewPurchaseModal({ purchase, onClose, onUpdate, onMarkP
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           {onDelete && (
             <button className="btn btn--danger" onClick={onDelete} title="Delete Purchase Request">
-              🗑️ Delete
+              <LuTrash2 size={14} style={{ marginRight: '0.25rem' }} /> Delete
             </button>
           )}
           <button className="btn btn--outline" onClick={handleDownloadPdf}>
-            Download PDF
+            <LuDownload size={14} style={{ marginRight: '0.25rem' }} /> Download PDF
           </button>
           {purchase.status === 'Approved' && (
             <button className="btn btn--primary" onClick={onMarkPurchased}>

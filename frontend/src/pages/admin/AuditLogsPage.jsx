@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../lib/api';
 import { Link } from 'react-router-dom';
+import { LuFileText, LuChevronRight } from 'react-icons/lu';
 import { Badge, Spinner, EmptyState, Alert, PageHeader, Breadcrumbs } from '../../components/ui';
 import { formatDateTime } from './utils';
 
@@ -35,7 +36,7 @@ export function AuditLogsPage() {
       {error && <Alert type="error">{error}</Alert>}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
-          : logs.length === 0 ? <EmptyState icon="📜" title="No audit logs found" />
+          : logs.length === 0 ? <EmptyState icon={<LuFileText size={40} style={{ color: "var(--brand-amber)" }} />} title="No audit logs found" />
           : (
             <div className="table-wrapper">
               <table className="table" aria-label="Admin audit logs">

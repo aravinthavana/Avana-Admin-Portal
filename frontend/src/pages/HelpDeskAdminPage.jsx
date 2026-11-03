@@ -37,7 +37,7 @@ function StationeryPrintingStockWrapper() {
         <StockManager
           key="stationery"
           title="Stationery Stock"
-          icon="✏️"
+          icon=""
           type="stationery"
           getStock={stationeryApi.getStock}
           updateStock={stationeryApi.updateStock}
@@ -48,7 +48,7 @@ function StationeryPrintingStockWrapper() {
         <StockManager
           key="printing"
           title="Printing Stock"
-          icon="🖨️"
+          icon=""
           type="printing"
           getStock={printingApi.getStock}
           updateStock={printingApi.updateStock}
@@ -658,7 +658,7 @@ export default function HelpDeskAdminPage() {
         <Route path="housekeeping-stock" element={
           <StockManager
             title="Housekeeping Stock"
-            icon="🧹"
+            icon=""
             type="housekeeping"
             getStock={housekeepingApi.getStock}
             updateStock={housekeepingApi.updateStock}

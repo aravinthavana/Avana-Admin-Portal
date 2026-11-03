@@ -544,7 +544,7 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
         <input 
           type="text" 
           className="form-input" 
-          placeholder="🔍 Search items..." 
+          placeholder="Search items..." 
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ width: '100%' }}
@@ -616,7 +616,7 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
             No items found{search ? ` matching "${search}"` : ''}.
             {allowCustomItems && (
               <div style={{ marginTop: '4px', color: '#b27f0d', fontWeight: 600 }}>
-                👉 Enter the unlisted item in the box below to request it!
+                Enter the unlisted item in the box below to request it:
               </div>
             )}
           </div>
@@ -635,7 +635,7 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1.2rem' }}>📝</span>
+              
               <div>
                 <strong style={{ fontSize: '0.95rem', color: '#172025' }}>
                   Enter the item if not listed
@@ -747,7 +747,7 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
                             background: 'rgba(178, 127, 13, 0.15)',
                             color: '#b27f0d',
                           }}>
-                            📝 Unlisted Item
+                            Unlisted Item
                           </span>
                         ) : sel.type && (
                           <span style={{
@@ -758,18 +758,18 @@ function ItemSelector({ items, selected, onChange, stockMap = {}, label = 'Selec
                             background: sel.type === 'printing' ? 'rgba(124, 58, 237, 0.12)' : (sel.type === 'housekeeping' ? 'rgba(5, 150, 105, 0.12)' : 'rgba(217, 119, 6, 0.12)'),
                             color: sel.type === 'printing' ? '#7c3aed' : (sel.type === 'housekeeping' ? '#059669' : '#b27f0d'),
                           }}>
-                            {sel.type === 'printing' ? '🖨️ Printing' : (sel.type === 'housekeeping' ? '🧹 Housekeeping' : '✏️ Stationery')}
+                            {sel.type === 'printing' ? 'Printing' : (sel.type === 'housekeeping' ? 'Housekeeping' : 'Stationery')}
                           </span>
                         )}
                       </div>
                       {sel.remarks && (
                         <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                          💬 Remarks: {sel.remarks}
+                          Remarks: {sel.remarks}
                         </div>
                       )}
                       {isOverStock && (
                         <div style={{ color: 'var(--color-danger)', fontSize: '0.78rem', fontWeight: 600, marginTop: '3px' }}>
-                          ⚠️ Low stock, order below the available stock (Available: {available})
+                          Low stock, order below the available stock (Available: {available})
                         </div>
                       )}
                     </td>
@@ -824,9 +824,9 @@ function AppFeedbackForm({ form, setForm, errors }) {
           onChange={e => setForm(f => ({ ...f, exact_query: e.target.value }))}
         >
           <option value="">Select Type</option>
-          <option value="Feature Request">💡 Feature Request</option>
-          <option value="Bug Report">🐛 Bug Report</option>
-          <option value="General Suggestion">💭 General Suggestion</option>
+          <option value="Feature Request">Feature Request</option>
+          <option value="Bug Report">Bug Report</option>
+          <option value="General Suggestion">General Suggestion</option>
         </select>
       </FormField>
 
@@ -1285,7 +1285,7 @@ function AddressDirectoryModal({ isOpen, onClose, onSelect, userEmail }) {
           <input
             type="text"
             className="form-input"
-            placeholder="🔍  Search by name, label or address…"
+            placeholder="Search by name, label or address…"
             value={search}
             onChange={e => setSearch(e.target.value)}
             autoFocus
@@ -1492,7 +1492,7 @@ function ShippingLabelForm({ userEmail }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
       {/* From Address Section */}
       <AddressInputSection
-        title="📤 FROM (Sender Address)"
+        title="FROM (Sender Address)"
         nameKey="fromName"
         phoneKey="fromPhone"
         addressKey="fromAddressText"
@@ -1504,7 +1504,7 @@ function ShippingLabelForm({ userEmail }) {
 
       {/* To Address Section */}
       <AddressInputSection
-        title="📥 TO (Receiver Address)"
+        title="TO (Receiver Address)"
         nameKey="receiverName"
         phoneKey="receiverPhone"
         addressKey="toAddress"
@@ -1530,7 +1530,7 @@ function ShippingLabelForm({ userEmail }) {
             style={{ width: 18, height: 18, accentColor: '#d97706' }}
           />
           <span style={{ color: form.isFragile ? '#d97706' : 'var(--color-text)' }}>
-            ⚠️ Add Fragile Warning Label (Includes Fragile logo taking half the page)
+            Add Fragile Warning Label (Includes Fragile logo taking half the page)
           </span>
         </label>
       </div>
@@ -1542,7 +1542,7 @@ function ShippingLabelForm({ userEmail }) {
 
       <div style={{ marginTop: 'var(--space-4)', display: 'flex', justifyContent: 'flex-end' }}>
         <button type="button" className={`btn btn--primary${loading ? ' btn--loading' : ''}`} disabled={loading} onClick={handleGenerate} style={{ minWidth: 240, fontSize: '1rem' }}>
-          {loading ? 'Generating...' : '🏷️ Generate & Download Shipping Label'}
+          {loading ? "Generating..." : "Generate & Download Shipping Label"}
         </button>
       </div>
     </div>
@@ -1660,13 +1660,13 @@ function CourierMergeForm({ userEmail }) {
                   background: '#f9f9fb', color: '#6b7280', border: '1px solid #e4e4e7', borderRadius: '6px', padding: '0.45rem',
                   fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', flex: 1
                 }}>
-                  👁️ View Details
+                  View Details
                 </button>
                 <button type="button" onClick={() => setSelectedDc(dc.id)} style={{
                   background: '#d97706', color: 'white', border: 'none', borderRadius: '6px', padding: '0.45rem',
                   fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', flex: 1
                 }}>
-                  🔗 Merge
+                  Merge
                 </button>
               </div>
             </div>
@@ -1787,7 +1787,7 @@ function AllDispatchesHistory({ onRefill }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#172025' }}>
-            📋 My Delivery Challans & History
+            My Delivery Challans & History
           </h3>
           <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#6b7280' }}>
             View Delivery Challans submitted by you. Submissions created today can be <strong>Recalled & Refilled</strong>.
@@ -1796,7 +1796,7 @@ function AllDispatchesHistory({ onRefill }) {
         <input
           type="text"
           className="form-input"
-          placeholder="🔍 Search DC No, Receiver, City..."
+          placeholder="Search DC No, Receiver, City..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ maxWidth: 300 }}
@@ -1865,7 +1865,7 @@ function AllDispatchesHistory({ onRefill }) {
                           title="View Details"
                           style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
                         >
-                          👁️ View
+                          View
                         </button>
                         {isSubmittedToday ? (
                           <>
@@ -1881,7 +1881,7 @@ function AllDispatchesHistory({ onRefill }) {
                               title="Recall data and refill form for editing"
                               style={{ background: '#d97706', borderColor: '#d97706', color: '#ffffff', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700 }}
                             >
-                              🔄 Recall & Refill
+                              Recall & Refill
                             </button>
                             <button
                               type="button"
@@ -1890,7 +1890,7 @@ function AllDispatchesHistory({ onRefill }) {
                               title="Delete this DC (current day only)"
                               style={{ background: '#dc2626', borderColor: '#dc2626', color: '#ffffff', padding: '0.25rem 0.6rem', fontSize: '0.75rem', fontWeight: 700 }}
                             >
-                              🗑️ Delete
+                              Delete
                             </button>
                           </>
                         ) : (
@@ -1911,7 +1911,7 @@ function AllDispatchesHistory({ onRefill }) {
           <div style={{ background: 'white', borderRadius: '12px', padding: '1.5rem', maxWidth: '480px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.5rem' }}>
               <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#172025', fontWeight: 800 }}>
-                📋 Delivery Challan #{viewDc.dcNo}
+                Delivery Challan #{viewDc.dcNo}
               </h3>
               <button onClick={() => setViewDc(null)} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#6b7280' }}>×</button>
             </div>
@@ -1937,7 +1937,7 @@ function AllDispatchesHistory({ onRefill }) {
                     style={{ flex: 1, background: '#d97706', borderColor: '#d97706' }}
                     onClick={() => { setViewDc(null); onRefill(viewDc); }}
                   >
-                    🔄 Recall & Refill Form
+                    Recall & Refill Form
                   </button>
                   <button
                     type="button"
@@ -1945,7 +1945,7 @@ function AllDispatchesHistory({ onRefill }) {
                     style={{ flex: 1, background: '#dc2626', borderColor: '#dc2626', color: '#fff' }}
                     onClick={() => { setViewDc(null); handleDeleteDc(viewDc); }}
                   >
-                    🗑️ Delete DC
+                    Delete DC
                   </button>
                 </>
               )}
@@ -2058,7 +2058,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
           Shipping Label
         </button>
         <button type="button" style={tabStyle(activeTab === 'all-dcs')} onClick={() => switchTab('all-dcs')}>
-          📋 My DCs & Recall
+          My DCs & Recall
         </button>
       </div>
 
@@ -2080,7 +2080,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
             display: 'flex', alignItems: 'center', gap: '0.75rem',
             boxShadow: '0 2px 8px rgba(217, 119, 6, 0.15)'
           }}>
-            <span style={{ fontSize: '1.3rem' }}>🔄</span>
+            
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#d97706' }}>
                 Editing Recalled DC #{form._recalledDcNo}
@@ -2661,10 +2661,10 @@ function HelpdeskRequestView() {
             toast.warning(`⚠️ DC #${formData._recalledDcNo} had merge requests. They will be cancelled and the requesters will be notified to create their own DC.`);
           }
           await employeeApi.updateCourierDispatch(formData._recalledDcId, payload);
-          toast.success(`Delivery Challan #${formData._recalledDcNo} updated successfully! 📦`);
+          toast.success(`Delivery Challan #${formData._recalledDcNo} updated successfully!`);
         } else {
           await employeeApi.createCourierDispatch(payload);
-          toast.success('Courier dispatch request & Delivery Challan created! 📦');
+          toast.success('Courier dispatch request & Delivery Challan created!');
         }
       } else {
         const payload = {
@@ -2675,7 +2675,7 @@ function HelpdeskRequestView() {
           items: formData.items ? JSON.stringify(formData.items) : undefined,
         };
         await helpdeskApi.submit(payload);
-        toast.success('Request submitted successfully! ✅');
+        toast.success('Request submitted successfully!');
       }
       navigate('/helpdesk');
     } catch (err) {

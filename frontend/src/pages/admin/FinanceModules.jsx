@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
+import {
+  LuReceipt, LuPrinter, LuPlus, LuDownload, LuRefreshCw, LuX, LuPaperclip,
+  LuCheck, LuCheckCheck, LuChevronRight, LuBuilding, LuDroplets, LuPencil,
+  LuTrash2, LuExternalLink, LuWallet, LuCircleCheck, LuClock, LuNavigation,
+  LuMilestone, LuCar, LuArrowRight, LuShoppingCart,
+} from 'react-icons/lu';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi,
@@ -280,12 +286,12 @@ export function UtilityPaymentsPage({ api }) {
 
     const PREFERRED_ORDER = ['landline', 'broadband', 'electricity', 'mobile', 'water', 'other'];
     const TYPE_META = {
-      landline: { title: '📞 Landline Bills & Payments', label: 'Landline' },
-      broadband: { title: '🌐 Broadband & Internet Payments', label: 'Broadband' },
-      electricity: { title: '⚡ Electricity (EB) Bills & Payments', label: 'Electricity' },
-      mobile: { title: '📱 Mobile Postpaid Bills', label: 'Mobile' },
-      water: { title: '💧 Water Tax & Charges', label: 'Water' },
-      other: { title: '💡 Other Utility Payments', label: 'Other Utilities' },
+      landline: { title: 'Landline Bills & Payments', label: 'Landline' },
+      broadband: { title: 'Broadband & Internet Payments', label: 'Broadband' },
+      electricity: { title: 'Electricity (EB) Bills & Payments', label: 'Electricity' },
+      mobile: { title: 'Mobile Postpaid Bills', label: 'Mobile' },
+      water: { title: 'Water Tax & Charges', label: 'Water' },
+      other: { title: 'Other Utility Payments', label: 'Other Utilities' },
     };
 
     const uniqueTypes = Array.from(
@@ -304,7 +310,7 @@ export function UtilityPaymentsPage({ api }) {
       if (typeRecords.length === 0) return null;
 
       const meta = TYPE_META[type] || {
-        title: `💡 ${(type.charAt(0).toUpperCase() + type.slice(1))} Payments`,
+        title: `${(type.charAt(0).toUpperCase() + type.slice(1))} Payments`,
         label: type.charAt(0).toUpperCase() + type.slice(1)
       };
 
@@ -377,7 +383,7 @@ export function UtilityPaymentsPage({ api }) {
     }).filter(Boolean);
 
     const consolidatedSection = {
-      sectionTitle: '📊 Consolidated Utilities Summary',
+      sectionTitle: 'Consolidated Utilities Summary',
       subtitle: `Summary of all utility categories for ${monthDisplay} (${filterMonth})`,
       pageBreakAfter: false,
       headers: [
@@ -437,22 +443,26 @@ export function UtilityPaymentsPage({ api }) {
 
   return (
     <div>
-      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Utility Payments</span>
       </div>
 
       <PageHeader title="Utility Payments" subtitle="Manage utility bills and payments for each month" action={
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-          <button type="button" className="btn btn--secondary btn--sm" onClick={handleDownloadReport}>📄 Download Report</button>
-          <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowAddForm(true)}>+ Add Connection</button>
+          <button type="button" className="btn btn--secondary btn--sm" onClick={handleDownloadReport} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <LuPrinter size={14} /> Download Report
+          </button>
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowAddForm(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <LuPlus size={14} /> Add Connection
+          </button>
         </div>
       } />
 
@@ -470,7 +480,7 @@ export function UtilityPaymentsPage({ api }) {
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
-          : tableData.length === 0 ? <EmptyState icon="🧾" title="No connections found" description="Create your first utility connection by clicking Add Connection." />
+          : tableData.length === 0 ? <EmptyState icon={<LuReceipt size={40} style={{ color: 'var(--brand-amber)' }} />} title="No connections found" description="Create your first utility connection by clicking Add Connection." />
           : (
             <div style={{ padding: 'var(--space-4)' }}>
               {utilityTypes.map(tab => {
@@ -576,50 +586,50 @@ export function UtilityPaymentsPage({ api }) {
                                       rel="noopener noreferrer"
                                       download
                                       className="btn btn--sm btn--outline"
-                                      style={{ color: 'var(--color-primary-main)', textDecoration: 'none', padding: '0.2rem 0.5rem', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
+                                      style={{ color: 'var(--color-primary-main)', textDecoration: 'none', padding: '0.2rem 0.5rem', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                                       title="Download / View attached bill"
                                     >
-                                      📥 Bill
+                                      <LuDownload size={13} /> Bill
                                     </a>
                                     <label
                                       htmlFor={`bill-file-${r.id}`}
                                       className="btn btn--sm btn--ghost"
-                                      style={{ cursor: 'pointer', padding: '0.2rem 0.35rem', fontSize: '0.78rem' }}
+                                      style={{ cursor: 'pointer', padding: '0.2rem 0.35rem', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center' }}
                                       title="Replace attached bill"
                                     >
-                                      🔄
+                                      <LuRefreshCw size={12} />
                                     </label>
                                     <button
                                       type="button"
                                       className="btn btn--sm btn--ghost"
-                                      style={{ color: 'var(--color-error)', padding: '0.2rem 0.35rem', fontSize: '0.78rem' }}
+                                      style={{ color: 'var(--color-error)', padding: '0.2rem 0.35rem', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center' }}
                                       onClick={() => handleRemoveBill(r.recordId)}
                                       title="Remove attached bill"
                                     >
-                                      ✕
+                                      <LuX size={13} />
                                     </button>
                                   </div>
                                 ) : (
                                   <label
                                     htmlFor={`bill-file-${r.id}`}
                                     className="btn btn--sm btn--outline"
-                                    style={{ cursor: 'pointer', fontSize: '0.78rem', padding: '0.2rem 0.5rem', whiteSpace: 'nowrap' }}
+                                    style={{ cursor: 'pointer', fontSize: '0.78rem', padding: '0.2rem 0.5rem', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                                     title="Attach bill document"
                                   >
-                                    📎 Attach Bill
+                                    <LuPaperclip size={13} /> Attach Bill
                                   </label>
                                 )}
                               </td>
                               <td>
-                                <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', alignItems: 'center' }}>
                                   {isEditing && (
                                     <>
                                       <button type="button" className="btn btn--sm btn--primary" onClick={() => saveRow(r.id)} disabled={isSaving}>{isSaving ? '...' : 'Save'}</button>
-                                      <button type="button" className="btn btn--sm btn--ghost" onClick={() => setEditRowData(prev => { const n = {...prev}; delete n[r.id]; return n; })} title="Cancel edits">✕</button>
+                                      <button type="button" className="btn btn--sm btn--ghost" onClick={() => setEditRowData(prev => { const n = {...prev}; delete n[r.id]; return n; })} title="Cancel edits"><LuX size={13} /></button>
                                     </>
                                   )}
                                   {rowData.status !== 'Paid' && (
-                                    <button type="button" className="btn btn--sm btn--outline" onClick={() => handleMarkAsPaid(r.id, r.recordId)} disabled={isSaving}>💸 Mark Paid</button>
+                                    <button type="button" className="btn btn--sm btn--outline" onClick={() => handleMarkAsPaid(r.id, r.recordId)} disabled={isSaving} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><LuCheck size={13} /> Mark Paid</button>
                                   )}
                                   {r.isExisting && (
                                     <button type="button" className="btn btn--sm btn--outline" style={{ color: 'var(--color-error)' }} onClick={() => handleDelete(r.recordId)} title="Clear this month's bill">Clear</button>
@@ -826,15 +836,15 @@ export function TaxPaymentsPage({ api }) {
 
   return (
     <div>
-      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Tax Payments</span>
       </div>
 
@@ -842,18 +852,20 @@ export function TaxPaymentsPage({ api }) {
         title="Property & Water Tax Dashboard"
         subtitle="Manage and track half-yearly tax payments"
         action={
-          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
+          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <LuPrinter size={15} /> Download PDF
+          </button>
         }
       />
 
       {/* Top Action Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-4)', marginBottom: 'var(--space-5)' }}>
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-          <button className={`btn btn--sm ${activeTab === 'Property Tax' ? 'btn--primary' : 'btn--outline'}`} onClick={() => setActiveTab('Property Tax')}>
-            🏠 Property Tax
+          <button className={`btn btn--sm ${activeTab === 'Property Tax' ? 'btn--primary' : 'btn--outline'}`} onClick={() => setActiveTab('Property Tax')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <LuBuilding size={14} /> Property Tax
           </button>
-          <button className={`btn btn--sm ${activeTab === 'Water Tax' ? 'btn--primary' : 'btn--outline'}`} onClick={() => setActiveTab('Water Tax')}>
-            💧 Water Tax
+          <button className={`btn btn--sm ${activeTab === 'Water Tax' ? 'btn--primary' : 'btn--outline'}`} onClick={() => setActiveTab('Water Tax')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <LuDroplets size={14} /> Water Tax
           </button>
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
@@ -861,15 +873,15 @@ export function TaxPaymentsPage({ api }) {
             {years.map(y => <option key={y} value={y}>{y === 'All' ? 'All Years' : y}</option>)}
           </select>
           <input type="text" className="form-input" placeholder="Search location or bill no..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-          <button className="btn btn--primary" onClick={openNew} style={{ background: '#2563eb', borderColor: 'transparent' }}>
-            ➕ New Tax Entry
+          <button className="btn btn--primary" onClick={openNew} style={{ background: 'var(--brand-amber)', borderColor: 'var(--brand-amber)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <LuPlus size={15} /> New Tax Entry
           </button>
         </div>
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
-          : filteredRecords.length === 0 ? <EmptyState icon="🏛️" title="No tax records found" description="Adjust your filters or add a new entry." />
+          : filteredRecords.length === 0 ? <EmptyState icon={<LuReceipt size={40} style={{ color: 'var(--brand-amber)' }} />} title="No tax records found" description="Adjust your filters or add a new entry." />
           : (
             <div className="table-wrapper">
               <table className="table" aria-label="Tax payments">
@@ -894,15 +906,23 @@ export function TaxPaymentsPage({ api }) {
                       <td style={{ color: '#172025' }}>₹{Number(r.amount).toLocaleString()}</td>
                       <td><Badge status={r.status === 'Paid' ? 'success' : 'warning'} label={r.status || 'Unpaid'} /></td>
                       <td>
-                        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                          <button type="button" className="btn btn--sm btn--secondary" onClick={() => openEdit(r)}>✏️ Edit</button>
+                        <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+                          <button type="button" className="btn btn--sm btn--secondary" onClick={() => openEdit(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <LuPencil size={13} /> Edit
+                          </button>
                           {r.status !== 'Paid' && (
                             <>
-                              <button type="button" className="btn btn--sm btn--outline" onClick={() => handleMarkAsPaid(r)}>✅ Mark as Paid</button>
-                              <a href="https://paytm.com/municipal-payments" target="_blank" rel="noopener noreferrer" className="btn btn--sm btn--primary">💸 Pay Now</a>
+                              <button type="button" className="btn btn--sm btn--outline" onClick={() => handleMarkAsPaid(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <LuCheck size={13} /> Mark Paid
+                              </button>
+                              <a href="https://paytm.com/municipal-payments" target="_blank" rel="noopener noreferrer" className="btn btn--sm btn--primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <LuExternalLink size={13} /> Pay Now
+                              </a>
                             </>
                           )}
-                          <button type="button" className="btn btn--sm btn--danger" onClick={() => setConfirmId(r.id)}>🗑️</button>
+                          <button type="button" className="btn btn--sm btn--outline" onClick={() => setConfirmId(r.id)} style={{ color: '#dc2626', borderColor: '#e4e4e7', display: 'inline-flex', alignItems: 'center', padding: '0.4rem 0.5rem' }} aria-label="Delete tax record">
+                            <LuTrash2 size={14} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1098,11 +1118,11 @@ export function PettyCashPage() {
     return (
       <div>
         <PageHeader
-          title={`✅ Clear Cash Voucher - ₹${selectedEntry.amount}`}
+          title={`Clear Cash Voucher - ₹${selectedEntry.amount}`}
           subtitle="Record settlement clearance details and notes"
           action={
             <button type="button" className="btn btn--outline" onClick={() => setShowClearForm(false)}>
-              ← Back to Cash Ledger
+              Back to Cash Ledger
             </button>
           }
         />
@@ -1119,7 +1139,9 @@ export function PettyCashPage() {
             </FormField>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
               <button type="button" className="btn btn--secondary" onClick={() => setShowClearForm(false)}>Cancel</button>
-              <button type="submit" className="btn btn--primary" disabled={submitting}>{submitting ? 'Saving...' : 'Confirm Clear Cash'}</button>
+              <button type="submit" className="btn btn--primary" disabled={submitting} style={{ background: '#16a34a', borderColor: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <LuCheckCheck size={14} /> {submitting ? 'Clearing...' : 'Confirm Clear Cash'}
+              </button>
             </div>
           </form>
         </div>
@@ -1129,15 +1151,15 @@ export function PettyCashPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Cash Handling</span>
       </div>
 
@@ -1145,7 +1167,9 @@ export function PettyCashPage() {
         title="Petty Cash & Cash Handling Ledger"
         subtitle="Track cash advances, office expense vouchers, reimbursements, and settlement clearances"
         action={
-          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
+          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <LuPrinter size={15} /> Download PDF
+          </button>
         }
       />
 
@@ -1153,9 +1177,9 @@ export function PettyCashPage() {
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        <StatCard title="Total Cash Issued" value={`₹${totalAmount.toLocaleString()}`} icon="💵" />
-        <StatCard title="Cleared & Settled" value={`₹${clearedAmount.toLocaleString()}`} icon="✅" />
-        <StatCard title="Outstanding Balance" value={`₹${pendingAmount.toLocaleString()}`} icon="⏳" />
+        <StatCard title="Total Cash Issued" value={`₹${totalAmount.toLocaleString()}`} icon={<LuWallet size={22} style={{ color: 'var(--brand-amber)' }} />} />
+        <StatCard title="Cleared & Settled" value={`₹${clearedAmount.toLocaleString()}`} icon={<LuCircleCheck size={22} style={{ color: '#16a34a' }} />} />
+        <StatCard title="Outstanding Balance" value={`₹${pendingAmount.toLocaleString()}`} icon={<LuClock size={22} style={{ color: '#b45309' }} />} />
       </div>
 
       {/* Action Bar */}
@@ -1164,7 +1188,7 @@ export function PettyCashPage() {
           <input
             type="text"
             className="form-input"
-            placeholder="🔍 Search reason, recipient, category..."
+            placeholder="Search reason, recipient, category..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ flex: 2, minWidth: 200 }}
@@ -1177,8 +1201,8 @@ export function PettyCashPage() {
             style={{ flex: 1, minWidth: 150 }}
           />
         </div>
-        <button className="btn btn--primary" onClick={() => setShowAddForm(true)}>
-          ➕ Add Cash Voucher
+        <button className="btn btn--primary" onClick={() => setShowAddForm(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+          <LuPlus size={15} /> Add Cash Voucher
         </button>
       </div>
 
@@ -1187,7 +1211,7 @@ export function PettyCashPage() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon="💵" title="No Cash Vouchers found" description="Create a new voucher entry to record cash transactions." />
+          <EmptyState icon={<LuWallet size={40} style={{ color: 'var(--brand-amber)' }} />} title="No Cash Vouchers found" description="Create a new voucher entry to record cash transactions." />
         ) : (
           <div className="table-wrapper">
             <table className="table">
@@ -1231,18 +1255,18 @@ export function PettyCashPage() {
                       )}
                     </td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
+                      <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end', alignItems: 'center' }}>
                         {!item.cleared && (
                           <button
                             className="btn btn--sm btn--primary"
                             onClick={() => { setSelectedEntry(item); setClearForm({ clearAmount: item.amount, remarks: '' }); setShowClearForm(true); }}
-                            style={{ background: '#16a34a', borderColor: 'transparent' }}
+                            style={{ background: '#16a34a', borderColor: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                           >
-                            ✅ Clear Cash
+                            <LuCheckCheck size={13} /> Clear Cash
                           </button>
                         )}
-                        <button className="btn btn--sm btn--danger" onClick={() => setDeleteId(item.id)}>
-                          🗑️
+                        <button className="btn btn--sm btn--outline" onClick={() => setDeleteId(item.id)} style={{ color: '#dc2626', borderColor: '#e4e4e7', display: 'inline-flex', alignItems: 'center', padding: '0.4rem 0.5rem' }} aria-label="Delete voucher">
+                          <LuTrash2 size={14} />
                         </button>
                       </div>
                     </td>
@@ -1376,7 +1400,7 @@ export function TravelExpensePage() {
       ],
       headers: [
         { title: 'Date' },
-        { title: 'Travel Route (From ➔ To)' },
+        { title: 'Travel Route (From - To)' },
         { title: 'Employee / Driver' },
         { title: 'Mode' },
         { title: 'Total KM' },
@@ -1385,7 +1409,7 @@ export function TravelExpensePage() {
       ],
       rows: filtered.map(item => [
         item.date,
-        `${item.fromLoc || '—'} ➔ ${item.toLoc || '—'}`,
+        `${item.fromLoc || '—'} -> ${item.toLoc || '—'}`,
         item.employeeName || 'Admin',
         item.mode === 'Car' ? 'Car (Rs 10/KM)' : 'Bike (Rs 5/KM)',
         `${item.totalKm || 0} KM`,
@@ -1430,8 +1454,8 @@ export function TravelExpensePage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <FormField label="Mode of Travel *" required>
                 <select className="form-select" value={addForm.mode} onChange={e => setAddForm(f => ({ ...f, mode: e.target.value }))}>
-                  <option value="Bike">🏍️ Bike (₹5 / KM)</option>
-                  <option value="Car">🚗 Car (₹10 / KM)</option>
+                  <option value="Bike">Bike (₹5 / KM)</option>
+                  <option value="Car">Car (₹10 / KM)</option>
                 </select>
               </FormField>
               <FormField label="Total KM *" required>
@@ -1482,15 +1506,15 @@ export function TravelExpensePage() {
 
   return (
     <div>
-      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Travel Expenses</span>
       </div>
 
@@ -1498,7 +1522,9 @@ export function TravelExpensePage() {
         title="Travel Expenses Records"
         subtitle="Log vehicle distance (Total KM) and calculate travel expenses (Bike: ₹5/KM, Car: ₹10/KM)"
         action={
-          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
+          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <LuPrinter size={15} /> Download PDF
+          </button>
         }
       />
 
@@ -1506,9 +1532,9 @@ export function TravelExpensePage() {
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        <StatCard title="Total Trips Logged" value={`${filtered.length} Trips`} icon="🗺️" />
-        <StatCard title="Total Distance Travelled" value={`${totalKmSum.toLocaleString()} KM`} icon="🚗" />
-        <StatCard title="Total Travel Expense" value={`₹${totalCostSum.toLocaleString()}`} icon="💳" />
+        <StatCard title="Total Trips Logged" value={`${filtered.length} Trips`} icon={<LuNavigation size={22} style={{ color: 'var(--brand-amber)' }} />} />
+        <StatCard title="Total Distance Travelled" value={`${totalKmSum.toLocaleString()} KM`} icon={<LuMilestone size={22} style={{ color: '#2563eb' }} />} />
+        <StatCard title="Total Travel Expense" value={`₹${totalCostSum.toLocaleString()}`} icon={<LuWallet size={22} style={{ color: '#16a34a' }} />} />
       </div>
 
       {/* Action Bar */}
@@ -1517,7 +1543,7 @@ export function TravelExpensePage() {
           <input
             type="text"
             className="form-input"
-            placeholder="🔍 Search origin, destination, driver, mode..."
+            placeholder="Search origin, destination, driver, mode..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ flex: 2, minWidth: 200 }}
@@ -1530,8 +1556,8 @@ export function TravelExpensePage() {
             style={{ flex: 1, minWidth: 150 }}
           />
         </div>
-        <button className="btn btn--primary" onClick={() => setShowForm(true)} style={{ background: '#2563eb', borderColor: 'transparent' }}>
-          ➕ Log Travel Record
+        <button className="btn btn--primary" onClick={() => setShowForm(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+          <LuPlus size={15} /> Log Travel Record
         </button>
       </div>
 
@@ -1540,14 +1566,14 @@ export function TravelExpensePage() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon="🚗" title="No Travel Logs found" description="Log vehicle trips to start tracking mileage & expenses." />
+          <EmptyState icon={<LuCar size={40} style={{ color: 'var(--brand-amber)' }} />} title="No Travel Logs found" description="Log vehicle trips to start tracking mileage & expenses." />
         ) : (
           <div className="table-wrapper">
             <table className="table">
               <thead>
                 <tr>
                   <th scope="col">Date</th>
-                  <th scope="col">Travel Route (From ➔ To)</th>
+                  <th scope="col">Travel Route</th>
                   <th scope="col">Employee / Driver</th>
                   <th scope="col">Transport Mode</th>
                   <th scope="col">Total KM</th>
@@ -1561,14 +1587,16 @@ export function TravelExpensePage() {
                   <tr key={item.id}>
                     <td style={{ whiteSpace: 'nowrap', fontSize: '0.88rem' }}>{item.date}</td>
                     <td>
-                      <div style={{ fontWeight: 700, color: 'var(--color-primary-dark)', fontSize: '0.9rem' }}>
-                        {item.fromLoc} ➔ {item.toLoc}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: 'var(--color-primary-dark)', fontSize: '0.9rem' }}>
+                        <span>{item.fromLoc}</span>
+                        <LuArrowRight size={13} style={{ color: 'var(--brand-amber)' }} />
+                        <span>{item.toLoc}</span>
                       </div>
                     </td>
                     <td style={{ fontSize: '0.88rem', fontWeight: 600 }}>{item.employeeName || 'Admin'}</td>
                     <td>
                       <span className={`badge ${item.mode === 'Car' ? 'badge--warning' : 'badge--info'}`} style={{ fontWeight: 600 }}>
-                        {item.mode === 'Car' ? '🚗 Car (₹10/KM)' : '🏍️ Bike (₹5/KM)'}
+                        {item.mode === 'Car' ? 'Car (₹10/KM)' : 'Bike (₹5/KM)'}
                       </span>
                     </td>
                     <td style={{ fontWeight: 700, fontSize: '0.92rem' }}>{item.totalKm || 0} KM</td>
@@ -1579,8 +1607,8 @@ export function TravelExpensePage() {
                       {item.remarks || '—'}
                     </td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }} className="no-print">
-                      <button className="btn btn--sm btn--danger" onClick={() => setDeleteId(item.id)}>
-                        🗑️
+                      <button className="btn btn--sm btn--outline" onClick={() => setDeleteId(item.id)} style={{ color: '#dc2626', borderColor: '#e4e4e7', display: 'inline-flex', alignItems: 'center', padding: '0.4rem 0.5rem' }} aria-label="Delete travel log">
+                        <LuTrash2 size={14} />
                       </button>
                     </td>
                   </tr>
@@ -1763,11 +1791,11 @@ export function PurchaseApprovalPage() {
         subtitle="Manage and track all purchase requests"
         action={
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn btn--secondary" onClick={() => setShowMonthReportModal(true)}>
-              📥 Monthly Report
+            <button className="btn btn--secondary" onClick={() => setShowMonthReportModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+              <LuDownload size={14} /> Monthly Report
             </button>
-            <button className="btn btn--primary" onClick={() => setShowAddModal(true)}>
-              + Add Purchase
+            <button className="btn btn--primary" onClick={() => setShowAddModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+              <LuPlus size={14} /> Add Purchase
             </button>
           </div>
         }
@@ -1777,7 +1805,7 @@ export function PurchaseApprovalPage() {
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center' }}><Spinner /></div>
         ) : requests.length === 0 ? (
-          <EmptyState title="No purchase requests found" icon="🛒" />
+          <EmptyState title="No purchase requests found" icon={<LuShoppingCart size={40} style={{ color: 'var(--brand-amber)' }} />} />
         ) : (
           <div className="table-responsive">
             <table className="table">

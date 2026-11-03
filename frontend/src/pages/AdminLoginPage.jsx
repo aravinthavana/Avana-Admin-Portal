@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
             className={`btn btn--primary btn--full btn--lg${loading ? ' btn--loading' : ''}`}
             disabled={loading}
           >
-            {!loading && '🔐 Authenticate & Enter'}
+            {!loading && 'Authenticate & Enter'}
           </button>
         </form>
 

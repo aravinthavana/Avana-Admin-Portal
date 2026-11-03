@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
+import {
+  LuPackage, LuPlus, LuMinus, LuTrash2, LuPrinter,
+  LuChevronRight, LuTriangleAlert, LuCircleCheck,
+} from 'react-icons/lu';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi,
@@ -117,37 +121,41 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
         idx + 1,
         name,
         qty || 0,
-        qty < 5 ? '⚠️ Low Stock' : '✓ Normal',
+        qty < 5 ? 'Low Stock' : 'Normal',
       ])
     });
   };
 
   return (
     <div>
-      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>{title}</span>
       </div>
 
       <PageHeader
-        title={`${icon} ${title}`}
+        title={title}
         subtitle="Manage current inventory stock levels"
         action={
-          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
+          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <LuPrinter size={15} /> Download PDF
+          </button>
         }
       />
       <PrintHeader title={`${title} Inventory Report`} subtitle="Current Stock Levels" />
       {error && <Alert type="error" onClose={() => setError(null)}>{error}</Alert>}
       {addItem && (
         <form autoComplete="off" onSubmit={handleAddItem} className="card" style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
-          <div style={{ fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>➕ Add New {type === 'housekeeping' ? 'Housekeeping Item' : 'Item'}:</div>
+          <div style={{ fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <LuPlus size={15} style={{ color: 'var(--brand-amber)' }} /> Add New {type === 'housekeeping' ? 'Housekeeping Item' : 'Item'}:
+          </div>
           <input
             type="text"
             className="form-input"
@@ -166,8 +174,8 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
             onChange={e => setNewItemStock(e.target.value)}
             style={{ width: '110px' }}
           />
-          <button type="submit" className="btn btn--primary" disabled={addingItem}>
-            {addingItem ? 'Adding...' : 'Add Item'}
+          <button type="submit" className="btn btn--primary" disabled={addingItem} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <LuPlus size={14} /> {addingItem ? 'Adding...' : 'Add Item'}
           </button>
         </form>
       )}
@@ -175,7 +183,7 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
         {loading ? (
           <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
         ) : Object.keys(stock).length === 0 ? (
-          <EmptyState icon="📦" title="No stock data" description="Stock data will appear here once initialized." />
+          <EmptyState icon={<LuPackage size={40} style={{ color: 'var(--brand-amber)' }} />} title="No stock data" description="Stock data will appear here once initialized." />
         ) : (
           <div className="table-wrapper">
             <table className="table" aria-label={`${title} stock table`}>
@@ -195,8 +203,14 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
                     <td style={{ fontWeight: 500 }}>{itemName}</td>
                     <td>
                       <span style={{
-                        fontWeight: 700, fontSize: '1.1rem',
+                        display: 'inline-block',
+                        padding: '0.2rem 0.6rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.9rem',
+                        fontWeight: 700,
+                        backgroundColor: qty <= 0 ? 'var(--color-error-bg)' : qty <= 5 ? 'var(--color-warning-bg)' : 'var(--color-success-bg)',
                         color: qty <= 0 ? 'var(--color-error)' : qty <= 5 ? 'var(--color-warning)' : 'var(--color-success)',
+                        border: `1px solid ${qty <= 0 ? 'var(--color-error-border)' : qty <= 5 ? 'var(--color-warning-border)' : 'var(--color-success-border)'}`,
                       }}>
                         {qty}
                       </span>
@@ -214,35 +228,36 @@ export function StockManager({ title, icon, type = 'stationery', getStock, updat
                       />
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                      <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
                         <button
                           type="button"
                           className="btn btn--sm"
-                          style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', borderColor: 'var(--color-success-border)' }}
+                          style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', borderColor: 'var(--color-success-border)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                           onClick={() => handleUpdate(itemName, 'add')}
                           disabled={saving[itemName]}
                           aria-label={`Add to ${itemName} stock`}
                         >
-                          {saving[itemName] ? '...' : '+ Add'}
+                          <LuPlus size={13} /> {saving[itemName] ? '...' : 'Add'}
                         </button>
                         <button
                           type="button"
                           className="btn btn--sm"
-                          style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', borderColor: 'var(--color-error-border)' }}
+                          style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', borderColor: 'var(--color-error-border)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                           onClick={() => handleUpdate(itemName, 'use')}
                           disabled={saving[itemName] || qty <= 0}
                           aria-label={`Consume from ${itemName} stock`}
                         >
-                          {saving[itemName] ? '...' : '− Consume'}
+                          <LuMinus size={13} /> {saving[itemName] ? '...' : 'Consume'}
                         </button>
-                          <button
-                            className="btn btn--sm btn--outline"
-                            onClick={() => handleDeleteItem(itemName)}
-                            title="Delete entire item from catalog"
-                            style={{ color: '#dc2626', borderColor: '#dc2626', marginLeft: '0.5rem' }}
-                          >
-                            🗑️
-                          </button>
+                        <button
+                          className="btn btn--sm btn--outline"
+                          onClick={() => handleDeleteItem(itemName)}
+                          title="Delete entire item from catalog"
+                          aria-label={`Delete ${itemName}`}
+                          style={{ color: '#dc2626', borderColor: '#e4e4e7', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0.4rem 0.5rem' }}
+                        >
+                          <LuTrash2 size={14} />
+                        </button>
                       </div>
                     </td>
                   </tr>

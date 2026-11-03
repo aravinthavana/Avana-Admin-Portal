@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { LuTrash2, LuEye, LuPlus, LuDownload, LuChevronRight } from 'react-icons/lu';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
 import { PageHeader, Badge } from '../../components/ui';
@@ -127,15 +128,15 @@ export default function PurchaseApprovalsPage() {
 
   return (
     <div style={{ padding: '0', animation: 'fadeIn 0.2s ease-out' }}>
-      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Purchase Approvals</span>
       </div>
 
@@ -218,17 +219,18 @@ export default function PurchaseApprovalsPage() {
                   <td style={{ whiteSpace: 'nowrap' }}>{p.approvalPersonEmail.split('@')[0]}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{getStatusBadge(p.status)}</td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
-                      <button className="btn btn--outline btn--sm" onClick={() => setViewPurchase(p)}>
-                        View
+                    <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+                      <button className="btn btn--outline btn--sm" onClick={() => setViewPurchase(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <LuEye size={13} /> View
                       </button>
                       <button
-                        className="btn btn--danger btn--sm"
+                        className="btn btn--outline btn--sm"
                         onClick={() => handleDeletePurchase(p.id, p.requestId)}
                         title="Delete Request"
-                        style={{ padding: '0.25rem 0.5rem' }}
+                        style={{ color: '#dc2626', borderColor: '#e4e4e7', display: 'inline-flex', alignItems: 'center', padding: '0.4rem 0.5rem' }}
+                        aria-label="Delete Request"
                       >
-                        🗑️
+                        <LuTrash2 size={14} />
                       </button>
                     </div>
                   </td>

@@ -5,6 +5,7 @@ import { bookingsApi } from '../lib/api';
 import {
   Spinner, EmptyState, Alert, Modal, FormField, PageHeader, Badge, Breadcrumbs
 } from '../components/ui';
+import { LuCalendar, LuClock, LuCheck, LuTriangleAlert } from 'react-icons/lu';
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 const MONTHS = [
@@ -342,7 +343,7 @@ export default function BookingPage() {
         remarks: form.remarks.trim(),
         origin: window.location.origin,
       });
-      toast.success('Conference room booked successfully! 🎉');
+      toast.success('Conference room booked successfully!');
       setModalOpen(false);
       fetchBookings();
     } catch (err) {
@@ -360,7 +361,7 @@ export default function BookingPage() {
     <div style={{ padding: 'var(--space-6)', maxWidth: 900, margin: '0 auto' }}>
       <Breadcrumbs items={[{ label: 'Home', link: '/helpdesk' }, { label: 'Conference Booking' }]} />
       <PageHeader
-        title="📅 Book Conference Room"
+        title="Book Conference Room"
         subtitle="Select a date on the calendar to make a reservation"
       />
 
@@ -537,7 +538,7 @@ export default function BookingPage() {
               marginBottom: 'var(--space-4)', flexWrap: 'wrap', gap: '0.5rem'
             }}>
               <h3 style={{ margin: 0, fontSize: '1.25rem', fontFamily: 'var(--font-heading)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                📅 Booked Timings {selectedDate ? `for ${formatDateDisplay(selectedDate)}` : ''}
+                Booked Timings {selectedDate ? `for ${formatDateDisplay(selectedDate)}` : ''}
               </h3>
               {selectedDate && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
@@ -560,7 +561,7 @@ export default function BookingPage() {
                 Select a date from the calendar above to view booked timings.
               </div>
             ) : selectedDateBookings.length === 0 ? (
-              <EmptyState icon="🟢" title="No bookings for this date" description="The room is fully available." />
+              <EmptyState icon={<LuCalendar size={36} style={{ color: "var(--brand-amber)" }} />} title="No bookings for this date" description="The room is fully available." />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
                 {selectedDateBookings.map(b => (
@@ -575,7 +576,7 @@ export default function BookingPage() {
                     <div style={{ flex: 1, minWidth: 200 }}>
                       <div style={{ fontWeight: 600, marginBottom: 2 }}>{b.name}</div>
                       <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-                        {b.bookingType === 'full' ? '🔴 Full Day' : `🕐 ${formatTime12(b.startTime)} – ${formatTime12(b.endTime)}`}
+                        {b.bookingType === 'full' ? 'Full Day' : `${formatTime12(b.startTime)} – ${formatTime12(b.endTime)}`}
                       </div>
                     </div>
                     <div style={{ flex: 2, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
@@ -593,7 +594,7 @@ export default function BookingPage() {
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={`📅 Book Conference Room — ${selectedDate ? formatDateDisplay(selectedDate) : ''}`}
+        title={`Book Conference Room — ${selectedDate ? formatDateDisplay(selectedDate) : ''}`}
         size="wide"
         footer={
           <>
@@ -729,7 +730,7 @@ export default function BookingPage() {
                 alignItems: 'center',
                 gap: 'var(--space-2)'
               }}>
-                <span>⚠️</span>
+                <LuTriangleAlert size={15} style={{ color: "var(--color-warning)" }} />
                 <span>{liveConflict}</span>
               </div>
             ) : (
@@ -745,7 +746,7 @@ export default function BookingPage() {
                 alignItems: 'center',
                 gap: 'var(--space-2)'
               }}>
-                <span>✅</span>
+                <LuCheck size={15} style={{ color: "#16a34a" }} />
                 <span>Room is available for the selected slot</span>
               </div>
             )}

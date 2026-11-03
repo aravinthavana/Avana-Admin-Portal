@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
+import {
+  LuLaptop, LuPrinter, LuPlus, LuBell, LuEye, LuTrash2, LuPackage, LuX,
+  LuBookOpen, LuTruck, LuSend, LuRotateCcw, LuDownload, LuFileText,
+  LuShieldCheck, LuReceipt, LuBoxes, LuPencil, LuHistory, LuArrowUpRight,
+  LuPackageCheck, LuZap, LuClock, LuCheck, LuChevronRight, LuBellRing,
+} from 'react-icons/lu';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi, globalAddressApi,
@@ -264,11 +270,11 @@ export function AssetTrackerPage() {
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Stationery Tracker</span>
       </div>
 
@@ -277,7 +283,7 @@ export function AssetTrackerPage() {
         subtitle="Track corporate hardware & furniture assigned to employees with digital acknowledgements"
         action={
           <button type="button" className="btn btn--secondary" onClick={handleDownloadPDF}>
-            📄 Download PDF Report
+            <LuPrinter size={15} style={{ marginRight: "0.35rem" }} /> Download PDF Report
           </button>
         }
       />
@@ -290,7 +296,7 @@ export function AssetTrackerPage() {
           <input
             type="text"
             className="form-input"
-            placeholder="🔍 Search employee name, email, department..."
+            placeholder="Search employee name, email, department..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ maxWidth: 350 }}
@@ -304,7 +310,7 @@ export function AssetTrackerPage() {
         </div>
 
         <button className="btn btn--primary" onClick={() => setAddModalOpen(true)} style={{ background: '#2563eb', borderColor: 'transparent' }}>
-          ➕ New Asset Handover
+          <LuPlus size={15} style={{ marginRight: '0.35rem' }} /> New Asset Handover
         </button>
       </div>
 
@@ -313,7 +319,7 @@ export function AssetTrackerPage() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon="💻" title="No asset handovers found" description="Create a new asset handover to start tracking hardware issued to employees." />
+          <EmptyState icon={<LuLaptop size={40} style={{ color: 'var(--brand-amber)' }} />} title="No asset handovers found" description="Create a new asset handover to start tracking hardware issued to employees." />
         ) : (
           <div className="table-wrapper">
             <table className="table">
@@ -368,12 +374,12 @@ export function AssetTrackerPage() {
                         <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                           {h.status === 'Pending Acknowledgement' && (
                             <button className="btn btn--sm btn--secondary" title="Send reminder email" onClick={() => handleRemind(h.id)}>
-                              🔔 Remind
+                              <LuBell size={13} style={{ marginRight: '0.25rem' }} /> Remind
                             </button>
                           )}
                           {h.status !== 'Resigned/Returned' && (
                             <button className="btn btn--sm btn--outline" onClick={() => { setSelectedHandover(h); setAppendItems([{ itemName: '', serialNo: '', condition: 'Good' }]); setAppendModalOpen(true); }}>
-                              ➕ Append
+                              <LuPlus size={13} style={{ marginRight: '0.25rem' }} /> Append
                             </button>
                           )}
                           <button className="btn btn--sm btn--secondary" onClick={() => {
@@ -385,11 +391,9 @@ export function AssetTrackerPage() {
                             }, {}));
                             setDetailsModalOpen(true);
                           }}>
-                            🔍 View Details
+                            <LuEye size={13} style={{ marginRight: '0.25rem' }} /> View Details
                           </button>
-                          <button className="btn btn--sm btn--danger" onClick={() => setDeleteId(h.id)}>
-                            🗑️
-                          </button>
+                          <button className="btn btn--sm btn--outline" onClick={() => setDeleteId(h.id)} style={{ color: "#dc2626", borderColor: "#e4e4e7", display: "inline-flex", alignItems: "center", padding: "0.4rem 0.5rem" }} aria-label="Delete handover"><LuTrash2 size={14} /></button>
                         </div>
                       </td>
                     </tr>
@@ -423,7 +427,7 @@ export function AssetTrackerPage() {
             </div>
 
             <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginTop: 'var(--space-4)', marginBottom: 'var(--space-2)' }}>
-              📦 Asset Items List
+              Asset Items List
             </h4>
             {addForm.items.map((it, idx) => (
               <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', alignItems: 'center' }}>
@@ -443,12 +447,12 @@ export function AssetTrackerPage() {
                 {addForm.items.length > 1 && (
                   <button type="button" className="btn btn--sm btn--danger" onClick={() => {
                     setAddForm(f => ({ ...f, items: f.items.filter((_, i) => i !== idx) }));
-                  }}>✕</button>
+                  }}><LuX size={13} /></button>
                 )}
               </div>
             ))}
             <button type="button" className="btn btn--sm btn--outline" onClick={() => setAddForm(f => ({ ...f, items: [...f.items, { itemName: '', serialNo: '', condition: 'Good' }] }))} style={{ marginBottom: 'var(--space-4)' }}>
-              ➕ Add Another Item
+              <LuPlus size={14} style={{ marginRight: '0.35rem' }} /> Add Another Item
             </button>
 
             <div style={{ marginBottom: 'var(--space-4)' }}>
@@ -468,7 +472,7 @@ export function AssetTrackerPage() {
 
       {/* Modal: Append Items */}
       {appendModalOpen && selectedHandover && (
-        <Modal isOpen={appendModalOpen} onClose={() => setAppendModalOpen(false)} title={`➕ Append Items for ${selectedHandover.name}`}>
+        <Modal isOpen={appendModalOpen} onClose={() => setAppendModalOpen(false)} title={`<LuPlus size={13} style={{ marginRight: '0.25rem' }} /> Append Items for ${selectedHandover.name}`}>
           <form autoComplete="off" onSubmit={handleAppend}>
             {appendItems.map((it, idx) => (
               <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', alignItems: 'center' }}>
@@ -488,7 +492,7 @@ export function AssetTrackerPage() {
               </div>
             ))}
             <button type="button" className="btn btn--sm btn--outline" onClick={() => setAppendItems([...appendItems, { itemName: '', serialNo: '', condition: 'Good' }])} style={{ marginBottom: 'var(--space-4)' }}>
-              ➕ Add Another Row
+              <LuPlus size={14} style={{ marginRight: '0.35rem' }} /> Add Another Row
             </button>
             <div style={{ marginBottom: 'var(--space-4)' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
@@ -506,11 +510,11 @@ export function AssetTrackerPage() {
 
       {/* Modal: View Details & Process Return */}
       {detailsModalOpen && selectedHandover && (
-        <Modal isOpen={detailsModalOpen} onClose={() => setDetailsModalOpen(false)} title={`📋 Asset Details - ${selectedHandover.name}`}
+        <Modal isOpen={detailsModalOpen} onClose={() => setDetailsModalOpen(false)} title={`Asset Details - ${selectedHandover.name}`}
           footer={
             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
               <button type="button" className="btn btn--outline" onClick={handleDownloadPdf}>
-                📄 Download PDF
+                <LuPrinter size={15} style={{ marginRight: "0.35rem" }} /> Download PDF
               </button>
               <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                 <button type="button" className="btn btn--secondary" onClick={() => setDetailsModalOpen(false)}>Close</button>
@@ -543,7 +547,7 @@ export function AssetTrackerPage() {
                       fontWeight: 600,
                       color: it.status === "Returned" ? "var(--color-warning)" : it.status === "Missing" ? "var(--color-danger, #dc2626)" : "var(--color-success)"
                     }}>
-                      {it.status === "Missing" ? "⚠️ Missing" : it.status}
+                      {it.status === "Missing" ? "Missing" : it.status}
                     </div>
                   </div>
                   
@@ -726,7 +730,7 @@ function GlobalAddressSettings() {
   return (
     <div className="card" style={{ maxWidth: '100%', marginBottom: 'var(--space-8)' }}>
       <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1.1rem' }}>
-        🏢 Global Address Book (Company Defaults)
+        Global Address Book (Company Defaults)
       </h3>
       <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: 'var(--space-5)' }}>
         Addresses added here will be available to all employees in the Courier Dispatch form under "Company Addresses".
@@ -768,7 +772,7 @@ function GlobalAddressSettings() {
           {loading ? (
             <div style={{ textAlign: 'center', padding: 'var(--space-5)' }}><Spinner /></div>
           ) : addresses.length === 0 ? (
-            <EmptyState icon="📒" title="No global addresses" description="Add a default company address to get started." />
+            <EmptyState icon={<LuBookOpen size={40} style={{ color: 'var(--brand-amber)' }} />} title="No global addresses" description="Add a default company address to get started." />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
               {addresses.map(a => (
@@ -1063,7 +1067,7 @@ export function CourierDispatchPage() {
               </FormField>
             </div>
 
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-2)' }}>📦 Dispatched Items</h4>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-2)' }}>Dispatched Items</h4>
             {addForm.items.map((it, idx) => (
               <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
                 <input type="text" className="form-input" placeholder="Item Code" value={it.itemCode} onChange={e => {
@@ -1094,20 +1098,20 @@ export function CourierDispatchPage() {
                 {addForm.items.length > 1 && (
                   <button type="button" className="btn btn--sm btn--danger" onClick={() => {
                     setAddForm(f => ({ ...f, items: f.items.filter((_, i) => i !== idx) }));
-                  }}>✕</button>
+                  }}><LuX size={13} /></button>
                 )}
               </div>
             ))}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
               <button type="button" className="btn btn--sm btn--outline" onClick={() => setAddForm(f => ({ ...f, items: [...f.items, { itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }] }))}>
-                ➕ Add Another Item Row
+                <LuPlus size={14} style={{ marginRight: '0.35rem' }} /> Add Another Item Row
               </button>
               <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-primary-dark)' }}>
                 Total Declared Value: ₹{addForm.items.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0).toLocaleString()}
               </div>
             </div>
 
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-2)' }}>📦 Box Details (Dimensions & Weight)</h4>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-2)' }}>Box Details (Dimensions & Weight)</h4>
             {addForm.boxes.map((b, idx) => (
               <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', alignItems: 'center' }}>
                 <div style={{ width: 60, fontWeight: 600 }}>Box {b.boxNo}</div>
@@ -1121,12 +1125,12 @@ export function CourierDispatchPage() {
                   <button type="button" className="btn btn--sm btn--danger" onClick={() => {
                     const filtered = addForm.boxes.filter((_, i) => i !== idx).map((box, i) => ({ ...box, boxNo: i + 1 }));
                     setAddForm(f => ({ ...f, boxes: filtered }));
-                  }}>✕</button>
+                  }}><LuX size={13} /></button>
                 )}
               </div>
             ))}
             <button type="button" className="btn btn--sm btn--outline" onClick={() => setAddForm(f => ({ ...f, boxes: [...f.boxes, { boxNo: f.boxes.length + 1, dimensions: '', weight: '' }] }))} style={{ marginBottom: 'var(--space-4)' }}>
-              ➕ Add Another Box
+              <LuPlus size={14} style={{ marginRight: '0.35rem' }} /> Add Another Box
             </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
@@ -1153,7 +1157,7 @@ export function CourierDispatchPage() {
   if (trackingModalOpen && selectedDispatch) {
     return (
       <div>
-        <PageHeader title={`🚀 Send Tracking - DC #${selectedDispatch.dcNo}`} subtitle="Update tracking and notify sender" action={<button type="button" className="btn btn--outline btn--sm" onClick={() => setTrackingModalOpen(false)}>← Back</button>} />
+        <PageHeader title={`Send Tracking - DC #${selectedDispatch.dcNo}`} subtitle="Update tracking and notify sender" action={<button type="button" className="btn btn--outline btn--sm" onClick={() => setTrackingModalOpen(false)}>← Back</button>} />
         <div className="card">
           <form autoComplete="off" onSubmit={handleUpdateTracking}>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-3)' }}>
@@ -1267,11 +1271,11 @@ export function CourierDispatchPage() {
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Courier & Dispatch</span>
       </div>
 
@@ -1279,7 +1283,7 @@ export function CourierDispatchPage() {
         title="Courier Dispatches & Delivery Challans"
         subtitle="Manage outbound shipments, auto-generate official Delivery Challan PDFs, and merge parcels"
         action={
-          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
+          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}><LuPrinter size={15} style={{ marginRight: "0.35rem" }} /> Download PDF</button>
         }
       />
 
@@ -1293,7 +1297,7 @@ export function CourierDispatchPage() {
             <input
               type="text"
               className="form-input"
-              placeholder="🔍 Search DC No, Recipient, City, Docket No..."
+              placeholder="Search DC No, Recipient, City, Docket No..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{ maxWidth: 300 }}
@@ -1312,7 +1316,7 @@ export function CourierDispatchPage() {
             </div>
           </div>
         <button className="btn btn--primary" onClick={() => setAddModalOpen(true)} style={{ background: '#2563eb', borderColor: 'transparent' }}>
-          ➕ New Delivery Challan
+          <LuPlus size={15} style={{ marginRight: '0.35rem' }} /> New Delivery Challan
         </button>
       </div>
 
@@ -1321,7 +1325,7 @@ export function CourierDispatchPage() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon="🚚" title="No Delivery Challans found" description="Create a new Delivery Challan to manage parcel dispatches." />
+          <EmptyState icon={<LuTruck size={40} style={{ color: 'var(--brand-amber)' }} />} title="No Delivery Challans found" description="Create a new Delivery Challan to manage parcel dispatches." />
         ) : (
           <div className="table-wrapper">
             <table className="table">
@@ -1391,7 +1395,7 @@ export function CourierDispatchPage() {
                           title="View Delivery Challan PDF"
                           onClick={() => handleDownloadSingleDC(d)}
                         >
-                          🔍 View DC
+                          <LuEye size={13} style={{ marginRight: '0.25rem' }} /> View DC
                         </button>
                         {(d.dcDate || '').slice(0, 10) === new Date().toISOString().slice(0, 10) && (
                           <button
@@ -1422,10 +1426,10 @@ export function CourierDispatchPage() {
                                 declaration: !!d.declaration
                               });
                               setAddModalOpen(true);
-                              toast.info(`🔄 Recalled DC #${d.dcNo}! All form fields populated.`);
+                              toast.info(`Recalled DC #${d.dcNo}! All form fields populated.`);
                             }}
                           >
-                            🔄 Refill
+                            <LuRotateCcw size={13} style={{ marginRight: '0.25rem' }} /> Refill
                           </button>
                         )}
                         <button
@@ -1445,11 +1449,9 @@ export function CourierDispatchPage() {
                             setTrackingModalOpen(true);
                           }}
                         >
-                          🚀 Send Tracking
+                          <LuSend size={13} style={{ marginRight: '0.25rem' }} /> Send Tracking
                         </button>
-                        <button className="btn btn--sm btn--danger" onClick={() => setDeleteId(d.id)}>
-                          🗑️
-                        </button>
+                        <button className="btn btn--sm btn--outline" onClick={() => setDeleteId(d.id)} style={{ color: "#dc2626", borderColor: "#e4e4e7", display: "inline-flex", alignItems: "center", padding: "0.4rem 0.5rem" }} aria-label="Delete dispatch"><LuTrash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>
@@ -1667,7 +1669,7 @@ export function BillWarrantyPage() {
             {/* Itemized Purchased Items */}
             <div style={{ background: 'var(--color-surface-2)', padding: 'var(--space-4)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: 'var(--space-4)' }}>
               <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>📦 Purchased Items</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><LuPackage size={15} /> Purchased Items</span>
                 <span style={{ fontSize: '0.82rem', fontWeight: 400, color: 'var(--color-text-muted)' }}>Item Name, Qty, Asset No, Rate & Amount</span>
               </h4>
 
@@ -1693,7 +1695,7 @@ export function BillWarrantyPage() {
                     {addForm.items.length > 1 && (
                       <button type="button" className="btn btn--sm btn--danger" onClick={() => {
                         setAddForm(f => ({ ...f, items: f.items.filter((_, i) => i !== idx) }));
-                      }}>✕</button>
+                      }}><LuX size={13} /></button>
                     )}
                   </div>
                 );
@@ -1701,7 +1703,7 @@ export function BillWarrantyPage() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-3)', paddingTop: 'var(--space-2)', borderTop: '1px solid var(--color-border)' }}>
                 <button type="button" className="btn btn--sm btn--outline" onClick={() => setAddForm(f => ({ ...f, items: [...f.items, { name: '', qty: 1, assetNo: '', rate: 0, amount: 0 }] }))}>
-                  ➕ Add Item Row
+                  <LuPlus size={14} style={{ marginRight: '0.35rem' }} /> Add Item Row
                 </button>
                 <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
                   Final Total Bill Amount: ₹{finalTotalAmount.toLocaleString()}
@@ -1713,12 +1715,12 @@ export function BillWarrantyPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <FormField label="Attach Purchase Bill (PDF or Image)" hint="Optional attachment">
                 <input type="file" accept="image/*,.pdf" className="form-input" onChange={e => handleFileUpload(e, 'billFileUrl', 'billFileName')} />
-                {addForm.billFileName && <div style={{ fontSize: '0.8rem', color: 'var(--color-primary)', marginTop: 4 }}>✓ Attached: {addForm.billFileName}</div>}
+                {addForm.billFileName && <div style={{ fontSize: '0.8rem', color: 'var(--color-primary)', marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><LuFileText size={13} /> Attached: {addForm.billFileName}</div>}
               </FormField>
 
               <FormField label="Attach Warranty Copy (PDF or Image)" hint="Optional attachment">
                 <input type="file" accept="image/*,.pdf" className="form-input" onChange={e => handleFileUpload(e, 'warrantyFileUrl', 'warrantyFileName')} />
-                {addForm.warrantyFileName && <div style={{ fontSize: '0.8rem', color: '#7c3aed', marginTop: 4 }}>✓ Attached: {addForm.warrantyFileName}</div>}
+                {addForm.warrantyFileName && <div style={{ fontSize: '0.8rem', color: '#7c3aed', marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><LuShieldCheck size={13} /> Attached: {addForm.warrantyFileName}</div>}
               </FormField>
             </div>
 
@@ -1742,11 +1744,11 @@ export function BillWarrantyPage() {
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Bill & Warranty</span>
       </div>
 
@@ -1754,7 +1756,7 @@ export function BillWarrantyPage() {
         title="Bills & Warranty Register"
         subtitle="Archive equipment purchase bills, itemized details, warranty expiration dates, attachments, and vendor approvals"
         action={
-          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
+          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}><LuPrinter size={15} style={{ marginRight: "0.35rem" }} /> Download PDF</button>
         }
       />
 
@@ -1762,9 +1764,9 @@ export function BillWarrantyPage() {
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        <StatCard title="Total Bills Archived" value={`${filtered.length} Invoices`} icon="📄" />
-        <StatCard title="Active Warranties" value={`${activeWarrantyCount} Active`} icon="🛡️" />
-        <StatCard title="Total Invoice Value" value={`₹${totalValueSum.toLocaleString()}`} icon="💳" />
+        <StatCard title="Total Bills Archived" value={`${filtered.length} Invoices`} icon={<LuFileText size={22} style={{ color: 'var(--brand-amber)' }} />} />
+        <StatCard title="Active Warranties" value={`${activeWarrantyCount} Active`} icon={<LuShieldCheck size={22} style={{ color: '#16a34a' }} />} />
+        <StatCard title="Total Invoice Value" value={`₹${totalValueSum.toLocaleString()}`} icon={<LuReceipt size={22} style={{ color: '#2563eb' }} />} />
       </div>
 
       {/* Action Bar */}
@@ -1773,7 +1775,7 @@ export function BillWarrantyPage() {
           <input
             type="text"
             className="form-input"
-            placeholder="🔍 Search Bill No, item, asset no..."
+            placeholder="Search Bill No, item, asset no..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ flex: 2, minWidth: 200 }}
@@ -1787,7 +1789,7 @@ export function BillWarrantyPage() {
           />
         </div>
         <button className="btn btn--primary" onClick={() => setShowForm(true)} style={{ background: '#7c3aed', borderColor: 'transparent' }}>
-          ➕ Log Bill & Warranty
+          <LuPlus size={15} style={{ marginRight: '0.35rem' }} /> Log Bill & Warranty
         </button>
       </div>
 
@@ -1796,7 +1798,7 @@ export function BillWarrantyPage() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon="📜" title="No Bill & Warranty Records found" description="Log purchase bills and equipment warranties to start tracking." />
+          <EmptyState icon={<LuReceipt size={40} style={{ color: 'var(--brand-amber)' }} />} title="No Bill & Warranty Records found" description="Log purchase bills and equipment warranties to start tracking." />
         ) : (
           <div className="table-wrapper">
             <table className="table">
@@ -1868,22 +1870,20 @@ export function BillWarrantyPage() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {item.billFileUrl ? (
                             <a href={item.billFileUrl} download={item.billFileName || `Bill-${item.billNo}.pdf`} className="btn btn--xs btn--outline" style={{ fontSize: '0.75rem', textDecoration: 'none' }}>
-                              📄 Bill Copy
+                              <LuFileText size={13} style={{ marginRight: '0.25rem' }} /> Bill Copy
                             </a>
                           ) : (
                             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>None</span>
                           )}
                           {item.warrantyFileUrl ? (
                             <a href={item.warrantyFileUrl} download={item.warrantyFileName || `Warranty-${item.billNo}.pdf`} className="btn btn--xs btn--outline" style={{ fontSize: '0.75rem', textDecoration: 'none', color: '#7c3aed', borderColor: '#7c3aed' }}>
-                              🛡️ Warranty Copy
+                              <LuShieldCheck size={13} style={{ marginRight: '0.25rem' }} /> Warranty Copy
                             </a>
                           ) : null}
                         </div>
                       </td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }} className="no-print">
-                        <button className="btn btn--sm btn--danger" onClick={() => setDeleteId(item.id)}>
-                          🗑️
-                        </button>
+                        <button className="btn btn--sm btn--outline" onClick={() => setDeleteId(item.id)} style={{ color: "#dc2626", borderColor: "#e4e4e7", display: "inline-flex", alignItems: "center", padding: "0.4rem 0.5rem" }} aria-label="Delete"><LuTrash2 size={14} /></button>
                       </td>
                     </tr>
                   );
@@ -2074,7 +2074,7 @@ export function OtherStockPage() {
     return (
       <div>
         <PageHeader
-          title={addForm.id ? "✏️ Edit Stock Item" : "➕ Add New Stock Item"}
+          title={addForm.id ? "Edit Stock Item" : "Add New Stock Item"}
           subtitle="Enter item details, location, and dynamic specifications/subtitles"
           action={
             <button type="button" className="btn btn--outline" onClick={() => setShowAddForm(false)}>
@@ -2098,7 +2098,7 @@ export function OtherStockPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
                 <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#172025' }}>Add Subtitle + (Custom Specifications / Details)</span>
                 <button type="button" className="btn btn--sm btn--outline" onClick={() => setAddForm(f => ({ ...f, subtitles: [...f.subtitles, { title: '', details: '', qty: 0, remarks: '' }] }))}>
-                  ➕ Add Subtitle
+                  <LuPlus size={13} style={{ marginRight: '0.25rem' }} /> Add Subtitle
                 </button>
               </div>
 
@@ -2127,7 +2127,7 @@ export function OtherStockPage() {
                   {addForm.subtitles.length > 1 && (
                     <button type="button" className="btn btn--sm btn--danger" onClick={() => {
                       setAddForm(f => ({ ...f, subtitles: f.subtitles.filter((_, i) => i !== idx) }));
-                    }}>🗑️</button>
+                    }}><LuTrash2 size={13} /></button>
                   )}
                 </div>
               ))}
@@ -2153,7 +2153,7 @@ export function OtherStockPage() {
     return (
       <div>
         <PageHeader
-          title={`📤 Record Stock Consumption - ${selectedItem.stockName}`}
+          title={`Record Stock Consumption - ${selectedItem.stockName}`}
           subtitle="Issue inventory item and record recipient"
           action={
             <button type="button" className="btn btn--outline" onClick={() => setShowUseForm(false)}>
@@ -2204,11 +2204,11 @@ export function OtherStockPage() {
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Other Stock</span>
       </div>
 
@@ -2221,9 +2221,9 @@ export function OtherStockPage() {
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        <StatCard title="Total Stock Catalog Items" value={`${filtered.length} Items`} icon="📦" />
-        <StatCard title="Total Available Inventory" value={`${totalAvailableSum} Units`} icon="📋" />
-        <StatCard title="Total Consumed Stock" value={`${totalUsedSum} Units`} icon="📤" />
+        <StatCard title="Total Stock Catalog Items" value={`${filtered.length} Items`} icon={<LuBoxes size={22} style={{ color: 'var(--brand-amber)' }} />} />
+        <StatCard title="Total Available Inventory" value={`${totalAvailableSum} Units`} icon={<LuPackageCheck size={22} style={{ color: '#16a34a' }} />} />
+        <StatCard title="Total Consumed Stock" value={`${totalUsedSum} Units`} icon={<LuArrowUpRight size={22} style={{ color: '#b45309' }} />} />
       </div>
 
       {/* Action Bar */}
@@ -2231,7 +2231,7 @@ export function OtherStockPage() {
         <input
           type="text"
           className="form-input"
-          placeholder="🔍 Search stock name, size/subtitles, location..."
+          placeholder="Search stock name, size/subtitles, location..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ maxWidth: 400 }}
@@ -2241,7 +2241,7 @@ export function OtherStockPage() {
             setAddForm({ id: null, stockName: '', availableQty: 0, subtitles: [{ title: '', details: '', qty: 0, remarks: '' }], location: 'HO Store', remarks: '' });
             setShowAddForm(true);
           }} style={{ background: '#16a34a', borderColor: 'transparent' }}>
-            ➕ Add Stock Item
+            <LuPlus size={15} style={{ marginRight: '0.35rem' }} /> Add Stock Item
           </button>
         </div>
       </div>
@@ -2251,7 +2251,7 @@ export function OtherStockPage() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon="📦" title="No Stock Items found" description="Create a new stock item entry to manage office merchandise and uniforms." />
+          <EmptyState icon={<LuBoxes size={40} style={{ color: 'var(--brand-amber)' }} />} title="No Stock Items found" description="Create a new stock item entry to manage office merchandise and uniforms." />
         ) : (
           <div className="table-wrapper">
             <table className="table">
@@ -2297,23 +2297,23 @@ export function OtherStockPage() {
                           onClick={() => { setSelectedItem(item); setUseForm({ subtitleId: item.subtitles?.[0]?.id || '', qtyToUse: 1, usedBy: 'Admin', remarks: '' }); setShowUseForm(true); }}
                           style={{ background: '#d97706', borderColor: 'transparent' }}
                         >
-                          📤 Use
+                          <LuArrowUpRight size={13} style={{ marginRight: '0.25rem' }} /> Use
                         </button>
                         <button
                           className="btn btn--sm btn--outline"
                           onClick={() => { setAddForm({ id: item.id, stockName: item.stockName, availableQty: item.availableQty, subtitles: item.subtitles || [], location: item.location || 'HO Store', remarks: item.remarks || '' }); setShowAddForm(true); }}
                         >
-                          ✏️ Edit
+                          <LuPencil size={13} style={{ marginRight: '0.25rem' }} /> Edit
                         </button>
                       </div>
                       <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
                         <button className="btn btn--sm btn--secondary" onClick={() => { setSelectedItem(item); setShowHistoryModal(true); }}>
-                           🕰️ History
+                           <LuHistory size={13} style={{ marginRight: '0.25rem' }} /> History
                         </button>
                         <button className="btn btn--sm btn--secondary" onClick={() => downloadItemPDF(item)}>
-                           📥 PDF
+                           <LuDownload size={13} style={{ marginRight: '0.25rem' }} /> PDF
                         </button>
-                        <button className="btn btn--sm btn--danger" onClick={() => setDeleteId(item.id)}>🗑️</button>
+                        <button className="btn btn--sm btn--danger" onClick={() => setDeleteId(item.id)}><LuTrash2 size={13} /></button>
                       </div>
                     </td>
                   </tr>
@@ -2509,7 +2509,7 @@ export function RemindersPage() {
         item.priority || 'Medium',
         item.text || '—',
         item.adminEmail || '—',
-        item.sent ? '✓ Dispatched' : '⏳ Scheduled',
+        item.sent ? "Dispatched" : "Scheduled",
       ])
     });
   };
@@ -2555,9 +2555,9 @@ export function RemindersPage() {
                   value={addForm.priority}
                   onChange={e => setAddForm(f => ({ ...f, priority: e.target.value }))}
                 >
-                  <option value="Low">🔵 Low Priority</option>
-                  <option value="Medium">🟡 Medium Priority</option>
-                  <option value="High">🚨 High / Urgent Priority</option>
+                  <option value="Low">Low Priority</option>
+                  <option value="Medium">Medium Priority</option>
+                  <option value="High">High / Urgent Priority</option>
                 </select>
               </FormField>
             </div>
@@ -2588,11 +2588,11 @@ export function RemindersPage() {
         <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Admin Dashboard
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
           Inventory & Operations
         </Link>
-        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <LuChevronRight size={14} style={{ color: "var(--color-text-muted)" }} />
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Reminder List</span>
       </div>
 
@@ -2600,7 +2600,7 @@ export function RemindersPage() {
         title="Renewal Reminders & Deadline Audit"
         subtitle="Schedule custom admin reminders and run instant automated scans for expiring AMCs, utility bills, and tax deadlines"
         action={
-          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
+          <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}><LuPrinter size={15} style={{ marginRight: "0.35rem" }} /> Download PDF</button>
         }
       />
 
@@ -2610,7 +2610,7 @@ export function RemindersPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
         <StatCard title="Total Scheduled Reminders" value={`${filtered.length} Tasks`} icon="⏰" />
         <StatCard title="Pending / Due Reminders" value={`${pendingCount} Pending`} icon="⏳" />
-        <StatCard title="Dispatched Alerts" value={`${sentCount} Sent`} icon="📩" />
+        <StatCard title="Dispatched Alerts" value={`${sentCount} Sent`} icon={<LuBellRing size={22} style={{ color: 'var(--brand-amber)' }} />} />
       </div>
 
       {/* Action Bar */}
@@ -2618,17 +2618,17 @@ export function RemindersPage() {
         <input
           type="text"
           className="form-input"
-          placeholder="🔍 Search reminder text, priority, email..."
+          placeholder="Search reminder text, priority, email..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ maxWidth: 380 }}
         />
         <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
           <button className="btn btn--secondary" onClick={handleTriggerScan} disabled={scanning} style={{ borderColor: '#7c3aed', color: '#7c3aed' }}>
-            {scanning ? 'Scanning...' : '⚡ Run Instant Scan'}
+            {scanning ? 'Scanning...' : <><LuZap size={14} style={{ marginRight: '0.35rem' }} /> Run Instant Scan</>}
           </button>
           <button className="btn btn--primary" onClick={() => setShowForm(true)} style={{ background: '#7c3aed', borderColor: 'transparent' }}>
-            ➕ Schedule Reminder
+            <LuPlus size={15} style={{ marginRight: '0.35rem' }} /> Schedule Reminder
           </button>
         </div>
       </div>
@@ -2667,15 +2667,13 @@ export function RemindersPage() {
                     <td style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>{item.adminEmail || '—'}</td>
                     <td>
                       {item.sent ? (
-                        <span className="badge badge--success">✓ Dispatched</span>
+                        <span className="badge badge--success">Dispatched</span>
                       ) : (
                         <span className="badge badge--warning">⏳ Scheduled</span>
                       )}
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <button className="btn btn--sm btn--danger" onClick={() => setDeleteId(item.id)}>
-                        🗑️
-                      </button>
+                      <button className="btn btn--sm btn--outline" onClick={() => setDeleteId(item.id)} style={{ color: "#dc2626", borderColor: "#e4e4e7", display: "inline-flex", alignItems: "center", padding: "0.4rem 0.5rem" }} aria-label="Delete"><LuTrash2 size={14} /></button>
                     </td>
                   </tr>
                 ))}

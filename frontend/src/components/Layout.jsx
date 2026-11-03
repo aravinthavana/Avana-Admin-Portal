@@ -124,7 +124,7 @@ function HeaderNavigation() {
               <li key={url} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                 <span style={{ color: '#aab2b2', fontSize: '0.7rem' }}>/</span>
                 {isLast ? (
-                  <span style={{ color: '#d97706', fontWeight: 700 }}>{label}</span>
+                  <span style={{ color: 'var(--brand-amber-dark, #8b6209)', fontWeight: 700 }}>{label}</span>
                 ) : (
                   <Link to={url} style={{ color: '#6b7280', textDecoration: 'none' }}>{label}</Link>
                 )}
@@ -152,75 +152,39 @@ export function EmployeeLayout() {
   return (
     <div className="layout layout--employee" style={{ background: 'var(--color-bg, #f5f5f7)', minHeight: '100vh' }}>
       <a href="#main-content" className="skip-link">Skip to main content</a>
-      {/* Header matching login page aesthetic */}
-      <header
-        role="banner"
-        style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #fcfbfa 100%)',
-          borderBottom: '3px solid #b27f0d',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
-          padding: '1.2rem 2rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-        }}
-      >
-        {/* Left: Logo + Title + Navigation & Breadcrumbs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', flexWrap: 'wrap' }}>
-          <AvanaLogo size="md" style={{ filter: 'none' }} />
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '1.35rem', color: '#172025', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
-              Admin Help Desk
-            </div>
-            <div style={{ fontSize: '0.85rem', color: '#d97706', marginTop: 3, fontWeight: 600 }}>
-              Select a category below to submit your request
+      <header role="banner" className="portal-header">
+        <div className="portal-header__top">
+          <div className="portal-header__brand">
+            <AvanaLogo size="md" style={{ filter: 'none' }} />
+            <div>
+              <div className="portal-header__title">
+                Admin Help Desk
+              </div>
+              <div className="portal-header__subtitle">
+                Select a category below to submit your request
+              </div>
             </div>
           </div>
-          <HeaderNavigation />
+
+          <div className="portal-header__actions">
+            {employeeEmail && (
+              <div className="portal-header__user-pill">
+                <span>👤 {employeeEmail}</span>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="portal-header__logout-btn"
+                  aria-label="Log Out"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Right: Nav links + User badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-
-          {employeeEmail && (
-            <div style={{
-              background: '#ffffff',
-              color: '#172025',
-              border: '1px solid #e4e4e7',
-              padding: '0.45rem 0.9rem',
-              borderRadius: 12,
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.6rem',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            }}>
-              <span>👤 {employeeEmail}</span>
-              <button
-                type="button"
-                onClick={handleLogout}
-                style={{
-                  background: '#fef2f2',
-                  color: '#dc2626',
-                  border: '1px solid #fecaca',
-                  padding: '0.2rem 0.55rem',
-                  borderRadius: 6,
-                  fontFamily: 'inherit',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Logout
-              </button>
-            </div>
-          )}
+        <div className="portal-header__nav-row">
+          <HeaderNavigation />
         </div>
       </header>
       <main className="layout__main" id="main-content" tabIndex={-1}>
@@ -245,77 +209,40 @@ export function AdminLayout() {
   return (
     <div className="layout layout--admin" style={{ display: 'flex', flexDirection: 'column', background: 'var(--color-bg, #f5f5f7)', minHeight: '100vh' }}>
       <a href="#main-content" className="skip-link">Skip to main content</a>
-      {/* Top header bar — matching employee layout aesthetic */}
-      <header
-        role="banner"
-        style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #fcfbfa 100%)',
-          borderBottom: '3px solid #b27f0d',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
-          padding: '1rem 2rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-        }}
-      >
-        {/* Left: Logo + Title + Navigation & Breadcrumbs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', flexWrap: 'wrap' }}>
-          <AvanaLogo size="md" style={{ filter: 'none' }} />
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '1.25rem', color: '#172025', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
-              Admin <span style={{ color: '#b27f0d' }}>Portal</span>
-            </div>
-            <div style={{ fontSize: '0.82rem', color: '#d97706', marginTop: 2, fontWeight: 600 }}>
-              System Administration, Requests & Inventory Operations
+      <header role="banner" className="portal-header">
+        <div className="portal-header__top">
+          <div className="portal-header__brand">
+            <AvanaLogo size="md" style={{ filter: 'none' }} />
+            <div>
+              <div className="portal-header__title">
+                Admin <span style={{ color: 'var(--brand-amber, #b27f0d)' }}>Portal</span>
+              </div>
+              <div className="portal-header__subtitle">
+                System Administration, Requests & Inventory Operations
+              </div>
             </div>
           </div>
-          <HeaderNavigation />
+
+          <div className="portal-header__actions">
+            <Link
+              to="/helpdesk-admin"
+              className="portal-header__dash-btn"
+            >
+              🏠 Admin Dashboard
+            </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="portal-header__logout-btn portal-header__logout-btn--admin"
+              aria-label="Log Out of Admin Portal"
+            >
+              🚪 Log Out
+            </button>
+          </div>
         </div>
 
-        {/* Right side controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <Link
-            to="/helpdesk-admin"
-            style={{
-              background: '#fdf5e6',
-              border: '1px solid #d7d0bc',
-              color: '#d97706',
-              padding: '0.45rem 0.9rem',
-              borderRadius: 8,
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-            }}
-          >
-            🏠 Admin Dashboard
-          </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            style={{
-              background: '#fef2f2',
-              color: '#dc2626',
-              border: '1px solid #fecaca',
-              padding: '0.45rem 0.9rem',
-              borderRadius: 8,
-              fontFamily: 'inherit',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-            }}
-          >
-            🚪 Log Out
-          </button>
+        <div className="portal-header__nav-row">
+          <HeaderNavigation />
         </div>
       </header>
 
@@ -341,76 +268,36 @@ export function ConferenceAdminLayout() {
   return (
     <div className="layout layout--employee" style={{ background: 'var(--color-bg, #f5f5f7)', minHeight: '100vh' }}>
       <a href="#main-content" className="skip-link">Skip to main content</a>
-      {/* Header matching login page aesthetic */}
-      <header
-        role="banner"
-        style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #fcfbfa 100%)',
-          borderBottom: '3px solid #b27f0d',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
-          padding: '1rem 2rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-        }}
-      >
-        {/* Left: Logo + Title */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-          <AvanaLogo size="md" />
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '1.15rem', color: '#172025', lineHeight: 1.2 }}>
-              Conference Room Bookings
-            </div>
-            <div style={{ fontSize: '0.82rem', color: '#d97706', marginTop: 2, fontWeight: 600 }}>
-              Admin Portal — Manage reservations and reports
+      <header role="banner" className="portal-header">
+        <div className="portal-header__top">
+          <div className="portal-header__brand">
+            <AvanaLogo size="md" />
+            <div>
+              <div className="portal-header__title">
+                Conference Room Bookings
+              </div>
+              <div className="portal-header__subtitle">
+                Admin Portal — Manage reservations and reports
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Right side controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <NavLink
-            to="/helpdesk-admin"
-            style={{
-              background: '#ffffff',
-              border: '1px solid #e4e4e7',
-              color: '#172025',
-              padding: '0.45rem 1rem',
-              borderRadius: 8,
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            }}
-          >
-            📋 Help Desk Admin
-          </NavLink>
-          <button
-            type="button"
-            onClick={handleLogout}
-            style={{
-              background: '#ffffff',
-              border: '1px solid #e4e4e7',
-              color: '#dc2626',
-              padding: '0.45rem 1rem',
-              borderRadius: 8,
-              fontFamily: 'inherit',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            }}
-          >
-            Log Out
-          </button>
+          <div className="portal-header__actions">
+            <NavLink
+              to="/helpdesk-admin"
+              className="portal-header__dash-btn"
+            >
+              📋 Help Desk Admin
+            </NavLink>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="portal-header__logout-btn portal-header__logout-btn--admin"
+              aria-label="Log Out"
+            >
+              Log Out
+            </button>
+          </div>
         </div>
       </header>
       <main className="layout__main" id="main-content" tabIndex={-1}>

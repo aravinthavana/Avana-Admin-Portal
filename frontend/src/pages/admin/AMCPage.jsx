@@ -398,7 +398,7 @@ export function AMCPage() {
             <div style={{ fontSize: '0.9rem', color: '#1e3a8a' }}>
               <strong>Total Visits:</strong> {viewModal.no_of_visits || visits.length} &nbsp;|&nbsp;
               <strong> Completed:</strong> <span style={{ color: '#16a34a', fontWeight: 600 }}>{completedCount}</span> &nbsp;|&nbsp;
-              <strong> Pending:</strong> <span style={{ color: '#d97706', fontWeight: 600 }}>{pendingCount}</span>
+              <strong> Pending:</strong> <span style={{ color: 'var(--color-warning, #b45309)', fontWeight: 600 }}>{pendingCount}</span>
             </div>
           </div>
 

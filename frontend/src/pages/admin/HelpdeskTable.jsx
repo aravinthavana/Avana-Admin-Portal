@@ -627,19 +627,19 @@ export function HelpdeskTable({ categoryFilter }) {
           <EmptyState icon="📭" title="No requests found" description="Adjust the filters or check back later." />
         )}
         <div className="table-wrapper">
-          <table className="table" aria-label="Help desk requests" style={{ width: '100%', tableLayout: 'fixed' }}>
+          <table className="table" aria-label="Help desk requests" style={{ width: '100%', minWidth: '960px' }}>
             <thead>
               <tr>
-                <th scope="col" style={{ width: '6%' }}>#</th>
-                <th scope="col" style={{ width: categoryFilter === 'conference' ? '15%' : '12%' }}>
+                <th scope="col" style={{ width: '50px' }}>#</th>
+                <th scope="col" style={{ minWidth: categoryFilter === 'conference' ? '150px' : '110px' }}>
                   {categoryFilter === 'conference' ? 'Meeting Date & Time' : 'Date'}
                 </th>
-                <th scope="col" style={{ width: '12%' }}>Category</th>
-                <th scope="col" style={{ width: '15%' }}>Submitted By</th>
-                <th scope="col" style={{ width: '12%' }}>Location</th>
-                <th scope="col" style={{ width: categoryFilter === 'conference' ? '17%' : '20%' }}>Details</th>
-                <th scope="col" style={{ width: '11%' }}>Status</th>
-                <th scope="col" style={{ width: '12%' }}>Actions</th>
+                <th scope="col" style={{ minWidth: '120px' }}>Category</th>
+                <th scope="col" style={{ minWidth: '150px' }}>Submitted By</th>
+                <th scope="col" style={{ minWidth: '120px' }}>Location</th>
+                <th scope="col" style={{ minWidth: '220px' }}>Details</th>
+                <th scope="col" style={{ minWidth: '110px', textAlign: 'center' }}>Status</th>
+                <th scope="col" style={{ minWidth: '130px', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>

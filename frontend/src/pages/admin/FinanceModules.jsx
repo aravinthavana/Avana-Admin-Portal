@@ -1141,7 +1141,7 @@ export function PettyCashPage() {
             style={{ flex: 1, minWidth: 150 }}
           />
         </div>
-        <button className="btn btn--primary" onClick={() => setShowAddForm(true)} style={{ background: '#d97706', borderColor: 'transparent' }}>
+        <button className="btn btn--primary" onClick={() => setShowAddForm(true)}>
           ➕ Add Cash Voucher
         </button>
       </div>

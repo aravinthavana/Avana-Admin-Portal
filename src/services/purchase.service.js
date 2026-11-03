@@ -2,7 +2,6 @@ const env = require('../config/env');
 const prisma = require('../config/db');
 const xlsx = require('xlsx');
 const { templates } = require('../utils/email-templates');
-const { sendEmail } = require('./helpdesk.service'); // we'll check how emails are sent
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 
 // Try to use existing email sender

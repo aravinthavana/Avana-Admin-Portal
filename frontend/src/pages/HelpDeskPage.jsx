@@ -137,6 +137,7 @@ function getStatusBadge(status) {
 function ChangePasswordPanel() {
   const toast = useToast();
   const { employeeToken, employeeEmail } = useAuth();
+  const [isExpanded, setIsExpanded] = useState(false);
   const [step, setStep] = useState('request'); // 'request' | 'verify'
   const [form, setForm] = useState({ newPass: '', confirm: '', otp: '' });
   const [errors, setErrors] = useState({});
@@ -201,10 +202,38 @@ function ChangePasswordPanel() {
   }
 
   return (
-    <div className="card" style={{ marginTop: 'var(--space-6)' }}>
-      <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1rem' }}>
-        🔑 Set / Change Password
-      </h3>
+    <div className="card" style={{ marginTop: 'var(--space-6)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg, 12px)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 8,
+            background: 'var(--brand-amber-bg, #fdf5e6)',
+            color: 'var(--brand-amber, #b27f0d)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem'
+          }}>
+            🔑
+          </div>
+          <div>
+            <h3 style={{ fontFamily: 'var(--font-heading)', margin: '0 0 2px 0', fontSize: '1rem', color: 'var(--brand-charcoal, #172025)' }}>
+              Account Security & Password
+            </h3>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-text-secondary, #6b7280)' }}>
+              Update your employee login credentials with two-step email verification
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="btn btn--sm btn--outline"
+          onClick={() => setIsExpanded(v => !v)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          <span>{isExpanded ? '▲ Close' : '⚙️ Change Password'}</span>
+        </button>
+      </div>
+
+      {isExpanded && (
+        <div style={{ marginTop: 'var(--space-5)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--color-border)' }}>
       {step === 'request' ? (
         <form autoComplete="off" onSubmit={handleSendOtp} noValidate>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 'var(--space-4)' }}>
@@ -239,6 +268,8 @@ function ChangePasswordPanel() {
             </button>
           </div>
         </form>
+      )}
+        </div>
       )}
     </div>
   );
@@ -296,12 +327,29 @@ function RequestTracker() {
   ];
 
   return (
-    <div className="card" style={{ marginTop: 'var(--space-6)' }}>
-      <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1rem' }}>
-        📋 My Requests
-      </h3>
+    <div id="my-requests-tracker" className="card" style={{ marginTop: 'var(--space-6)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg, 12px)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h3 style={{ fontFamily: 'var(--font-heading)', margin: '0 0 2px 0', fontSize: '1.15rem', color: 'var(--brand-charcoal, #172025)' }}>
+            📋 My Requests & Activity
+          </h3>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary, #6b7280)' }}>
+            Monitor real-time progress and status of your submitted tickets
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={fetchRequests}
+          className="btn btn--sm btn--outline"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          title="Refresh requests"
+        >
+          <span>🔄</span>
+          <span>Refresh</span>
+        </button>
+      </div>
 
-      <div className="tabs" style={{ marginBottom: 'var(--space-4)' }}>
+      <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
         {tabs.map(t => (
           <button
             key={t.key}
@@ -2254,18 +2302,173 @@ function HelpdeskDashboard() {
   }
 
   return (
-    <div style={{ padding: 'var(--space-6)', maxWidth: 1100, margin: '0 auto' }}>
-      <PageHeader
-        title="🏠 Help Desk"
-        subtitle={`Welcome back, ${employeeEmail?.split('@')[0] || 'Employee'}! How can we help you today?`}
-      />
+    <div style={{ padding: 'var(--space-6)', maxWidth: 1140, margin: '0 auto' }}>
+      {/* ── Standout Hero Banner ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, var(--brand-charcoal, #172025) 0%, #202b33 100%)',
+        borderRadius: 'var(--radius-lg, 14px)',
+        padding: 'var(--space-8, 32px)',
+        marginBottom: 'var(--space-8, 32px)',
+        color: '#ffffff',
+        boxShadow: '0 8px 24px -4px rgba(23, 32, 37, 0.12)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Subtle decorative amber glow */}
+        <div style={{
+          position: 'absolute', top: '-40px', right: '-40px', width: '220px', height: '220px',
+          background: 'radial-gradient(circle, rgba(178, 127, 13, 0.22) 0%, rgba(178, 127, 13, 0) 70%)',
+          borderRadius: '50%', pointerEvents: 'none'
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            background: 'rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            padding: '4px 12px', borderRadius: '20px',
+            fontSize: '0.8rem', fontWeight: 600, color: '#f5c358',
+            marginBottom: '12px'
+          }}>
+            <span>🏥</span>
+            <span>Avana Medical Internal Portal</span>
+          </div>
+
+          <h1 style={{
+            fontFamily: 'var(--font-heading)',
+            fontSize: '1.9rem',
+            fontWeight: 800,
+            margin: '0 0 8px 0',
+            color: '#ffffff',
+            letterSpacing: '-0.01em'
+          }}>
+            Welcome back, {employeeEmail?.split('@')[0] || 'Employee'}
+          </h1>
+
+          <p style={{
+            color: 'rgba(255, 255, 255, 0.78)',
+            fontSize: '0.95rem',
+            margin: '0 0 20px 0',
+            maxWidth: '620px',
+            lineHeight: 1.5
+          }}>
+            Submit facility, supply, and maintenance tickets with one click, or track active request progress below.
+          </p>
+
+          {/* Quick Action Launcher */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <button
+              type="button"
+              onClick={() => navigate('/booking')}
+              style={{
+                background: 'var(--brand-amber, #b27f0d)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <span>📅</span>
+              <span>Book Conference Room</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/helpdesk/stationery')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.12)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.22)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <span>✏️</span>
+              <span>Stationery Order</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/helpdesk/maintenance')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.12)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.22)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <span>🔧</span>
+              <span>Report Issue</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('my-requests-tracker');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{
+                background: 'transparent',
+                color: '#f5c358',
+                border: '1px solid rgba(245, 195, 88, 0.45)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <span>📋</span>
+              <span>My Requests</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Section Title ── */}
+      <div style={{ marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-charcoal, #172025)', margin: '0 0 2px 0' }}>
+            Service Desks & Request Forms
+          </h2>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary, #6b7280)' }}>
+            Choose a service desk to submit items, reports, or scheduling requests
+          </p>
+        </div>
+      </div>
 
       {/* ── Category Cards Grid ── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-        gap: 'var(--space-5)',
-        marginBottom: 'var(--space-8)',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+        gap: 'var(--space-5, 20px)',
+        marginBottom: 'var(--space-8, 32px)',
       }}>
         {CATEGORIES.map(cat => {
           const isRestricted = cat.restricted && employeeEmail !== RESTRICTED_EMAIL;
@@ -2278,51 +2481,79 @@ function HelpdeskDashboard() {
               onClick={() => openCategory(cat)}
               aria-label={cat.label}
               style={{
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-lg)',
-                boxShadow: 'var(--shadow-sm)',
+                background: 'var(--color-surface, #ffffff)',
+                border: '1px solid var(--color-border, #e4e4e7)',
+                borderRadius: 'var(--radius-lg, 12px)',
+                boxShadow: '0 1px 3px rgba(23, 32, 37, 0.05)',
                 cursor: 'pointer',
                 textAlign: 'left',
-                padding: 0,
-                overflow: 'hidden',
-                transition: 'all var(--transition-base)',
+                padding: 'var(--space-5, 20px)',
                 display: 'flex',
                 flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: '165px',
+                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                position: 'relative',
+                overflow: 'hidden'
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.borderColor = 'var(--brand-amber, #b27f0d)';
+                e.currentTarget.style.boxShadow = '0 10px 24px -4px rgba(23, 32, 37, 0.08)';
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                e.currentTarget.style.borderColor = 'var(--color-border, #e4e4e7)';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(23, 32, 37, 0.05)';
               }}
             >
-              {/* Top accent bar */}
-              <div style={{ height: 4, background: cat.color, width: '100%' }} />
-              <div style={{ padding: 'var(--space-5)' }}>
+              <div>
                 <div style={{
-                  width: 44, height: 44,
-                  borderRadius: 'var(--radius-md)',
-                  background: `${cat.color}18`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1.4rem',
-                  marginBottom: 'var(--space-3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 'var(--space-3, 12px)'
                 }}>
-                  {cat.icon}
+                  <div style={{
+                    width: 44, height: 44,
+                    borderRadius: '10px',
+                    background: 'var(--brand-amber-bg, #fdf5e6)',
+                    border: '1px solid rgba(178, 127, 13, 0.25)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.4rem',
+                  }}>
+                    {cat.icon}
+                  </div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                    {cat.key === 'conference' ? 'Calendar' : 'Desk'}
+                  </span>
                 </div>
+
                 <div style={{
-                  fontWeight: 700, fontSize: '0.95rem',
+                  fontWeight: 700, fontSize: '0.98rem',
                   fontFamily: 'var(--font-heading)',
-                  color: 'var(--color-text-primary)',
-                  marginBottom: 'var(--space-2)',
+                  color: 'var(--brand-charcoal, #172025)',
+                  marginBottom: '6px',
                 }}>
                   {cat.label}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+
+                <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary, #6b7280)', lineHeight: 1.45 }}>
                   {cat.desc}
                 </div>
+              </div>
+
+              <div style={{
+                marginTop: 'var(--space-4, 16px)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                color: 'var(--brand-amber, #b27f0d)',
+                fontWeight: 600,
+                fontSize: '0.82rem'
+              }}>
+                <span>Start Request</span>
+                <span>→</span>
               </div>
             </button>
           );

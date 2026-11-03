@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, Link } from 'react-router-dom';
 
 // Import extracted components
@@ -24,7 +24,6 @@ import {
 
 
 import { stationeryApi, housekeepingApi, utilityApi, taxApi, printingApi, helpdeskApi, purchaseApi, amcApi } from '../lib/api';
-import { useState } from 'react';
 
 function StationeryPrintingStockWrapper() {
   const [tab, setTab] = useState('stationery');

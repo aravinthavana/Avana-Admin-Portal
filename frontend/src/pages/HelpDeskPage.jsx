@@ -4,6 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { employeeApi, helpdeskApi, courierApi, locationsApi } from '../lib/api';
 import {
+  LuCalendar, LuPenTool, LuSparkles, LuBriefcase, LuWrench,
+  LuSprayCan, LuMonitor, LuPrinter, LuTruck, LuMessageSquare,
+  LuBuilding2, LuLock, LuRefreshCw, LuArrowRight, LuUser,
+  LuMail, LuPhone, LuClock, LuCircleCheck, LuCircleX, LuCircleAlert,
+  LuPackageOpen, LuFolder, LuLayers
+} from 'react-icons/lu';
+import {
   Badge, Spinner, EmptyState, Alert, Modal, ConfirmModal,
   FormField, PageHeader, StatCard, Breadcrumbs
 } from '../components/ui';
@@ -22,77 +29,84 @@ const HK_ITEMS = [
 const DEFAULT_LOCATIONS = ['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', 'Other'];
 const FLOORS = DEFAULT_LOCATIONS;
 
+/* ─── Category Icon Resolver ────────────────────────────── */
+function getCategoryIcon(key, size = 22) {
+  switch (key) {
+    case 'conference': return <LuCalendar size={size} />;
+    case 'stationery': return <LuPenTool size={size} />;
+    case 'hk_material': return <LuSparkles size={size} />;
+    case 'admin_support': return <LuBriefcase size={size} />;
+    case 'maintenance': return <LuWrench size={size} />;
+    case 'housekeeping': return <LuSprayCan size={size} />;
+    case 'office_asset': return <LuMonitor size={size} />;
+    case 'print_scan': return <LuPrinter size={size} />;
+    case 'courier_dispatch': return <LuTruck size={size} />;
+    case 'app_feedback': return <LuMessageSquare size={size} />;
+    default: return <LuFolder size={size} />;
+  }
+}
+
 const CATEGORIES = [
   {
     key: 'conference',
     label: 'Conference Room Booking',
-    icon: '📅',
-    desc: 'Reserve the conference room for meetings and events',
+    desc: 'Reserve meeting rooms and corporate spaces with live calendar scheduling',
     color: '#b27f0d',
     link: '/booking',
   },
   {
     key: 'stationery',
     label: 'Stationery Request',
-    icon: '✏️',
-    desc: 'Order office stationery and printing materials',
+    desc: 'Order writing materials, office registers, notebooks, and general supplies',
     color: '#b27f0d',
   },
   {
     key: 'hk_material',
     label: 'Housekeeping Material',
-    icon: '🧴',
-    desc: 'Request cleaning and housekeeping supplies',
+    desc: 'Request cleaning chemicals, floor liquids, tissues, and sanitation packs',
     color: '#b27f0d',
     restricted: true,
   },
   {
     key: 'admin_support',
     label: 'Admin Support',
-    icon: '💼',
-    desc: 'Get assistance from the admin team',
+    desc: 'Log general administrative inquiries, facility requests, and desk setup',
     color: '#b27f0d',
   },
   {
     key: 'maintenance',
     label: 'Maintenance Complaint',
-    icon: '🔧',
-    desc: 'Report and track maintenance issues',
+    desc: 'Report electrical, plumbing, air conditioning, and physical office repairs',
     color: '#b27f0d',
   },
   {
     key: 'housekeeping',
     label: 'Housekeeping Request',
-    icon: '🧹',
-    desc: 'Request cleaning and waste removal services',
+    desc: 'Schedule floor sanitization, dust removal, and workspace hygiene',
     color: '#b27f0d',
   },
   {
     key: 'office_asset',
     label: 'Office Asset Request',
-    icon: '🖥️',
-    desc: 'Request new equipment or furniture',
+    desc: 'Request replacement monitors, ergonomic accessories, and IT equipment',
     color: '#b27f0d',
   },
   {
     key: 'print_scan',
     label: 'Printing & Scanning',
-    icon: '🖨️',
-    desc: 'Bulk printing, scanning, binding and lamination',
+    desc: 'Request bulk high-volume prints, document scanning, binding, and laminating',
     color: '#b27f0d',
   },
   {
     key: 'courier_dispatch',
     label: 'Courier & Dispatch',
-    icon: '📦',
-    desc: 'Generate Delivery Challan (DC) and request courier dispatch',
+    desc: 'Generate Delivery Challans (DC) and track outward shipments',
     color: '#b27f0d',
   },
   {
     key: 'app_feedback',
     label: 'App Feedback & Bugs',
-    icon: '💡',
-    desc: 'Suggest extra features or report bugs in this portal',
+    desc: 'Share ideas to improve internal tools or report portal issues',
     color: '#b27f0d',
   },
 ];
@@ -209,9 +223,9 @@ function ChangePasswordPanel() {
             width: 38, height: 38, borderRadius: 8,
             background: 'var(--brand-amber-bg, #fdf5e6)',
             color: 'var(--brand-amber, #b27f0d)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem'
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
-            🔑
+            <LuLock size={18} />
           </div>
           <div>
             <h3 style={{ fontFamily: 'var(--font-heading)', margin: '0 0 2px 0', fontSize: '1rem', color: 'var(--brand-charcoal, #172025)' }}>
@@ -228,7 +242,7 @@ function ChangePasswordPanel() {
           onClick={() => setIsExpanded(v => !v)}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          <span>{isExpanded ? '▲ Close' : '⚙️ Change Password'}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><LuLock size={13} /> {isExpanded ? 'Hide' : 'Change Password'}</span>
         </button>
       </div>
 
@@ -330,8 +344,9 @@ function RequestTracker() {
     <div id="my-requests-tracker" className="card" style={{ marginTop: 'var(--space-6)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg, 12px)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h3 style={{ fontFamily: 'var(--font-heading)', margin: '0 0 2px 0', fontSize: '1.15rem', color: 'var(--brand-charcoal, #172025)' }}>
-            📋 My Requests & Activity
+          <h3 style={{ fontFamily: 'var(--font-heading)', margin: '0 0 2px 0', fontSize: '1.15rem', color: 'var(--brand-charcoal, #172025)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <LuClock size={18} color="var(--brand-amber)" />
+            <span>My Requests & Activity</span>
           </h3>
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary, #6b7280)' }}>
             Monitor real-time progress and status of your submitted tickets
@@ -344,7 +359,7 @@ function RequestTracker() {
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           title="Refresh requests"
         >
-          <span>🔄</span>
+          <LuRefreshCw size={13} />
           <span>Refresh</span>
         </button>
       </div>
@@ -369,7 +384,7 @@ function RequestTracker() {
       )}
       {!loading && error && <Alert type="error">{error}</Alert>}
       {!loading && !error && filtered.length === 0 && (
-        <EmptyState icon="📭" title="No requests found" description="Your submitted requests will appear here." />
+        <EmptyState icon={<LuPackageOpen size={36} color="var(--brand-amber)" />} title="No requests found" description="Your submitted requests will appear here." />
       )}
       {!loading && !error && filtered.length > 0 && (
         <div className="table-wrapper">
@@ -421,7 +436,7 @@ function RequestTracker() {
                           onClick={() => setCancelId(r.id)}
                           disabled={cancelling}
                         >
-                          🛑 Cancel Booking
+                          Cancel Booking
                         </button>
                       )}
                     </td>
@@ -2305,7 +2320,7 @@ function HelpdeskDashboard() {
     <div style={{ padding: 'var(--space-6)', maxWidth: 1140, margin: '0 auto' }}>
       {/* ── Standout Hero Banner ── */}
       <div style={{
-        background: 'linear-gradient(135deg, var(--brand-charcoal, #172025) 0%, #202b33 100%)',
+        background: 'linear-gradient(135deg, var(--brand-charcoal, #172025) 0%, #1e2930 100%)',
         borderRadius: 'var(--radius-lg, 14px)',
         padding: 'var(--space-8, 32px)',
         marginBottom: 'var(--space-8, 32px)',
@@ -2323,15 +2338,15 @@ function HelpdeskDashboard() {
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
             background: 'rgba(255, 255, 255, 0.08)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
+            border: '1px solid rgba(255, 255, 255, 0.14)',
             padding: '4px 12px', borderRadius: '20px',
-            fontSize: '0.8rem', fontWeight: 600, color: '#f5c358',
+            fontSize: '0.78rem', fontWeight: 600, color: '#f5c358',
             marginBottom: '12px'
           }}>
-            <span>🏥</span>
-            <span>Avana Medical Internal Portal</span>
+            <LuBuilding2 size={13} />
+            <span>Avana Group</span>
           </div>
 
           <h1 style={{
@@ -2342,87 +2357,20 @@ function HelpdeskDashboard() {
             color: '#ffffff',
             letterSpacing: '-0.01em'
           }}>
-            Welcome back, {employeeEmail?.split('@')[0] || 'Employee'}
+            Admin Request Portal
           </h1>
 
           <p style={{
             color: 'rgba(255, 255, 255, 0.78)',
             fontSize: '0.95rem',
-            margin: '0 0 20px 0',
-            maxWidth: '620px',
-            lineHeight: 1.5
+            margin: '0 0 18px 0',
+            maxWidth: '650px',
+            lineHeight: 1.55
           }}>
-            Submit facility, supply, and maintenance tickets with one click, or track active request progress below.
+            Welcome back, {employeeEmail?.split('@')[0] || 'Employee'}. Select a service desk below to raise requests, or scroll down to track your active tickets.
           </p>
 
-          {/* Quick Action Launcher */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-            <button
-              type="button"
-              onClick={() => navigate('/booking')}
-              style={{
-                background: 'var(--brand-amber, #b27f0d)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '8px 16px',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <span>📅</span>
-              <span>Book Conference Room</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/helpdesk/stationery')}
-              style={{
-                background: 'rgba(255, 255, 255, 0.12)',
-                color: '#ffffff',
-                border: '1px solid rgba(255, 255, 255, 0.22)',
-                borderRadius: '8px',
-                padding: '8px 16px',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <span>✏️</span>
-              <span>Stationery Order</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/helpdesk/maintenance')}
-              style={{
-                background: 'rgba(255, 255, 255, 0.12)',
-                color: '#ffffff',
-                border: '1px solid rgba(255, 255, 255, 0.22)',
-                borderRadius: '8px',
-                padding: '8px 16px',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <span>🔧</span>
-              <span>Report Issue</span>
-            </button>
-
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <button
               type="button"
               onClick={() => {
@@ -2430,9 +2378,9 @@ function HelpdeskDashboard() {
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
               style={{
-                background: 'transparent',
-                color: '#f5c358',
-                border: '1px solid rgba(245, 195, 88, 0.45)',
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.22)',
                 borderRadius: '8px',
                 padding: '8px 16px',
                 fontWeight: 600,
@@ -2440,12 +2388,14 @@ function HelpdeskDashboard() {
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
+                gap: '8px',
                 transition: 'all 0.15s ease'
               }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.16)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
             >
-              <span>📋</span>
-              <span>My Requests</span>
+              <LuClock size={15} color="#f5c358" />
+              <span>Jump to My Requests Tracker</span>
             </button>
           </div>
         </div>
@@ -2519,10 +2469,10 @@ function HelpdeskDashboard() {
                     borderRadius: '10px',
                     background: 'var(--brand-amber-bg, #fdf5e6)',
                     border: '1px solid rgba(178, 127, 13, 0.25)',
+                    color: 'var(--brand-amber, #b27f0d)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.4rem',
                   }}>
-                    {cat.icon}
+                    {getCategoryIcon(cat.key, 22)}
                   </div>
                   <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
                     {cat.key === 'conference' ? 'Calendar' : 'Desk'}
@@ -2553,7 +2503,7 @@ function HelpdeskDashboard() {
                 fontSize: '0.82rem'
               }}>
                 <span>Start Request</span>
-                <span>→</span>
+                <LuArrowRight size={14} />
               </div>
             </button>
           );
@@ -2765,7 +2715,19 @@ function HelpdeskRequestView() {
       <Breadcrumbs items={[{ label: 'Home', link: '/helpdesk' }, { label: activeCat.label }]} />
       
       <PageHeader 
-        title={<span>{activeCat.icon} {activeCat.label}</span>} 
+        title={
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{
+              width: 36, height: 36, borderRadius: 8,
+              background: 'var(--brand-amber-bg, #fdf5e6)',
+              color: 'var(--brand-amber, #b27f0d)',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              {getCategoryIcon(activeCat.key, 20)}
+            </span>
+            <span>{activeCat.label}</span>
+          </span>
+        } 
         subtitle={activeCat.desc} 
       />
 
@@ -2793,19 +2755,25 @@ function HelpdeskRequestView() {
               gap: 'var(--space-3)',
             }}>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: 2 }}>Name</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: 2 }}>
+                  <LuUser size={12} />
+                  <span>Requester Name</span>
+                </div>
                 <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={employeeEmail?.split('@')[0]}>
                   {employeeEmail?.split('@')[0] || '—'}
                 </div>
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: 2 }}>Email</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: 2 }}>
+                  <LuMail size={12} />
+                  <span>Email Address</span>
+                </div>
                 <div style={{ fontWeight: 500, fontSize: '0.9rem', wordBreak: 'break-word', overflowWrap: 'break-word' }} title={employeeEmail}>
                   {employeeEmail || '—'}
                 </div>
               </div>
               <div>
-                <FormField label="Phone Number" required htmlFor="hd-req-phone" error={errors.requester_phone} style={{ marginBottom: 0 }}>
+                <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}><LuPhone size={12} /><span>Phone Number</span></span>} required htmlFor="hd-req-phone" error={errors.requester_phone} style={{ marginBottom: 0 }}>
                   <input
                     id="hd-req-phone"
                     type="tel"

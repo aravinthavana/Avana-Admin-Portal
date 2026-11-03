@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation, Link } from 'react-router-do
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { AvanaLogo } from '../components/ui';
+import { LuUser, LuLayoutDashboard, LuLogOut } from 'react-icons/lu';
 import '../styles/Layout.css';
 
 // ── Header Navigation & Breadcrumbs ─────────────────────────────────────────
@@ -158,10 +159,10 @@ export function EmployeeLayout() {
             <AvanaLogo size="md" style={{ filter: 'none' }} />
             <div>
               <div className="portal-header__title">
-                Admin Help Desk
+                Avana <span style={{ color: 'var(--brand-amber, #b27f0d)' }}>Group</span>
               </div>
               <div className="portal-header__subtitle">
-                Select a category below to submit your request
+                Admin Request Portal
               </div>
             </div>
           </div>
@@ -169,7 +170,7 @@ export function EmployeeLayout() {
           <div className="portal-header__actions">
             {employeeEmail && (
               <div className="portal-header__user-pill">
-                <span>👤 {employeeEmail}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><LuUser size={13} /> {employeeEmail}</span>
                 <button
                   type="button"
                   onClick={handleLogout}
@@ -215,10 +216,10 @@ export function AdminLayout() {
             <AvanaLogo size="md" style={{ filter: 'none' }} />
             <div>
               <div className="portal-header__title">
-                Admin <span style={{ color: 'var(--brand-amber, #b27f0d)' }}>Portal</span>
+                Avana <span style={{ color: 'var(--brand-amber, #b27f0d)' }}>Group</span>
               </div>
               <div className="portal-header__subtitle">
-                System Administration, Requests & Inventory Operations
+                Admin & Operations Hub
               </div>
             </div>
           </div>
@@ -227,8 +228,10 @@ export function AdminLayout() {
             <Link
               to="/helpdesk-admin"
               className="portal-header__dash-btn"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              🏠 Admin Dashboard
+              <LuLayoutDashboard size={14} />
+              <span>Admin Dashboard</span>
             </Link>
             <button
               type="button"

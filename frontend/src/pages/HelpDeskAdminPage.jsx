@@ -19,7 +19,7 @@ import {
   LuUsers, LuBuilding2, LuSettings, LuFileText, LuShoppingCart,
   LuBoxes, LuPackage, LuClipboardCheck, LuLayers, LuFileBadge,
   LuWallet, LuCar, LuReceipt, LuZap, LuLandmark, LuBell,
-  LuLayoutDashboard, LuShieldCheck, LuArrowRight
+  LuLayoutDashboard, LuShieldCheck, LuArrowRight, LuClock
 } from 'react-icons/lu';
 
 

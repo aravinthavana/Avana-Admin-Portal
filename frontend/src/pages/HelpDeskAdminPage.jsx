@@ -23,7 +23,7 @@ import {
 } from 'react-icons/lu';
 
 
-import { stationeryApi, housekeepingApi, utilityApi, taxApi, printingApi } from '../lib/api';
+import { stationeryApi, housekeepingApi, utilityApi, taxApi, printingApi, helpdeskApi, purchaseApi, amcApi } from '../lib/api';
 import { useState } from 'react';
 
 function StationeryPrintingStockWrapper() {
@@ -165,13 +165,53 @@ function NavCard({ icon, title, description, badge, link, color = '#b27f0d' }) {
 
 /* ─── 1. Main Admin Dashboard (3 Option Boxes) ───────────────────────────── */
 function MainDashboardView() {
+  const [stats, setStats] = useState({
+    pendingRequests: 0,
+    conferenceCount: 0,
+    pendingPurchases: 0,
+    activeAmcCount: 0,
+    loading: true
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    Promise.allSettled([
+      helpdeskApi.getAll(),
+      purchaseApi.getAll(),
+      amcApi.getAll()
+    ]).then(([resHelpdesk, resPurchases, resAmc]) => {
+      if (!isMounted) return;
+
+      const tickets = (resHelpdesk.status === 'fulfilled' && Array.isArray(resHelpdesk.value)) ? resHelpdesk.value : [];
+      const purchases = (resPurchases.status === 'fulfilled' && Array.isArray(resPurchases.value)) ? resPurchases.value : [];
+      const amcs = (resAmc.status === 'fulfilled' && Array.isArray(resAmc.value)) ? resAmc.value : [];
+
+      const pendingTickets = tickets.filter(t => (t.status || '').toLowerCase() === 'pending').length;
+      const conferenceTickets = tickets.filter(t => t.category === 'conference').length;
+      const pendingPurch = purchases.filter(p => (p.status || '').toLowerCase() === 'pending').length;
+
+      setStats({
+        pendingRequests: pendingTickets,
+        conferenceCount: conferenceTickets,
+        pendingPurchases: pendingPurch,
+        activeAmcCount: amcs.length,
+        loading: false
+      });
+    }).catch(() => {
+      if (isMounted) setStats(s => ({ ...s, loading: false }));
+    });
+
+    return () => { isMounted = false; };
+  }, []);
+
   return (
     <div style={{ padding: '0.5rem 0 2rem 0' }}>
+      {/* ── Admin Command Hero Banner ── */}
       <div style={{
         background: 'linear-gradient(135deg, var(--brand-charcoal, #172025) 0%, #1e2930 100%)',
         borderRadius: 'var(--radius-lg, 14px)',
         padding: '2rem 2.2rem',
-        marginBottom: '2rem',
+        marginBottom: '1.75rem',
         color: '#ffffff',
         boxShadow: '0 8px 24px -4px rgba(23, 32, 37, 0.12)',
         position: 'relative',
@@ -208,11 +248,164 @@ function MainDashboardView() {
             maxWidth: '650px',
             lineHeight: 1.5
           }}>
-            Central administrative console to supervise employee tickets, inventory stock, vendor contracts, and security logs.
+            Supervise incoming employee requests, inventory stock reconciliations, vendor AMC renewals, and security governance.
           </p>
         </div>
       </div>
 
+      {/* ── Live Operational KPI Metric Cards ── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: '1rem',
+        marginBottom: '2rem'
+      }}>
+        <Link to="/helpdesk-admin/all-tickets" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e4e4e7',
+            borderRadius: '12px',
+            padding: '1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            boxShadow: '0 1px 3px rgba(23, 32, 37, 0.05)',
+            transition: 'all 0.15s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = '#b45309'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = '#e4e4e7'; }}>
+            <div style={{
+              width: '46px', height: '46px', borderRadius: '10px',
+              background: '#fffbeb', border: '1px solid #fde68a', color: '#b45309',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <LuClock size={22} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Pending Requests
+              </div>
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#172025', lineHeight: 1.2, fontFamily: 'var(--font-heading)' }}>
+                {stats.loading ? '—' : stats.pendingRequests}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#b45309', fontWeight: 600 }}>
+                Awaiting resolution
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        <Link to="/helpdesk-admin/conference" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e4e4e7',
+            borderRadius: '12px',
+            padding: '1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            boxShadow: '0 1px 3px rgba(23, 32, 37, 0.05)',
+            transition: 'all 0.15s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = 'var(--brand-amber)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = '#e4e4e7'; }}>
+            <div style={{
+              width: '46px', height: '46px', borderRadius: '10px',
+              background: 'var(--brand-amber-bg, #fdf5e6)', border: '1px solid rgba(178, 127, 13, 0.2)', color: 'var(--brand-amber, #b27f0d)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <LuCalendar size={22} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Conference Room
+              </div>
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#172025', lineHeight: 1.2, fontFamily: 'var(--font-heading)' }}>
+                {stats.loading ? '—' : stats.conferenceCount}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                Room bookings logged
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        <Link to="/helpdesk-admin/purchases" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e4e4e7',
+            borderRadius: '12px',
+            padding: '1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            boxShadow: '0 1px 3px rgba(23, 32, 37, 0.05)',
+            transition: 'all 0.15s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = '#2563eb'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = '#e4e4e7'; }}>
+            <div style={{
+              width: '46px', height: '46px', borderRadius: '10px',
+              background: '#eff6ff', border: '1px solid #bfdbfe', color: '#2563eb',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <LuShoppingCart size={22} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Purchase Approvals
+              </div>
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#172025', lineHeight: 1.2, fontFamily: 'var(--font-heading)' }}>
+                {stats.loading ? '—' : stats.pendingPurchases}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#2563eb', fontWeight: 600 }}>
+                Pending approval
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        <Link to="/helpdesk-admin/amc" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e4e4e7',
+            borderRadius: '12px',
+            padding: '1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            boxShadow: '0 1px 3px rgba(23, 32, 37, 0.05)',
+            transition: 'all 0.15s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = '#16a34a'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = '#e4e4e7'; }}>
+            <div style={{
+              width: '46px', height: '46px', borderRadius: '10px',
+              background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#16a34a',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <LuFileBadge size={22} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                AMC Contracts
+              </div>
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#172025', lineHeight: 1.2, fontFamily: 'var(--font-heading)' }}>
+                {stats.loading ? '—' : stats.activeAmcCount}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600 }}>
+                Active vendor contracts
+              </div>
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* ── Operational Zones Navigation Grid ── */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',

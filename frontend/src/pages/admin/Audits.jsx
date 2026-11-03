@@ -72,7 +72,7 @@ export function StationeryAudit() {
       </div>
 
       <PageHeader 
-        title="📊 Monthly Stationery Audit" 
+        title="Monthly Stationery Audit" 
         subtitle="View monthly consumption and stock audit records" 
         action={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
@@ -215,7 +215,7 @@ export function HousekeepingAudit() {
       </div>
 
       <PageHeader
-        title="🧴 Monthly Housekeeping Audit"
+        title="Monthly Housekeeping Audit"
         subtitle="View monthly consumption and stock audit records"
         action={
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>

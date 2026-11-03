@@ -449,7 +449,7 @@ export function UtilityPaymentsPage({ api }) {
         <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Utility Payments</span>
       </div>
 
-      <PageHeader title="💡 Utility Payments" subtitle="Manage utility bills and payments for each month" action={
+      <PageHeader title="Utility Payments" subtitle="Manage utility bills and payments for each month" action={
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           <button type="button" className="btn btn--secondary btn--sm" onClick={handleDownloadReport}>📄 Download Report</button>
           <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowAddForm(true)}>+ Add Connection</button>
@@ -839,7 +839,7 @@ export function TaxPaymentsPage({ api }) {
       </div>
 
       <PageHeader
-        title="🏛️ Property & Water Tax Dashboard"
+        title="Property & Water Tax Dashboard"
         subtitle="Manage and track half-yearly tax payments"
         action={
           <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
@@ -1036,7 +1036,7 @@ export function PettyCashPage() {
     return (
       <div>
         <PageHeader
-          title="➕ Add Petty Cash Voucher"
+          title="Add Petty Cash Voucher"
           subtitle="Record cash advance, company entity, expense type, recipient, and voucher amount"
           action={
             <button type="button" className="btn btn--outline" onClick={() => setShowAddForm(false)}>
@@ -1142,7 +1142,7 @@ export function PettyCashPage() {
       </div>
 
       <PageHeader
-        title="💵 Petty Cash & Cash Handling Ledger"
+        title="Petty Cash & Cash Handling Ledger"
         subtitle="Track cash advances, office expense vouchers, reimbursements, and settlement clearances"
         action={
           <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
@@ -1399,7 +1399,7 @@ export function TravelExpensePage() {
     return (
       <div>
         <PageHeader
-          title="➕ Log Travel Expense Record"
+          title="Log Travel Expense Record"
           subtitle="Calculate mileage expense by Total KM (Bike ₹5/KM, Car ₹10/KM)"
           action={
             <button type="button" className="btn btn--outline" onClick={() => setShowForm(false)}>
@@ -1495,7 +1495,7 @@ export function TravelExpensePage() {
       </div>
 
       <PageHeader
-        title="🚗 Travel Expenses Records"
+        title="Travel Expenses Records"
         subtitle="Log vehicle distance (Total KM) and calculate travel expenses (Bike: ₹5/KM, Car: ₹10/KM)"
         action={
           <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
@@ -1759,7 +1759,7 @@ export function PurchaseApprovalPage() {
   return (
     <div className="fade-in">
       <PageHeader 
-        title="🛒 Purchase Approvals"
+        title="Purchase Approvals"
         subtitle="Manage and track all purchase requests"
         action={
           <div style={{ display: 'flex', gap: '8px' }}>

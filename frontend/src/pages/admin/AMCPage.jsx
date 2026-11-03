@@ -630,7 +630,7 @@ export function AMCPage() {
       </div>
 
       <PageHeader
-        title="📋 AMC Contracts & Service Log"
+        title="AMC Contracts & Service Log"
         subtitle="Manage equipment & facility Annual Maintenance Contracts and track service visit logs"
         action={
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>

@@ -24,7 +24,7 @@ export function AuditLogsPage() {
         { label: 'Admin Operations Audit' }
       ]} />
       <PageHeader
-        title="📜 Admin Operations Audit"
+        title="Admin Operations Audit"
         subtitle="Track administrative changes and operations across the portal"
         action={
           <Link to="/helpdesk-admin/security" className="btn btn--outline btn--sm" style={{ textDecoration: 'none' }}>

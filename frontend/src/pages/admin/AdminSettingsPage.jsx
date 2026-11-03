@@ -32,7 +32,7 @@ export function LoginAuditPage() {
         { label: 'Employee Login Audit' }
       ]} />
       <PageHeader
-        title="🔐 Employee Login Audit"
+        title="Employee Login Audit"
         subtitle="Track all employee login and logout events"
         action={
           <Link to="/helpdesk-admin/security" className="btn btn--outline btn--sm" style={{ textDecoration: 'none' }}>
@@ -235,7 +235,7 @@ export function LocationsManagementPage() {
         { label: 'Office Locations' }
       ]} />
       <PageHeader
-        title="🏢 Office Locations"
+        title="Office Locations"
         subtitle="Add, view, and delete office floors and departments for all helpdesk forms"
         action={
           <Link to="/helpdesk-admin/security" className="btn btn--outline btn--sm" style={{ textDecoration: 'none' }}>
@@ -282,7 +282,7 @@ export function AdminSettings() {
         { label: 'Portal Settings' }
       ]} />
       <PageHeader
-        title="⚙️ Portal Settings"
+        title="Portal Settings"
         subtitle="Manage admin credentials and portal configuration"
         action={
           <Link to="/helpdesk-admin/security" className="btn btn--outline btn--sm" style={{ textDecoration: 'none' }}>

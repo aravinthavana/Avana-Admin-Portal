@@ -273,7 +273,7 @@ export function AssetTrackerPage() {
       </div>
 
       <PageHeader
-        title="💻 Asset Tracker & Employee Handovers"
+        title="Asset Tracker & Employee Handovers"
         subtitle="Track corporate hardware & furniture assigned to employees with digital acknowledgements"
         action={
           <button type="button" className="btn btn--secondary" onClick={handleDownloadPDF}>
@@ -403,7 +403,7 @@ export function AssetTrackerPage() {
 
       {/* Modal: New Handover */}
       {addModalOpen && (
-        <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="➕ Create Asset Handover Record">
+        <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="Create Asset Handover Record">
           <form autoComplete="off" onSubmit={handleCreate}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <FormField label="Employee Name" required>
@@ -962,7 +962,7 @@ export function CourierDispatchPage() {
   if (addModalOpen) {
     return (
       <div>
-        <PageHeader title="➕ Create New Delivery Challan (DC)" subtitle="Enter dispatch details" action={<button type="button" className="btn btn--outline btn--sm" onClick={() => setAddModalOpen(false)}>← Back</button>} />
+        <PageHeader title="Create New Delivery Challan (DC)" subtitle="Enter dispatch details" action={<button type="button" className="btn btn--outline btn--sm" onClick={() => setAddModalOpen(false)}>← Back</button>} />
         <div className="card">
           <form autoComplete="off" onSubmit={handleCreate}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
@@ -1276,7 +1276,7 @@ export function CourierDispatchPage() {
       </div>
 
       <PageHeader
-        title="🚚 Courier Dispatches & Delivery Challans"
+        title="Courier Dispatches & Delivery Challans"
         subtitle="Manage outbound shipments, auto-generate official Delivery Challan PDFs, and merge parcels"
         action={
           <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
@@ -1633,7 +1633,7 @@ export function BillWarrantyPage() {
     return (
       <div>
         <PageHeader
-          title="➕ Log Purchase Bill & Warranty"
+          title="Log Purchase Bill & Warranty"
           subtitle="Record invoice details, item asset numbers, rate & optional bill/warranty attachments"
           action={
             <button type="button" className="btn btn--outline" onClick={() => setShowForm(false)}>
@@ -1751,7 +1751,7 @@ export function BillWarrantyPage() {
       </div>
 
       <PageHeader
-        title="📜 Bills & Warranty Register"
+        title="Bills & Warranty Register"
         subtitle="Archive equipment purchase bills, itemized details, warranty expiration dates, attachments, and vendor approvals"
         action={
           <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>
@@ -2213,7 +2213,7 @@ export function OtherStockPage() {
       </div>
 
       <PageHeader
-        title="📦 Other Stock Items Catalog"
+        title="Other Stock Items Catalog"
         subtitle="Manage uniforms, T-shirts, promotional merchandise, equipment stock, and size variations"
       />
 
@@ -2518,7 +2518,7 @@ export function RemindersPage() {
     return (
       <div>
         <PageHeader
-          title="➕ Schedule New Deadline Reminder"
+          title="Schedule New Deadline Reminder"
           subtitle="Set custom email alert date, priority, and notification text"
           action={
             <button type="button" className="btn btn--outline" onClick={() => setShowForm(false)}>
@@ -2597,7 +2597,7 @@ export function RemindersPage() {
       </div>
 
       <PageHeader
-        title="⏰ Renewal Reminders & Deadline Audit"
+        title="Renewal Reminders & Deadline Audit"
         subtitle="Schedule custom admin reminders and run instant automated scans for expiring AMCs, utility bills, and tax deadlines"
         action={
           <button type="button" className="btn btn--secondary" onClick={handleLegacyPDF}>📄 Download PDF</button>

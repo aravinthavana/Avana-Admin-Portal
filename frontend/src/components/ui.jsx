@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { LuChevronRight, LuHouse } from 'react-icons/lu';
 
 /**
  * Uses the actual logo image from public assets served by the Express backend.
@@ -218,22 +219,24 @@ export function StatCard({ label, value, icon, color = 'var(--brand-amber)', tre
  */
 export function Breadcrumbs({ items }) {
   return (
-    <nav aria-label="Breadcrumb" style={{ marginBottom: 'var(--space-4)', fontSize: '0.9rem' }}>
-      <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+    <nav aria-label="Breadcrumb" style={{ marginBottom: 'var(--space-4)', fontSize: '0.85rem' }}>
+      <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.35rem' }}>
         {items.map((item, idx) => {
           const isLast = idx === items.length - 1;
+          const isFirst = idx === 0;
           return (
-             <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <li key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
               {item.link && !isLast ? (
-                <Link to={item.link} style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 500 }}>
-                  {item.label}
+                <Link to={item.link} style={{ color: 'var(--brand-amber, #b27f0d)', textDecoration: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  {isFirst && <LuHouse size={13} style={{ marginBottom: '1px' }} />}
+                  <span>{item.label}</span>
                 </Link>
               ) : (
-                <span style={{ color: 'var(--color-text-secondary)' }} aria-current={isLast ? 'page' : undefined}>
+                <span style={{ color: 'var(--color-text-secondary, #6b7280)', fontWeight: isLast ? 700 : 500 }} aria-current={isLast ? 'page' : undefined}>
                   {item.label}
                 </span>
               )}
-              {!isLast && <span style={{ color: 'var(--color-border)' }}>/</span>}
+              {!isLast && <LuChevronRight size={12} style={{ color: 'var(--color-text-muted, #9ca3af)', flexShrink: 0 }} />}
             </li>
           );
         })}

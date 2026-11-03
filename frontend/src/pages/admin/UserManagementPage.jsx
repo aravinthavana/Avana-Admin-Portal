@@ -242,7 +242,7 @@ export default function UserManagementPage() {
       </div>
 
       <PageHeader
-        title="👥 User Management"
+        title="User Management"
         subtitle="Manage employee access, assign departments & locations, reset passwords, and toggle active status."
         action={
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
@@ -595,7 +595,7 @@ export default function UserManagementPage() {
         <Modal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
-          title="➕ Register New Employee"
+          title="Register New Employee"
         >
           <form onSubmit={handleCreateUser}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

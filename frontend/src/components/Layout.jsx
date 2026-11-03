@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation, Link } from 'react-router-do
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { AvanaLogo } from '../components/ui';
-import { LuUser, LuLayoutDashboard, LuLogOut } from 'react-icons/lu';
+import { LuUser, LuLayoutDashboard, LuLogOut, LuChevronLeft, LuChevronRight, LuHouse } from 'react-icons/lu';
 import '../styles/Layout.css';
 
 // ── Header Navigation & Breadcrumbs ─────────────────────────────────────────
@@ -78,7 +78,7 @@ function HeaderNavigation() {
           onMouseOver={e => { e.currentTarget.style.borderColor = '#b27f0d'; e.currentTarget.style.background = '#fdf5e6'; }}
           onMouseOut={e => { e.currentTarget.style.borderColor = '#e4e4e7'; e.currentTarget.style.background = '#ffffff'; }}
         >
-          ❮
+          <LuChevronLeft size={16} />
         </button>
         <button
           type="button"
@@ -104,7 +104,7 @@ function HeaderNavigation() {
           onMouseOver={e => { e.currentTarget.style.borderColor = '#b27f0d'; e.currentTarget.style.background = '#fdf5e6'; }}
           onMouseOut={e => { e.currentTarget.style.borderColor = '#e4e4e7'; e.currentTarget.style.background = '#ffffff'; }}
         >
-          ❯
+          <LuChevronRight size={16} />
         </button>
       </div>
 
@@ -112,8 +112,9 @@ function HeaderNavigation() {
       <nav aria-label="Breadcrumb" style={{ display: 'inline-flex', alignItems: 'center', fontSize: '0.82rem', fontWeight: 600 }}>
         <ol style={{ listStyle: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', margin: 0, padding: 0 }}>
           <li style={{ display: 'inline-flex', alignItems: 'center' }}>
-            <Link to={location.pathname.startsWith('/helpdesk-admin') ? '/helpdesk-admin' : '/'} style={{ color: '#6b7280', textDecoration: 'none' }}>
-              🏠 Home
+            <Link to={location.pathname.startsWith('/helpdesk-admin') ? '/helpdesk-admin' : '/'} style={{ color: '#6b7280', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <LuHouse size={13} />
+              <span>Home</span>
             </Link>
           </li>
           {pathSnippets.map((snippet, index) => {
@@ -123,7 +124,7 @@ function HeaderNavigation() {
 
             return (
               <li key={url} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                <span style={{ color: '#aab2b2', fontSize: '0.7rem' }}>/</span>
+                <LuChevronRight size={11} style={{ color: '#aab2b2', flexShrink: 0 }} />
                 {isLast ? (
                   <span style={{ color: 'var(--brand-amber-dark, #8b6209)', fontWeight: 700 }}>{label}</span>
                 ) : (

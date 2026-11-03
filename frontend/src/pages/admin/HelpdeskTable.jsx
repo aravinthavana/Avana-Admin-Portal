@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, printingApi, amcApi, utilityApi, taxApi, adminApi,
@@ -24,21 +24,60 @@ export function SkeletonRows({ cols = 8, rows = 5 }) {
 }
 
 /* ─── Pagination ──────────────────────────────────────────── */
-const PAGE_SIZE = 20;
-export function Pagination({ page, total, onPage }) {
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  if (totalPages <= 1) return null;
+export function Pagination({ page, total, onPage, pageSize = 20, onPageSizeChange }) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (total === 0) return null;
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-4)', borderTop: '1px solid var(--color-border)' }}>
-      <button className="btn btn--sm btn--secondary" onClick={() => onPage(page - 1)} disabled={page === 1} aria-label="Previous page">
-        ← Prev
-      </button>
-      <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-        Page {page} of {totalPages} ({total} records)
-      </span>
-      <button className="btn btn--sm btn--secondary" onClick={() => onPage(page + 1)} disabled={page === totalPages} aria-label="Next page">
-        Next →
-      </button>
+    <div style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 'var(--space-3)',
+      padding: 'var(--space-3) var(--space-5)',
+      borderTop: '1px solid var(--color-border)',
+      flexWrap: 'wrap',
+      background: 'var(--color-surface-2, #f9f9fb)'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+        <span>Rows per page:</span>
+        <select
+          className="form-input"
+          value={pageSize}
+          onChange={(e) => onPageSizeChange && onPageSizeChange(Number(e.target.value))}
+          style={{ padding: '0.2rem 0.5rem', fontSize: '0.82rem', width: 'auto', background: '#fff' }}
+          aria-label="Rows per page"
+        >
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+        </select>
+        <span>(Total {total} records)</span>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <button
+          type="button"
+          className="btn btn--sm btn--secondary"
+          onClick={() => onPage(page - 1)}
+          disabled={page <= 1}
+          aria-label="Previous page"
+        >
+          ← Prev
+        </button>
+        <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', fontWeight: 600, padding: '0 0.5rem' }}>
+          Page {page} of {totalPages}
+        </span>
+        <button
+          type="button"
+          className="btn btn--sm btn--secondary"
+          onClick={() => onPage(page + 1)}
+          disabled={page >= totalPages}
+          aria-label="Next page"
+        >
+          Next →
+        </button>
+      </div>
     </div>
   );
 }
@@ -162,6 +201,8 @@ export function HelpdeskTable({ categoryFilter }) {
   const [completionRemarks, setCompletionRemarks] = useState('');
   const [submittingComplete, setSubmittingComplete] = useState(false);
   const [conferenceTab, setConferenceTab] = useState('upcoming'); // 'upcoming' | 'completed' | 'all'
+  const [pageSize, setPageSize] = useState(20);
+  const [statusTab, setStatusTab] = useState('all'); // 'all' | 'pending' | 'approved' | 'completed' | 'rejected'
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
@@ -217,6 +258,23 @@ export function HelpdeskTable({ categoryFilter }) {
     return { upcoming, completed, all: confRequests.length };
   }, [requests, categoryFilter, isConferenceCompleted]);
 
+  const statusStats = useMemo(() => {
+    const relevant = requests.filter(r => !categoryFilter || categoryFilter === 'all' || r.category === categoryFilter);
+    let all = relevant.length;
+    let pending = 0;
+    let approved = 0;
+    let completed = 0;
+    let rejected = 0;
+    relevant.forEach(r => {
+      const s = (r.status || '').toLowerCase();
+      if (s === 'pending') pending++;
+      else if (s === 'approved' || s === 'in-progress' || s === 'in progress') approved++;
+      else if (s === 'completed' || s === 'resolved') completed++;
+      else if (s === 'rejected' || s === 'cancelled') rejected++;
+    });
+    return { all, pending, approved, completed, rejected };
+  }, [requests, categoryFilter]);
+
   /* Filter */
   const filtered = useMemo(() => {
     setPage(1); // reset page on filter change
@@ -232,6 +290,15 @@ export function HelpdeskTable({ categoryFilter }) {
           const completed = isConferenceCompleted(r);
           if (conferenceTab === 'upcoming' && completed) return false;
           if (conferenceTab === 'completed' && !completed) return false;
+        }
+
+        // Status tab filter for general requests
+        if (categoryFilter !== 'conference' && statusTab !== 'all') {
+          const s = (r.status || '').toLowerCase();
+          if (statusTab === 'pending' && s !== 'pending') return false;
+          if (statusTab === 'approved' && s !== 'approved' && s !== 'in-progress' && s !== 'in progress') return false;
+          if (statusTab === 'completed' && s !== 'completed' && s !== 'resolved') return false;
+          if (statusTab === 'rejected' && s !== 'rejected' && s !== 'cancelled') return false;
         }
 
         // Date filter
@@ -521,6 +588,19 @@ export function HelpdeskTable({ categoryFilter }) {
 
   return (
     <div>
+      {categoryFilter && (
+        <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+          <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+            Admin Dashboard
+          </Link>
+          <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+          <Link to="/helpdesk-admin/requests" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+            Request Categories
+          </Link>
+          <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+          <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>{label}</span>
+        </div>
+      )}
       <PageHeader
         title={`📋 ${label} Requests${!categoryFilter && pendingCount > 0 ? ` (${pendingCount} pending)` : ''}`}
         subtitle={`Manage help desk requests${categoryFilter ? ` for ${CATEGORY_LABELS[categoryFilter] || categoryFilter}` : ''}`}
@@ -534,6 +614,93 @@ export function HelpdeskTable({ categoryFilter }) {
         }
       />
       <PrintHeader title={`${label} Requests Report`} subtitle={fromDate || toDate ? `Date range: ${fromDate || 'Start'} to ${toDate || 'Today'}` : 'All Requests'} />
+
+      {/* General Requests Status Filter Tabs */}
+      {categoryFilter !== 'conference' && (
+        <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className={`btn btn--sm ${statusTab === 'all' ? 'btn--primary' : 'btn--outline'}`}
+            onClick={() => setStatusTab('all')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <span>📋 All Tickets</span>
+            <span style={{
+              background: statusTab === 'all' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
+              color: statusTab === 'all' ? '#fff' : 'var(--color-text-main, #333)',
+              padding: '1px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+            }}>
+              {statusStats.all}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className={`btn btn--sm ${statusTab === 'pending' ? 'btn--primary' : 'btn--outline'}`}
+            onClick={() => setStatusTab('pending')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <span>⏳ Pending</span>
+            <span style={{
+              background: statusTab === 'pending' ? 'rgba(255,255,255,0.25)' : '#fee2e2',
+              color: statusTab === 'pending' ? '#fff' : '#dc2626',
+              padding: '1px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+            }}>
+              {statusStats.pending}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className={`btn btn--sm ${statusTab === 'approved' ? 'btn--primary' : 'btn--outline'}`}
+            onClick={() => setStatusTab('approved')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <span>⚡ Approved / Active</span>
+            <span style={{
+              background: statusTab === 'approved' ? 'rgba(255,255,255,0.25)' : '#eff6ff',
+              color: statusTab === 'approved' ? '#fff' : '#2563eb',
+              padding: '1px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+            }}>
+              {statusStats.approved}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className={`btn btn--sm ${statusTab === 'completed' ? 'btn--primary' : 'btn--outline'}`}
+            onClick={() => setStatusTab('completed')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <span>✅ Completed / Resolved</span>
+            <span style={{
+              background: statusTab === 'completed' ? 'rgba(255,255,255,0.25)' : '#f0fdf4',
+              color: statusTab === 'completed' ? '#fff' : '#16a34a',
+              padding: '1px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+            }}>
+              {statusStats.completed}
+            </span>
+          </button>
+
+          {statusStats.rejected > 0 && (
+            <button
+              type="button"
+              className={`btn btn--sm ${statusTab === 'rejected' ? 'btn--primary' : 'btn--outline'}`}
+              onClick={() => setStatusTab('rejected')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <span>❌ Rejected</span>
+              <span style={{
+                background: statusTab === 'rejected' ? 'rgba(255,255,255,0.25)' : '#f3f4f6',
+                color: statusTab === 'rejected' ? '#fff' : '#6b7280',
+                padding: '1px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+              }}>
+                {statusStats.rejected}
+              </span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Conference Room Specific Tabs: Upcoming vs Completed */}
       {categoryFilter === 'conference' && (
@@ -646,7 +813,7 @@ export function HelpdeskTable({ categoryFilter }) {
               {loading ? (
                 <SkeletonRows cols={8} rows={5} />
               ) : (
-                filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((r, idx) => {
+                filtered.slice((page - 1) * pageSize, page * pageSize).map((r, idx) => {
                   const itemsList = parseItems(r.items);
                   const meta = parseItemsData(r.items);
                   
@@ -780,7 +947,13 @@ export function HelpdeskTable({ categoryFilter }) {
             </tbody>
           </table>
         </div>
-        <Pagination page={page} total={filtered.length} onPage={setPage} />
+        <Pagination
+          page={page}
+          total={filtered.length}
+          onPage={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+        />
       </div>
 
       <ConfirmModal

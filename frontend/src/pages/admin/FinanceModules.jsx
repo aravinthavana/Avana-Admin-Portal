@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi,
@@ -437,6 +437,18 @@ export function UtilityPaymentsPage({ api }) {
 
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Utility Payments</span>
+      </div>
+
       <PageHeader title="💡 Utility Payments" subtitle="Manage utility bills and payments for each month" action={
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           <button type="button" className="btn btn--secondary btn--sm" onClick={handleDownloadReport}>📄 Download Report</button>
@@ -814,6 +826,18 @@ export function TaxPaymentsPage({ api }) {
 
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Tax Payments</span>
+      </div>
+
       <PageHeader
         title="🏛️ Property & Water Tax Dashboard"
         subtitle="Manage and track half-yearly tax payments"
@@ -1105,6 +1129,18 @@ export function PettyCashPage() {
 
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Cash Handling</span>
+      </div>
+
       <PageHeader
         title="💵 Petty Cash & Cash Handling Ledger"
         subtitle="Track cash advances, office expense vouchers, reimbursements, and settlement clearances"
@@ -1446,6 +1482,18 @@ export function TravelExpensePage() {
 
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Travel Expenses</span>
+      </div>
+
       <PageHeader
         title="🚗 Travel Expenses Records"
         subtitle="Log vehicle distance (Total KM) and calculate travel expenses (Bike: ₹5/KM, Car: ₹10/KM)"

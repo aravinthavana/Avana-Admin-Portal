@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi, globalAddressApi,
@@ -7,7 +7,7 @@ import {
 } from '../../lib/api';
 import {
   Badge, Spinner, EmptyState, Alert, Modal, ConfirmModal,
-  FormField, PageHeader, StatCard,
+  FormField, PageHeader, StatCard, Breadcrumbs,
 } from '../../components/ui';
 import { formatDate, formatDateTime, getStatusBadge, openLegacyPrintReport, CATEGORY_LABELS } from './utils';
 
@@ -25,8 +25,21 @@ export function LoginAuditPage() {
   }, []);
 
   return (
-    <div>
-      <PageHeader title="🔐 Employee Login Audit" subtitle="Track all employee login and logout events" />
+    <div style={{ padding: '0 0 var(--space-8) 0' }}>
+      <Breadcrumbs items={[
+        { label: 'Admin Dashboard', link: '/helpdesk-admin' },
+        { label: 'Security & Audit', link: '/helpdesk-admin/security' },
+        { label: 'Employee Login Audit' }
+      ]} />
+      <PageHeader
+        title="🔐 Employee Login Audit"
+        subtitle="Track all employee login and logout events"
+        action={
+          <Link to="/helpdesk-admin/security" className="btn btn--outline btn--sm" style={{ textDecoration: 'none' }}>
+            ← Back to Security
+          </Link>
+        }
+      />
       {error && <Alert type="error">{error}</Alert>}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>
@@ -215,10 +228,20 @@ export function LocationsManagementSection() {
 
 export function LocationsManagementPage() {
   return (
-    <div>
+    <div style={{ padding: '0 0 var(--space-8) 0' }}>
+      <Breadcrumbs items={[
+        { label: 'Admin Dashboard', link: '/helpdesk-admin' },
+        { label: 'Security & Audit', link: '/helpdesk-admin/security' },
+        { label: 'Office Locations' }
+      ]} />
       <PageHeader
         title="🏢 Office Locations"
         subtitle="Add, view, and delete office floors and departments for all helpdesk forms"
+        action={
+          <Link to="/helpdesk-admin/security" className="btn btn--outline btn--sm" style={{ textDecoration: 'none' }}>
+            ← Back to Security
+          </Link>
+        }
       />
       <LocationsManagementSection />
     </div>
@@ -252,8 +275,21 @@ export function AdminSettings() {
   }
 
   return (
-    <div>
-      <PageHeader title="⚙️ Portal Settings" subtitle="Manage admin credentials and portal configuration" />
+    <div style={{ padding: '0 0 var(--space-8) 0' }}>
+      <Breadcrumbs items={[
+        { label: 'Admin Dashboard', link: '/helpdesk-admin' },
+        { label: 'Security & Audit', link: '/helpdesk-admin/security' },
+        { label: 'Portal Settings' }
+      ]} />
+      <PageHeader
+        title="⚙️ Portal Settings"
+        subtitle="Manage admin credentials and portal configuration"
+        action={
+          <Link to="/helpdesk-admin/security" className="btn btn--outline btn--sm" style={{ textDecoration: 'none' }}>
+            ← Back to Security
+          </Link>
+        }
+      />
       <div className="card" style={{ maxWidth: 600 }}>
         <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-5)', fontSize: '1rem' }}>
           🔑 Change Admin Password

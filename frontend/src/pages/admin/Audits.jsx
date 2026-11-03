@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi,
@@ -59,6 +59,18 @@ export function StationeryAudit() {
 
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Stationery Audit</span>
+      </div>
+
       <PageHeader 
         title="📊 Monthly Stationery Audit" 
         subtitle="View monthly consumption and stock audit records" 
@@ -190,6 +202,18 @@ export function HousekeepingAudit() {
 
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Housekeeping Audit</span>
+      </div>
+
       <PageHeader
         title="🧴 Monthly Housekeeping Audit"
         subtitle="View monthly consumption and stock audit records"

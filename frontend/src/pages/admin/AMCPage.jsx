@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import { amcApi } from '../../lib/api';
 import {
@@ -616,6 +617,18 @@ export function AMCPage() {
   // ── Render AMC Contracts List with Active / Expired Tabs ────────────────────
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>AMC Contracts</span>
+      </div>
+
       <PageHeader
         title="📋 AMC Contracts & Service Log"
         subtitle="Manage equipment & facility Annual Maintenance Contracts and track service visit logs"

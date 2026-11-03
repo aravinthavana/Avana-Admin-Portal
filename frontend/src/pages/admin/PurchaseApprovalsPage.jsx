@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch } from '../../lib/api';
 import { PageHeader, Badge } from '../../components/ui';
@@ -126,7 +127,18 @@ export default function PurchaseApprovalsPage() {
 
   return (
     <div style={{ padding: '0', animation: 'fadeIn 0.2s ease-out' }}>
-      
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Purchase Approvals</span>
+      </div>
+
       <PageHeader 
         title="Purchase Requests" 
         subtitle="Manage purchase requests, workflows, and actual purchases."

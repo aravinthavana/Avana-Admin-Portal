@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../lib/api';
-import { Badge, Spinner, EmptyState, Alert, PageHeader } from '../../components/ui';
+import { Link } from 'react-router-dom';
+import { Badge, Spinner, EmptyState, Alert, PageHeader, Breadcrumbs } from '../../components/ui';
 import { formatDateTime } from './utils';
 
 export function AuditLogsPage() {
@@ -16,8 +17,21 @@ export function AuditLogsPage() {
   }, []);
 
   return (
-    <div>
-      <PageHeader title="📜 Admin Operations Audit" subtitle="Track administrative changes and operations across the portal" />
+    <div style={{ padding: '0 0 var(--space-8) 0' }}>
+      <Breadcrumbs items={[
+        { label: 'Admin Dashboard', link: '/helpdesk-admin' },
+        { label: 'Security & Audit', link: '/helpdesk-admin/security' },
+        { label: 'Admin Operations Audit' }
+      ]} />
+      <PageHeader
+        title="📜 Admin Operations Audit"
+        subtitle="Track administrative changes and operations across the portal"
+        action={
+          <Link to="/helpdesk-admin/security" className="btn btn--outline btn--sm" style={{ textDecoration: 'none' }}>
+            ← Back to Security
+          </Link>
+        }
+      />
       {error && <Alert type="error">{error}</Alert>}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}><Spinner size="lg" /></div>

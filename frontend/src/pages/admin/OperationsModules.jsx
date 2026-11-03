@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import {
   helpdeskApi, stationeryApi, housekeepingApi, amcApi, utilityApi, taxApi, adminApi, globalAddressApi,
@@ -260,6 +260,18 @@ export function AssetTrackerPage() {
 
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Stationery Tracker</span>
+      </div>
+
       <PageHeader
         title="💻 Asset Tracker & Employee Handovers"
         subtitle="Track corporate hardware & furniture assigned to employees with digital acknowledgements"
@@ -1251,6 +1263,18 @@ export function CourierDispatchPage() {
 
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Courier & Dispatch</span>
+      </div>
+
       <PageHeader
         title="🚚 Courier Dispatches & Delivery Challans"
         subtitle="Manage outbound shipments, auto-generate official Delivery Challan PDFs, and merge parcels"
@@ -1714,6 +1738,18 @@ export function BillWarrantyPage() {
 
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Bill & Warranty</span>
+      </div>
+
       <PageHeader
         title="📜 Bills & Warranty Register"
         subtitle="Archive equipment purchase bills, itemized details, warranty expiration dates, attachments, and vendor approvals"
@@ -2164,6 +2200,18 @@ export function OtherStockPage() {
 
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Other Stock</span>
+      </div>
+
       <PageHeader
         title="📦 Other Stock Items Catalog"
         subtitle="Manage uniforms, T-shirts, promotional merchandise, equipment stock, and size variations"
@@ -2536,6 +2584,18 @@ export function RemindersPage() {
 
   return (
     <div>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+        <Link to="/helpdesk-admin" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Admin Dashboard
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <Link to="/helpdesk-admin/inventory" style={{ color: 'var(--brand-amber)', textDecoration: 'none', fontWeight: 600 }}>
+          Inventory & Operations
+        </Link>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Reminder List</span>
+      </div>
+
       <PageHeader
         title="⏰ Renewal Reminders & Deadline Audit"
         subtitle="Schedule custom admin reminders and run instant automated scans for expiring AMCs, utility bills, and tax deadlines"

@@ -12,6 +12,7 @@ import { LoginAuditPage, AdminSettings, LocationsManagementPage } from './admin/
 import { AuditLogsPage } from './admin/AuditLogsPage';
 import PurchaseApprovalsPage from './admin/PurchaseApprovalsPage';
 import UserManagementPage from './admin/UserManagementPage';
+import { Breadcrumbs } from '../components/ui';
 
 
 import { stationeryApi, housekeepingApi, utilityApi, taxApi, printingApi } from '../lib/api';
@@ -219,7 +220,11 @@ function RequestCategoriesSubView() {
   ];
 
   return (
-    <div style={{ padding: '1rem 0' }}>
+    <div style={{ padding: '0 0 var(--space-8) 0' }}>
+      <Breadcrumbs items={[
+        { label: 'Admin Dashboard', link: '/helpdesk-admin' },
+        { label: 'Request Categories' }
+      ]} />
       <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#172025', margin: '0 0 0.25rem 0' }}>
@@ -265,7 +270,11 @@ function SecuritySubView() {
 
 
   return (
-    <div style={{ padding: '1rem 0' }}>
+    <div style={{ padding: '0 0 var(--space-8) 0' }}>
+      <Breadcrumbs items={[
+        { label: 'Admin Dashboard', link: '/helpdesk-admin' },
+        { label: 'Security & Audit Logs' }
+      ]} />
       <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#172025', margin: '0 0 0.25rem 0' }}>
@@ -322,7 +331,11 @@ function InventorySubView() {
   ];
 
   return (
-    <div style={{ padding: '1rem 0' }}>
+    <div style={{ padding: '0 0 var(--space-8) 0' }}>
+      <Breadcrumbs items={[
+        { label: 'Admin Dashboard', link: '/helpdesk-admin' },
+        { label: 'Inventory & Operations' }
+      ]} />
       <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#172025', margin: '0 0 0.25rem 0' }}>

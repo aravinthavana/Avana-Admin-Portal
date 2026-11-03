@@ -156,7 +156,7 @@ exports.sendBookingRequestToAdminNotification = async (booking, host) => {
   }
 
   // 2. Alert email to Admin
-  const adminSubject = `🚨 ACTION REQUIRED: New Conference Room Request - ${booking.name}`;
+  const adminSubject = `[ACTION REQUIRED] New Conference Room Request - ${booking.name}`;
   sendEmail({
     to: adminEmail,
     ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
@@ -192,7 +192,7 @@ exports.sendBookingCancellationNotification = async (booking) => {
   const adminEmail = env.ADMIN_EMAIL;
 
   if (booking.email) {
-    const subject = `❌ CANCELLED: Conference Room Booking`;
+    const subject = `[CANCELLED] Conference Room Booking`;
     sendEmail({
       to: booking.email,
       subject,
@@ -201,7 +201,7 @@ exports.sendBookingCancellationNotification = async (booking) => {
   }
 
   // 2. Alert email to Admin
-  const adminSubject = `❌ Room Booking Cancelled - ${booking.name}`;
+  const adminSubject = `[CANCELLED] Room Booking - ${booking.name}`;
   sendEmail({
     to: adminEmail,
     ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),

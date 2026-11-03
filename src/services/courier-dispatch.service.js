@@ -274,52 +274,15 @@ exports.updateTrackingInfo = async (id, data) => {
         ? `<a href="${trackingLink}" target="_blank">${trackingLink}</a>`
         : trackingLink;
 
-    const emailContent = `
-      <h3>Courier Dispatch Tracking Details</h3>
-      <p>Hello,</p>
-      <p>Your courier request has been dispatched. Below are the tracking details for Delivery Challan <strong>#${updated.dcNo}</strong>.</p>
-      <br>
-      <table border="0" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%; max-width: 600px;">
-        <tr>
-          <td style="border: 1px solid #ddd; font-weight: bold; width: 40%; background: #f9f9f9;">DC No</td>
-          <td style="border: 1px solid #ddd;">#${updated.dcNo}</td>
-        </tr>
-        <tr>
-          <td style="border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">From</td>
-          <td style="border: 1px solid #ddd;">${updated.senderName}</td>
-        </tr>
-        <tr>
-          <td style="border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">To</td>
-          <td style="border: 1px solid #ddd;">${updated.receiverName} (${updated.toAddress})</td>
-        </tr>
-        <tr>
-          <td style="border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">Courier Partner</td>
-          <td style="border: 1px solid #ddd;">${transporterName}</td>
-        </tr>
-        <tr>
-          <td style="border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">Tracking / Docket No.</td>
-          <td style="border: 1px solid #ddd;">${docketNo}</td>
-        </tr>
-        <tr>
-          <td style="border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">Tracking Link</td>
-          <td style="border: 1px solid #ddd;">${trackingLinkHtml}</td>
-        </tr>
-      </table>
-      <br>
-      <p>
-        Thanks & Regards,<br>
-        <strong>Karthick S</strong><br>
-        Admin & Travel Desk<br>
-        Mob: +91 8925531209
-      </p>
-      <p>
-        <strong>Avana Medical Devices Pvt Ltd.,</strong><br>
-        No.91, Sundar Nagar 4th Avenue, Nandambakkam,<br>
-        Chennai – 600032, Tamil Nadu, India.<br>
-        Ph: +91 44 2233 1061/1062/1063<br>
-        Website: <a href="http://www.avanamedical.com">www.avanamedical.com</a>
-      </p>
-    `;
+    const emailContent = templates.courierTrackingUpdated({
+      dcNo: updated.dcNo,
+      senderName: updated.senderName,
+      receiverName: updated.receiverName,
+      toAddress: updated.toAddress,
+      transporterName,
+      docketNo,
+      trackingLinkHtml
+    });
     
     const attachments = [];
     if (data.attachmentPath && data.attachmentName) {
@@ -401,13 +364,10 @@ exports.deleteDispatch = async (id) => {
         await sendEmail({
           to: mr.requesterEmail,
           subject: `Merge Request Cancelled - DC #${dispatch.dcNo} Recalled`,
-          htmlBody: `
-            <h3>Merge Request Cancelled</h3>
-            <p>Hello,</p>
-            <p>The Delivery Challan <strong>#${dispatch.dcNo}</strong> that you requested to merge into has been recalled or deleted by its owner.</p>
-            <p>Your merge request has been cancelled. Please create your own Courier Dispatch for your items.</p>
-            <p><br>Thanks,<br>Avana Admin</p>
-          `
+          htmlBody: templates.courierMergeCancelled({
+            dcNo: dispatch.dcNo,
+            reason: 'The Delivery Challan you requested to merge into has been recalled or deleted by its owner.'
+          })
         });
       }
     }
@@ -432,13 +392,10 @@ exports.updateDispatch = async (id, data, requesterEmail, host) => {
       await sendEmail({
         to: mr.requesterEmail,
         subject: `Merge Request Cancelled - DC #${existing.dcNo} Recalled`,
-        htmlBody: `
-          <h3>Merge Request Cancelled</h3>
-          <p>Hello,</p>
-          <p>The Delivery Challan <strong>#${existing.dcNo}</strong> that you requested to merge into has been recalled and modified by its owner.</p>
-          <p>Your merge request has been cancelled as the parent details have changed. Please create your own Courier Dispatch for your items.</p>
-          <p><br>Thanks,<br>Avana Admin</p>
-        `
+        htmlBody: templates.courierMergeCancelled({
+          dcNo: existing.dcNo,
+          reason: 'The Delivery Challan you requested to merge into has been modified by its owner.'
+        })
       });
     }
     // Delete merge requests as they are invalidated
@@ -569,7 +526,7 @@ exports.renderDeliveryChallanHtml = (dispatch) => {
     </head>
     <body>
       <div class="no-print" style="margin-bottom: 20px; text-align: right;">
-        <button onclick="window.print()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">🖨️ Print Delivery Challan</button>
+        <button onclick="window.print()" style="padding: 10px 20px; background: #b27f0d; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Print Delivery Challan</button>
       </div>
 
       <div class="header">
@@ -725,28 +682,14 @@ exports.createMergeRequest = async (data) => {
 
   const itemsHtml = items.map(it => `<li>${it.qty}x ${it.description} (Value: ₹${it.value})</li>`).join('');
 
-  const emailHtml = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-      <div style="background:#ea580c; padding:20px; text-align:center;">
-        <h2 style="color:#fff; margin:0;">📦 Parcel Merge Request</h2>
-      </div>
-      <div style="padding:24px; background:#f9fafb;">
-        <p style="font-size:16px;">Hello <b>${target.senderName || 'Colleague'}</b>,</p>
-        <p style="font-size:16px;"><b>${requesterName}</b> (${requesterEmail}) has requested to merge their items into your active Delivery Challan (<b>DC #${target.dcNo}</b>).</p>
-        <div style="background:#fff; border: 1px solid #e5e7eb; padding:16px; border-radius:8px; margin: 16px 0;">
-          <h4 style="margin-top:0; color:#374151;">Items to Merge:</h4>
-          <ul style="margin-bottom:0; color:#4b5563;">
-            ${itemsHtml}
-          </ul>
-        </div>
-        <p style="margin-top:24px;">Please review and choose to Accept or Reject this merge request:</p>
-        <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-          <a href="${acceptLink}" style="background:#10b981; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:0.9rem; margin-right: 10px;">Accept Merge</a>
-          <a href="${rejectLink}" style="background:#ef4444; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:0.9rem;">Reject Merge</a>
-        </div>
-      </div>
-    </div>
-  `;
+  const emailHtml = templates.courierMergeRequest({
+    target,
+    requesterName,
+    requesterEmail,
+    items,
+    acceptUrl: acceptLink,
+    rejectUrl: rejectLink
+  });
 
   const recipients = [];
   if (target.requesterEmail) recipients.push(target.requesterEmail.trim());
@@ -819,24 +762,11 @@ exports.acceptMergeRequest = async (id) => {
   }];
 
   // To Requester
-  const reqHtml = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
-      <h2 style="color: #059669;">✅ Merge Request Accepted</h2>
-      <p>We are pleased to inform you that your parcel merge request has been accepted by <strong>${target.requesterEmail}</strong>.</p>
-      <p>Your items have been merged into Delivery Challan <strong>DC #${target.dcNo}</strong>.</p>
-      <p>Please find the updated Delivery Challan attached.</p>
-    </div>
-  `;
+  const reqHtml = templates.courierMergeAcceptedRequester({ target, dcNo: target.dcNo });
   await sendEmail({ to: mr.requesterEmail, subject: `Merge Request Accepted - DC #${target.dcNo}`, htmlBody: reqHtml, attachments });
 
   // To Owner
-  const ownerHtml = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
-      <h2 style="color: #059669;">✅ Merge Successful</h2>
-      <p>A new parcel was successfully merged into your Delivery Challan (<strong>DC #${target.dcNo}</strong>).</p>
-      <p>Please find the updated Delivery Challan attached. Please use this latest copy for dispatch.</p>
-    </div>
-  `;
+  const ownerHtml = templates.courierMergeAcceptedOwner({ target, dcNo: target.dcNo });
   await sendEmail({ to: target.requesterEmail, subject: `Merge Successful - DC #${target.dcNo}`, htmlBody: ownerHtml, attachments });
 
   return { success: true, parentDcNo: target.dcNo };
@@ -852,15 +782,7 @@ exports.rejectMergeRequest = async (id, reason) => {
   });
 
   const { sendEmail } = require('../utils/notifications');
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
-      <h2 style="color: #ef4444;">❌ Merge Request Rejected</h2>
-      <p>We regret to inform you that your merge request for Delivery Challan <strong>DC #${mr.targetDispatch.dcNo}</strong> has been rejected by the original owner.</p>
-      <p><strong>Reason for rejection:</strong></p>
-      <blockquote style="background: #fef2f2; padding: 15px; border-left: 4px solid #ef4444; margin: 0;">${reason}</blockquote>
-      <p style="margin-top:20px;">Please raise a separate courier request for your items.</p>
-    </div>
-  `;
+  const html = templates.courierMergeRejected({ dcNo: mr.targetDispatch.dcNo, reason });
   await sendEmail({ to: mr.requesterEmail, subject: `Merge Request Rejected - DC #${mr.targetDispatch.dcNo}`, htmlBody: html });
   return { success: true };
 };

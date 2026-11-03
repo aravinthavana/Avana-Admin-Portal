@@ -88,10 +88,11 @@ exports.resetPassword = async (req, res, next) => {
     await setAdminPasswordHash(hashPassword(tempPassword));
 
     const { sendEmail } = require('../utils/notifications');
+    const { templates } = require('../utils/email-templates');
     await sendEmail({
       to: email,
-      subject: 'Admin Password Reset — Avana Portal',
-      htmlBody: `<p>Your temporary admin password is: <strong>${tempPassword}</strong></p><p>Please login and change it immediately.</p>`
+      subject: 'Admin Temporary Password — Avana Group',
+      htmlBody: templates.adminTemporaryPassword({ tempPassword, adminEmail: email })
     });
     res.status(200).json({ message: 'A temporary password has been sent to the admin email.' });
   } catch (error) {

@@ -215,63 +215,21 @@ exports.deleteHandover = async (id) => {
 };
 
 exports.sendHandoverEmailNotification = async (handover, host, isAppended = false) => {
-  const ackLink = `${host}/asset-acknowledgement?id=${handover.id}`;
+  if (!handover || !handover.email) return;
+
+  const baseUrl = host || process.env.APP_URL || 'http://172.30.10.21:8086';
+  const ackLink = `${baseUrl}/asset-acknowledgement?id=${handover.id}`;
+  const { templates } = require('../utils/email-templates');
   const subject = isAppended
-    ? `ACTION REQUIRED: Additional Office Stationery Assigned - ${handover.name}`
-    : `ACTION REQUIRED: Office Stationery Handover Acknowledgement - ${handover.name}`;
+    ? '[ACTION REQUIRED] Additional Office Stationery Assigned - ' + (handover.employeeName || handover.name)
+    : '[ACTION REQUIRED] Office Stationery Handover Acknowledgement - ' + (handover.employeeName || handover.name);
 
-  let itemsHtml = `
-    <table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 20px;">
-      <thead>
-        <tr style="background-color: #f3f4f6; text-align: left;">
-          <th style="padding: 10px; border: 1px solid #e5e7eb;">#</th>
-          <th style="padding: 10px; border: 1px solid #e5e7eb;">Stationery Name</th>
-          <th style="padding: 10px; border: 1px solid #e5e7eb;">Serial / Specs</th>
-          <th style="padding: 10px; border: 1px solid #e5e7eb;">Condition</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  handover.items.forEach((it, idx) => {
-    itemsHtml += `
-      <tr>
-        <td style="padding: 10px; border: 1px solid #e5e7eb;">${idx + 1}</td>
-        <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">${it.itemName}</td>
-        <td style="padding: 10px; border: 1px solid #e5e7eb;">${it.serialNo || 'N/A'}</td>
-        <td style="padding: 10px; border: 1px solid #e5e7eb;">${it.condition || 'Good'}</td>
-      </tr>
-    `;
+  const htmlBody = templates.assetHandoverNotification({
+    handover,
+    items: handover.items,
+    ackLink,
+    isAppended
   });
-
-  itemsHtml += `</tbody></table>`;
-
-  const htmlBody = `
-    <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto; padding: 25px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
-      <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-top: 0;">
-        Avana Office Stationery Handover
-      </h2>
-      <p>Dear <strong>${handover.name}</strong>,</p>
-      <p>${isAppended ? 'Additional company stationery items have been issued to you.' : 'The company stationery items listed below have been assigned to you by the Admin team.'}</p>
-      
-      ${itemsHtml}
-
-      <div style="background-color: #eff6ff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0; border-radius: 6px;">
-        <strong style="color: #1e40af; display: block; margin-bottom: 5px;">Acknowledgement Required:</strong>
-        <span style="color: #1e3a8a;">Please review the items listed above and complete your digital acknowledgement link below to confirm receipt.</span>
-      </div>
-
-      <p style="text-align: center; margin-top: 25px; margin-bottom: 25px;">
-        <a href="${ackLink}" style="display: inline-block; padding: 14px 28px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
-          ✍️ Complete Digital Acknowledgement
-        </a>
-      </p>
-
-      <p style="color: #6b7280; font-size: 0.85rem; border-top: 1px solid #e5e7eb; padding-top: 15px;">
-        If you have any questions or notice a discrepancy in the serial numbers, please reach out to the Admin team.
-      </p>
-    </div>
-  `;
 
   await sendEmail({ to: handover.email, subject, htmlBody });
 };

@@ -292,7 +292,7 @@ exports.checkLowStockAlert = async (item, newQty, type = 'stationery') => {
     const { templates } = require('../utils/email-templates');
     const adminEmail = process.env.ADMIN_EMAIL || 'Karthicksankar@avanamedical.com';
     const typeLabel = type === 'printing' ? 'Printing' : 'Stationery';
-    const subject = `⚠️ Low Stock Alert: "${item}" (${newQty} remaining)`;
+    const subject = `[ALERT] Low Stock: "${item}" (${newQty} remaining)`;
     const htmlBody = templates.lowStockAlert({ item, currentQty: newQty, threshold: 5, type });
     
     sendEmail({

@@ -27,14 +27,16 @@ function logMockEmail(to, cc, subject, html) {
  * Sends an email using Nodemailer. 
  * If SMTP is not configured, it logs the email to a mock file.
  */
-exports.sendEmail = async ({ to, cc, bcc, subject, htmlBody, attachments = [] }) => {
+exports.sendEmail = async ({ to, cc, bcc, subject, htmlBody, html, attachments = [] }) => {
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
 
+  const contentHtml = htmlBody || html || '';
+
   if (!smtpUser || !smtpPass) {
-    logMockEmail(to, cc, subject, htmlBody);
+    logMockEmail(to, cc, subject, contentHtml);
     return { success: true, info: 'Mock email logged. SMTP not configured.' };
   }
 
@@ -72,7 +74,7 @@ exports.sendEmail = async ({ to, cc, bcc, subject, htmlBody, attachments = [] })
       from: `"Avana Admin Portal" <${smtpUser}>`,
       to,
       subject,
-      html: htmlBody,
+      html: contentHtml,
       attachments: finalAttachments
     };
     if (cc) {

@@ -75,7 +75,7 @@ exports.sendHelpdeskNotification = async (request, host) => {
     await sendEmail({
       to: adminEmail,
       ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
-      subject: `🚨 ACTION REQUIRED: New Help Desk Request #${request.id}`,
+      subject: `[ACTION REQUIRED] New Help Desk Request #${request.id}`,
       htmlBody: adminHtml
     });
     console.log(`[Helpdesk Notification] Admin alert sent successfully to ${adminEmail} for request #${request.id}`);

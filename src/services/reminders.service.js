@@ -105,15 +105,8 @@ exports.checkAndSendReminders = async () => {
     for (const r of readyReminders) {
       await sendEmail({
         to: r.adminEmail || adminEmail,
-        subject: `🔔 [REMINDER - ${r.priority}] ${r.text.substring(0, 40)}`,
-        htmlBody: `
-          <div style="font-family: Arial, sans-serif; padding: 1.5rem; border: 1px solid #e2e8f0; border-radius: 8px;">
-            <h2 style="color: #4338ca; margin-top: 0;">Help Desk Task Reminder</h2>
-            <p>This is a scheduled notification for your reminder task:</p>
-            <p style="font-size: 1.1rem; font-weight: bold; background: #f1f5f9; padding: 0.8rem; border-radius: 6px;">${r.text}</p>
-            <p><strong>Priority:</strong> ${r.priority} | <strong>Scheduled:</strong> ${r.dateTime}</p>
-          </div>
-        `
+        subject: `[REMINDER - ${r.priority}] ${r.text.substring(0, 40)}`,
+        htmlBody: templates.reminder({ text: r.text, dateTime: r.dateTime, priority: r.priority, email: r.adminEmail || adminEmail })
       });
 
       await prisma.reminder.update({
@@ -138,7 +131,7 @@ exports.checkAndSendReminders = async () => {
       await sendEmail({
         to: adminEmail,
         ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
-        subject: `🛠️ AMC Renewal Reminder: ${amc.equipment_name} (${amc.vendor_name || 'Vendor'}) - Expiring ${amc.end_date}`,
+        subject: `[REMINDER] AMC Renewal: ${amc.equipment_name} (${amc.vendor_name || 'Vendor'}) - Expiring ${amc.end_date}`,
         htmlBody: templates.amcIndividualReminder({ amc })
       });
     }
@@ -161,7 +154,7 @@ exports.checkAndSendReminders = async () => {
       await sendEmail({
         to: adminEmail,
         ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
-        subject: `⚡ Utility Payment Reminder: ${utility.utility_type} (${utility.provider_name || 'Provider'}) - Due on ${utility.due_date}`,
+        subject: `[REMINDER] Utility Payment: ${utility.utility_type} (${utility.provider_name || 'Provider'}) - Due on ${utility.due_date}`,
         htmlBody: templates.utilityIndividualReminder({ utility })
       });
     }
@@ -184,7 +177,7 @@ exports.checkAndSendReminders = async () => {
       await sendEmail({
         to: adminEmail,
         ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
-        subject: `🏛️ Tax Payment Reminder: ${tax.tax_type} (${tax.authority_name || 'Authority'}) - Due on ${tax.due_date}`,
+        subject: `[REMINDER] Tax Payment: ${tax.tax_type} (${tax.authority_name || 'Authority'}) - Due on ${tax.due_date}`,
         htmlBody: templates.taxIndividualReminder({ tax })
       });
     }
@@ -222,7 +215,7 @@ exports.checkAndSendReminders = async () => {
         console.log(`[Reminders Service] Sending individual Low Stock alert for: ${item.name} (${item.category}, ${item.currentStock} remaining)`);
         await sendEmail({
           to: adminEmail,
-          subject: `🚨 Low Stock Alert: "${item.name}" (${item.currentStock} remaining)`,
+          subject: `[ALERT] Low Stock: "${item.name}" (${item.currentStock} remaining)`,
           htmlBody: templates.lowStockAlert({ item: item.name, currentQty: item.currentStock, threshold: 5, type: item.category })
         });
         notifiedItems[item.id] = item.currentStock;
@@ -341,7 +334,7 @@ exports.checkAndSendAmcVisitReminders = async () => {
         await sendEmail({
           to: adminEmail,
           ...(NOTIFICATION_CC ? { cc: NOTIFICATION_CC } : {}),
-          subject: `🛠️ AMC Upcoming Visit Reminder: ${amcName} (Visit #${upcomingVisitNumber}) - Due ${nextDateStr}`,
+          subject: `[REMINDER] AMC Upcoming Visit: ${amcName} (Visit #${upcomingVisitNumber}) - Due ${nextDateStr}`,
           htmlBody: templates.amcUpcomingVisitReminder({
             amcName,
             vendorDetails,

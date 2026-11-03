@@ -52,15 +52,9 @@ exports.sendOtp = async (req, res, next) => {
     const otpIp = req.socket.remoteAddress || req.headers['x-forwarded-for'] || '127.0.0.1';
     otpStore.set(otpIp, { email: email.toLowerCase(), otp, expires });
 
-    const subject = `Your Avana Employee Login OTP`;
-    const htmlBody = `
-      <div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h2>Avana Login OTP</h2>
-        <p>Your One-Time Password is: <strong style="font-size: 24px;">${otp}</strong></p>
-        <p>This code will expire in 5 minutes.</p>
-      </div>
-    `;
-
+    const { templates } = require('../utils/email-templates');
+    const subject = 'Your Avana Employee Login OTP';
+    const htmlBody = templates.employeeOTP({ otp, email });
     await sendEmail({ to: email, subject, htmlBody });
 
     // Send success response (don't send OTP to client in prod!)

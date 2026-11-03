@@ -103,13 +103,13 @@ exports.cancelBooking = async (req, res, next) => {
               .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; max-width: 400px; }
               h1 { color: #dc2626; margin-bottom: 10px; font-size: 24px; }
               p { color: #6b7280; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
-              .btn { background: #c17f24; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
-              .btn:hover { background: #9e6418; }
+              .btn { background: #b27f0d; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
+              .btn:hover { background: #8b6209; }
             </style>
           </head>
           <body>
             <div class="card">
-              <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+              <div style="width: 56px; height: 56px; margin: 0 auto 20px; border-radius: 50%; background: #fef2f2; display: flex; align-items: center; justify-content: center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
               <h1>Invalid Link</h1>
               <p>Missing required parameters or signature. Make sure to click the link directly from your email.</p>
               <a href="/" class="btn">Go to Portal</a>
@@ -137,8 +137,8 @@ exports.cancelBooking = async (req, res, next) => {
               .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; max-width: 400px; }
               h1 { color: #dc2626; margin-bottom: 10px; font-size: 24px; }
               p { color: #6b7280; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
-              .btn { background: #c17f24; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
-              .btn:hover { background: #9e6418; }
+              .btn { background: #b27f0d; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
+              .btn:hover { background: #8b6209; }
             </style>
           </head>
           <body>
@@ -166,8 +166,8 @@ exports.cancelBooking = async (req, res, next) => {
               .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; max-width: 450px; }
               h1 { color: #f59e0b; margin-bottom: 10px; font-size: 24px; }
               p { color: #6b7280; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
-              .btn { background: #c17f24; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
-              .btn:hover { background: #9e6418; }
+              .btn { background: #b27f0d; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
+              .btn:hover { background: #8b6209; }
             </style>
           </head>
           <body>
@@ -195,13 +195,13 @@ exports.cancelBooking = async (req, res, next) => {
               .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; max-width: 400px; }
               h1 { color: #1c1c1e; margin-bottom: 10px; font-size: 24px; }
               p { color: #6b7280; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
-              .btn { background: #c17f24; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
-              .btn:hover { background: #9e6418; }
+              .btn { background: #b27f0d; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
+              .btn:hover { background: #8b6209; }
             </style>
           </head>
           <body>
             <div class="card">
-              <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+              <div style="width: 56px; height: 56px; margin: 0 auto 20px; border-radius: 50%; background: #f0fdf4; display: flex; align-items: center; justify-content: center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
               <h1>Booking Cancelled</h1>
               <p>Your room booking has been successfully cancelled and the slot has been released.</p>
               <a href="/" class="btn">Go to Portal</a>

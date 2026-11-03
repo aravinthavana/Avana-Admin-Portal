@@ -6,22 +6,17 @@ const { sendEmail } = require('./helpdesk.service'); // we'll check how emails a
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 
 // Try to use existing email sender
-const nodemailer = require('nodemailer');
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-    }
-});
+const { sendEmail } = require('../utils/notifications');
 
 const sendMail = async (options) => {
     try {
-        await transporter.sendMail({
-            from: env.SMTP_FROM,
-            ...options
+        await sendEmail({
+            to: options.to,
+            cc: options.cc,
+            bcc: options.bcc,
+            subject: options.subject,
+            htmlBody: options.html || options.htmlBody,
+            attachments: options.attachments || []
         });
     } catch (e) {
         console.error("Email send failed", e);
@@ -386,7 +381,6 @@ const sendApprovalEmail = async (request) => {
       try {
         const items = typeof request.itemsJson === 'string' ? JSON.parse(request.itemsJson) : request.itemsJson;
         if (Array.isArray(items) && items.length > 0) {
-          itemsHtml = '';
           items.forEach((item, index) => {
             const itemQty = item.qty || item.quantity || 1;
             const itemUnit = parseFloat(item.unitAmt || item.unitAmount || (item.subtotal && itemQty ? item.subtotal / itemQty : 0) || 0);
@@ -394,20 +388,18 @@ const sendApprovalEmail = async (request) => {
             const itemGst = parseFloat(item.gstAmt !== undefined ? item.gstAmt : (item.gstAmount || 0));
             const itemFinal = parseFloat(item.finalAmt !== undefined ? item.finalAmt : (itemSubtotal + itemGst));
             itemsHtml += `
-              <tr>
-                  <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${index + 1}</td>
-                  <td style="padding: 10px; border: 1px solid #cbd5e1;">${item.itemName || 'Item'}</td>
-                  <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${itemQty}</td>
-                  <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${itemUnit.toFixed(2)}</td>
-                  <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${itemGst.toFixed(2)}</td>
-                  <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${itemFinal.toFixed(2)}</td>
+              <tr style="border-bottom: 1px solid #e4e4e7;">
+                  <td style="padding: 10px; text-align: right; color: #71717a;">${index + 1}</td>
+                  <td style="padding: 10px; font-weight: 600; color: #172025;">${item.itemName || 'Item'}</td>
+                  <td style="padding: 10px; text-align: right; color: #172025;">${itemQty}</td>
+                  <td style="padding: 10px; text-align: right; color: #172025;">&#8377;${itemUnit.toFixed(2)}</td>
+                  <td style="padding: 10px; text-align: right; color: #71717a;">&#8377;${itemGst.toFixed(2)}</td>
+                  <td style="padding: 10px; text-align: right; font-weight: 700; color: #172025;">&#8377;${itemFinal.toFixed(2)}</td>
               </tr>
             `;
           });
         }
-      } catch(e) {
-        // Fallback if json fails
-      }
+      } catch(e) {}
     }
     
     if (!itemsHtml) {
@@ -417,13 +409,13 @@ const sendApprovalEmail = async (request) => {
         const gst = request.gstAmount || 0;
         const total = request.finalAmount || 0;
         itemsHtml = `
-            <tr>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">1</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1;">${request.itemName}</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">${qty}</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${amount}</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${gst}</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${total}</td>
+            <tr style="border-bottom: 1px solid #e4e4e7;">
+                <td style="padding: 10px; text-align: right; color: #71717a;">1</td>
+                <td style="padding: 10px; font-weight: 600; color: #172025;">${request.itemName || 'Item'}</td>
+                <td style="padding: 10px; text-align: right; color: #172025;">${qty}</td>
+                <td style="padding: 10px; text-align: right; color: #172025;">&#8377;${parseFloat(unitAmt).toFixed(2)}</td>
+                <td style="padding: 10px; text-align: right; color: #71717a;">&#8377;${parseFloat(gst).toFixed(2)}</td>
+                <td style="padding: 10px; text-align: right; font-weight: 700; color: #172025;">&#8377;${parseFloat(total).toFixed(2)}</td>
             </tr>
         `;
     }
@@ -441,44 +433,7 @@ const sendApprovalEmail = async (request) => {
         }
     }
 
-    const html = `
-        <div style="font-family: sans-serif; max-width: 800px; color: #1e293b;">
-            <p>Dear Sir,</p>
-            <p>We request your approval for the below stock purchase. Kindly review the details and provide your approval to proceed with the purchase.</p>
-            
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; border: 1px solid #cbd5e1;">
-                <thead>
-                    <tr style="background-color: #f1f5f9; border-bottom: 1px solid #cbd5e1;">
-                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">S.No</th>
-                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: left;">Name of the Item</th>
-                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">Qty</th>
-                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">Amount</th>
-                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">GST Value</th>
-                        <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">Total Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${itemsHtml}
-                    <tr style="background-color: #f1f5f9; font-weight: bold;">
-                        <td colspan="5" style="padding: 10px; border: 1px solid #cbd5e1; text-align: left;">Grand Total</td>
-                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right;">&#8377;${request.finalAmount}</td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <p><strong>Mode of Purchase:</strong> ${request.modeOfPurchase}</p>
-              <p><strong>Purchase Reason:</strong> ${request.reason}</p>
-            
-            <p>Kindly requesting your review for the above purchase details and provide your approval to proceed.</p>
-            <p>Thank you.</p>
-
-            <div style="margin-top: 30px;">
-                <a href="${reqUrl}?action=Approve" style="padding:10px 20px;background:#16a34a;color:white;text-decoration:none;border-radius:5px;margin-right:10px;display:inline-block;font-weight:bold;">Approve</a>
-                <a href="${reqUrl}?action=Reject" style="padding:10px 20px;background:#dc2626;color:white;text-decoration:none;border-radius:5px;margin-right:10px;display:inline-block;font-weight:bold;">Reject</a>
-                <a href="${reqUrl}?action=Discuss" style="padding:10px 20px;background:#f59e0b;color:white;text-decoration:none;border-radius:5px;display:inline-block;font-weight:bold;">Need to Discuss</a>
-            </div>
-        </div>
-    `;
+    const html = templates.purchaseApprovalActionEmail({ request, reqUrl, itemsHtml });
     await sendMail({
         to: request.approvalPersonEmail,
         subject: `Request for Purchase Approval - ${request.requestId}`,

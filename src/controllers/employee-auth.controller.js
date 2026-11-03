@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('../utils/notifications');
 const prisma = require('../config/db');
+const userManagementService = require('../services/user-management.service');
 
 // In-memory store for OTPs
 const otpStore = new Map();
@@ -36,6 +37,12 @@ exports.sendOtp = async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'Email is required.' });
     }
 
+    const emailLower = email.toLowerCase().trim();
+    const isActive = await userManagementService.isUserActive(emailLower);
+    if (!isActive) {
+      return res.status(403).json({ success: false, error: 'Your account has been deactivated. Please contact an administrator.' });
+    }
+
     // Note: Captcha validation has been explicitly removed per user request.
 
     // Generate 6-digit OTP
@@ -64,7 +71,7 @@ exports.sendOtp = async (req, res, next) => {
   }
 };
 
-exports.login = (req, res) => {
+exports.login = async (req, res) => {
   try {
     const { email, otp } = req.body;
     if (!email || !otp) {
@@ -82,8 +89,14 @@ exports.login = (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid OTP.' });
     }
 
+    const isActive = await userManagementService.isUserActive(storedOtpData.email);
+    if (!isActive) {
+      return res.status(403).json({ success: false, error: 'Your account has been deactivated. Please contact an administrator.' });
+    }
+
     // Success! Clear the OTP and issue a JWT token.
     otpStore.delete(otpIp);
+    userManagementService.recordLogin(storedOtpData.email).catch(() => {});
 
     const jwtSecret = env.JWT_SECRET;
     const token = jwt.sign({ role: 'employee', email: storedOtpData.email }, jwtSecret, { expiresIn: '8h' });
@@ -209,6 +222,11 @@ exports.setPassword = async (req, res, next) => {
       create: { email: emailLower, passwordHash: newStored }
     });
 
+    await prisma.portalUser.updateMany({
+      where: { email: emailLower },
+      data: { passwordHash: newStored, updatedAt: new Date().toISOString() }
+    });
+
     res.status(200).json({ success: true, message: 'Password set successfully.' });
   } catch (error) {
     next(error);
@@ -222,7 +240,12 @@ exports.loginPassword = async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'Missing email or password.' });
     }
 
-    const emailLower = email.toLowerCase();
+    const emailLower = email.toLowerCase().trim();
+    const isActive = await userManagementService.isUserActive(emailLower);
+    if (!isActive) {
+      return res.status(403).json({ success: false, error: 'Your account has been deactivated. Please contact an administrator.' });
+    }
+
     const cred = await prisma.employeeCredential.findUnique({
       where: { email: emailLower }
     });
@@ -243,6 +266,7 @@ exports.loginPassword = async (req, res, next) => {
     if (derivedKey === hash) {
       const jwtSecret = env.JWT_SECRET;
       const token = jwt.sign({ role: 'employee', email: emailLower }, jwtSecret, { expiresIn: '8h' });
+      userManagementService.recordLogin(emailLower).catch(() => {});
     
     // Track employee login
     prisma.adminLogin.create({

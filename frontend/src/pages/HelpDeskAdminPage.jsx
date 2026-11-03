@@ -11,6 +11,7 @@ import { AssetTrackerPage, CourierDispatchPage, BillWarrantyPage, OtherStockPage
 import { LoginAuditPage, AdminSettings, LocationsManagementPage } from './admin/AdminSettingsPage';
 import { AuditLogsPage } from './admin/AuditLogsPage';
 import PurchaseApprovalsPage from './admin/PurchaseApprovalsPage';
+import UserManagementPage from './admin/UserManagementPage';
 
 
 import { stationeryApi, housekeepingApi, utilityApi, taxApi, printingApi } from '../lib/api';
@@ -183,9 +184,9 @@ function MainDashboardView() {
 
         <NavCard
           icon="🔐"
-          title="Security Logs"
-          description="Audit employee login and logout activity, track authentication histories, and manage administrator portal credentials."
-          badge="2 Modules"
+          title="Security & Users"
+          description="Manage employee user accounts, roles & status, track login/logout audit trails, and configure portal administrative credentials."
+          badge="4 Modules"
           link="/helpdesk-admin/security"
           color="#b27f0d"
         />
@@ -256,6 +257,7 @@ function RequestCategoriesSubView() {
 /* ─── 2B. Security & System Logs Sub-View Card Grid ──────────────────────── */
 function SecuritySubView() {
   const modules = [
+    { icon: '👥', title: 'User Management', desc: 'Manage employee accounts, assign roles & departments, toggle active status, and reset passwords', link: '/helpdesk-admin/users', color: '#b27f0d' },
     { icon: '🏢', title: 'Office Locations', desc: 'Add or remove office floors and building locations for request routing', link: '/helpdesk-admin/locations', color: '#b27f0d' },
     { icon: '⚙️', title: 'Portal Settings', desc: 'Change administrator credentials and configure portal defaults', link: '/helpdesk-admin/settings', color: '#b27f0d' },
     { icon: '📜', title: 'Admin Operations Audit', desc: 'Track all administrative changes across the portal', link: '/helpdesk-admin/audit-logs', color: '#b27f0d' },
@@ -433,6 +435,7 @@ export default function HelpDeskAdminPage() {
         <Route path="tax-payments" element={<TaxPaymentsPage api={taxApi} />} />
 
         {/* Admin Settings & Logs */}
+        <Route path="users" element={<UserManagementPage />} />
         <Route path="locations" element={<LocationsManagementPage />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="audit-logs" element={<AuditLogsPage />} />

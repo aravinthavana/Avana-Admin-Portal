@@ -5,50 +5,6 @@ import { useToast } from '../context/ToastContext';
 import { AvanaLogo } from '../components/ui';
 import '../styles/Layout.css';
 
-// ── Admin Sidebar Nav Definitions ─────────────────────────────────────────
-const SIDEBAR_SECTIONS = [
-  {
-    label: '📂 Request Categories',
-    items: [
-      { to: '/helpdesk-admin',               label: '📋 All Requests',        end: true,  color: '#b27f0d' },
-      { to: '/helpdesk-admin/conference',    label: '📅 Conference Room',      color: '#b27f0d' },
-      { to: '/helpdesk-admin/stationery',    label: '✏️ Stationery',           color: '#16a34a' },
-      { to: '/helpdesk-admin/admin-support', label: '💼 Admin Support',        color: '#2563eb' },
-      { to: '/helpdesk-admin/maintenance',   label: '🔧 Maintenance',          color: '#dc2626' },
-      { to: '/helpdesk-admin/housekeeping',  label: '🧹 Housekeeping',         color: '#d97706' },
-      { to: '/helpdesk-admin/office-asset',  label: '🖥️ Office Asset',         color: '#2563eb' },
-      { to: '/helpdesk-admin/print-scan',    label: '🖨️ Printing & Scanning',  color: '#7c3aed' },
-      { to: '/helpdesk-admin/app-feedback',  label: '💡 App Feedback',         color: '#2563eb' },
-    ]
-  },
-  {
-    label: '🔐 Security Logs',
-    items: [
-      { to: '/helpdesk-admin/logins',        label: '🔑 Employee Logins',      color: '#b27f0d' },
-    ]
-  },
-  {
-    label: '📦 Inventory Management',
-    items: [
-      { to: '/helpdesk-admin/stationery-stock',   label: '✏️ Stationery Stock',         color: '#16a34a' },
-      { to: '/helpdesk-admin/stationery-audit',   label: '📊 Monthly Audit',             color: '#d97706' },
-      { to: '/helpdesk-admin/housekeeping-stock', label: '🧹 Housekeeping Stock',         color: '#404131' },
-      { to: '/helpdesk-admin/housekeeping-audit', label: '🧴 Housekeeping Audit',          color: '#404131' },
-      { to: '/helpdesk-admin/asset-tracker',      label: '📦 Stationery Tracker',         color: '#16a34a' },
-      { to: '/helpdesk-admin/other-stock',        label: '📦 Other Stock',                color: '#2563eb' },
-      { to: '/helpdesk-admin/amc',                label: '📋 AMC Contracts',              color: '#2563eb' },
-      { to: '/helpdesk-admin/utility-payments',   label: '⚡ Utility Payments',            color: '#2563eb' },
-      { to: '/helpdesk-admin/tax-payments',       label: '🏛️ Tax Payments',               color: '#7c3aed' },
-      { to: '/helpdesk-admin/courier',            label: '📦 Courier & Dispatch',          color: '#d97706' },
-      { to: '/helpdesk-admin/cash-handling',      label: '💵 Cash Handling',              color: '#d97706' },
-      { to: '/helpdesk-admin/travel',             label: '🚗 Travel Expenses',             color: '#2563eb' },
-      { to: '/helpdesk-admin/bill-warranty',      label: '📄 Bill & Warranty',             color: '#7c3aed' },
-      { to: '/helpdesk-admin/reminders',          label: '🔔 Reminder List',               color: '#7c3aed' },
-      { to: '/helpdesk-admin/settings',           label: '⚙️ Portal Settings',             color: '#6b7280' },
-    ]
-  },
-];
-
 // ── Header Navigation & Breadcrumbs ─────────────────────────────────────────
 function HeaderNavigation() {
   const navigate = useNavigate();
@@ -59,6 +15,7 @@ function HeaderNavigation() {
     'requests': 'Request Categories',
     'security': 'Security & Logs',
     'inventory': 'Inventory & Operations',
+    'users': 'User Management',
     'all-tickets': 'All Requests',
     'conference': 'Conference Room',
     'stationery': 'Stationery',
@@ -84,6 +41,8 @@ function HeaderNavigation() {
     'bill-warranty': 'Bill & Warranty',
     'reminders': 'Reminders',
     'settings': 'Settings',
+    'locations': 'Office Locations',
+    'audit-logs': 'Audit Logs',
     'booking': 'Room Booking',
     'helpdesk': 'Helpdesk'
   };
@@ -191,12 +150,13 @@ export function EmployeeLayout() {
   };
 
   return (
-    <div className="layout layout--employee" style={{ background: '#d7d0bc', minHeight: '100vh' }}>
+    <div className="layout layout--employee" style={{ background: 'var(--color-bg, #f5f5f7)', minHeight: '100vh' }}>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       {/* Header matching login page aesthetic */}
       <header
         role="banner"
         style={{
-          background: '#d7d0bc',
+          background: 'linear-gradient(135deg, #ffffff 0%, #fcfbfa 100%)',
           borderBottom: '3px solid #b27f0d',
           boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
           padding: '1.2rem 2rem',
@@ -283,7 +243,8 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="layout layout--admin" style={{ display: 'flex', flexDirection: 'column', background: '#d7d0bc', minHeight: '100vh' }}>
+    <div className="layout layout--admin" style={{ display: 'flex', flexDirection: 'column', background: 'var(--color-bg, #f5f5f7)', minHeight: '100vh' }}>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       {/* Top header bar — matching employee layout aesthetic */}
       <header
         role="banner"
@@ -378,12 +339,13 @@ export function ConferenceAdminLayout() {
   };
 
   return (
-    <div className="layout layout--employee" style={{ background: '#d7d0bc', minHeight: '100vh' }}>
+    <div className="layout layout--employee" style={{ background: 'var(--color-bg, #f5f5f7)', minHeight: '100vh' }}>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       {/* Header matching login page aesthetic */}
       <header
         role="banner"
         style={{
-          background: '#d7d0bc',
+          background: 'linear-gradient(135deg, #ffffff 0%, #fcfbfa 100%)',
           borderBottom: '3px solid #b27f0d',
           boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
           padding: '1rem 2rem',

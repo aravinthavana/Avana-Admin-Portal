@@ -235,6 +235,29 @@
   z-index: calc(var(--z-overlay) - 1);
 }
 
+/* ── Accessibility Skip Link ── */
+.skip-link {
+  position: absolute;
+  top: -60px;
+  left: 16px;
+  background: var(--brand-amber, #b27f0d);
+  color: #ffffff !important;
+  padding: 8px 16px;
+  border-radius: var(--radius-md, 8px);
+  font-weight: 700;
+  font-size: 0.85rem;
+  z-index: 99999;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: top 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.skip-link:focus {
+  top: 16px;
+  outline: 3px solid var(--brand-charcoal, #172025);
+  outline-offset: 2px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .sidebar {

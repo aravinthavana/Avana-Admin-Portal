@@ -170,6 +170,21 @@ model EmployeeCredential {
   passwordHash String
 }
 
+model PortalUser {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  department   String?
+  role         String   @default("employee")
+  location     String?
+  status       String   @default("active")
+  passwordHash String?
+  lastLoginAt  String?
+  createdAt    String
+  updatedAt    String
+}
+
 model AssetHandover {
   id             String              @id @default(uuid())
   name           String

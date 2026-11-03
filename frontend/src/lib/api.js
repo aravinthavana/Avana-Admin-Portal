@@ -448,6 +448,31 @@ export const locationsApi = {
     request(`/admin/locations/${id}`, { method: 'DELETE' }, 'admin'),
 };
 
+// ─── User Management ───────────────────────────────────────
+export const userManagementApi = {
+  getUsers: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.search) query.set('search', params.search);
+    if (params.department && params.department !== 'all') query.set('department', params.department);
+    if (params.role && params.role !== 'all') query.set('role', params.role);
+    if (params.status && params.status !== 'all') query.set('status', params.status);
+    const qs = query.toString();
+    return request(`/admin/users${qs ? `?${qs}` : ''}`, {}, 'admin');
+  },
+  getUserById: (id) =>
+    request(`/admin/users/${id}`, {}, 'admin'),
+  createUser: (data) =>
+    request('/admin/users', { method: 'POST', body: JSON.stringify(data) }, 'admin'),
+  updateUser: (id, data) =>
+    request(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }, 'admin'),
+  toggleStatus: (id, status) =>
+    request(`/admin/users/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }, 'admin'),
+  resetPassword: (id, password) =>
+    request(`/admin/users/${id}/reset-password`, { method: 'POST', body: JSON.stringify({ password }) }, 'admin'),
+  deleteUser: (id) =>
+    request(`/admin/users/${id}`, { method: 'DELETE' }, 'admin'),
+};
+
 
 
 

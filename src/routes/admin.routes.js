@@ -155,5 +155,15 @@ router.get('/locations', locationController.getLocations);
 router.post('/locations', locationController.createLocation);
 router.delete('/locations/:id', locationController.deleteLocation);
 
+// Portal User Management
+const userManagementController = require('../controllers/user-management.controller');
+router.get('/users', userManagementController.getUsers);
+router.get('/users/:id', userManagementController.getUserById);
+router.post('/users', userManagementController.createUser);
+router.put('/users/:id', userManagementController.updateUser);
+router.patch('/users/:id/status', userManagementController.toggleStatus);
+router.post('/users/:id/reset-password', userManagementController.resetPassword);
+router.delete('/users/:id', userManagementController.deleteUser);
+
 module.exports = router;
 

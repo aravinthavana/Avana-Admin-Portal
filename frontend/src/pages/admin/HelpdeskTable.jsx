@@ -11,6 +11,11 @@ import {
 } from '../../components/ui';
 import { formatDate, formatDateTime, getStatusBadge, openLegacyPrintReport, CATEGORY_LABELS } from './utils';
 import { PrintHeader } from './PrintHeader';
+import {
+  LuListFilter, LuCalendar, LuClock, LuCircleCheck, LuCheckCheck,
+  LuCircleX, LuPrinter, LuTrash2, LuCheck, LuX, LuSearch,
+  LuUser, LuMail, LuPhone, LuBuilding2, LuEye, LuCircleAlert
+} from 'react-icons/lu';
 
 /* ─── Skeleton Rows ───────────────────────────────────────── */
 export function SkeletonRows({ cols = 8, rows = 5 }) {
@@ -624,7 +629,8 @@ export function HelpdeskTable({ categoryFilter }) {
             onClick={() => setStatusTab('all')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <span>📋 All Tickets</span>
+            <LuListFilter size={14} />
+            <span>All Tickets</span>
             <span style={{
               background: statusTab === 'all' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
               color: statusTab === 'all' ? '#fff' : 'var(--color-text-main, #333)',
@@ -640,7 +646,8 @@ export function HelpdeskTable({ categoryFilter }) {
             onClick={() => setStatusTab('pending')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <span>⏳ Pending</span>
+            <LuClock size={14} />
+            <span>Pending</span>
             <span style={{
               background: statusTab === 'pending' ? 'rgba(255,255,255,0.25)' : '#fee2e2',
               color: statusTab === 'pending' ? '#fff' : '#dc2626',
@@ -656,7 +663,8 @@ export function HelpdeskTable({ categoryFilter }) {
             onClick={() => setStatusTab('approved')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <span>⚡ Approved / Active</span>
+            <LuCircleCheck size={14} />
+            <span>Approved / Active</span>
             <span style={{
               background: statusTab === 'approved' ? 'rgba(255,255,255,0.25)' : '#eff6ff',
               color: statusTab === 'approved' ? '#fff' : '#2563eb',
@@ -672,7 +680,8 @@ export function HelpdeskTable({ categoryFilter }) {
             onClick={() => setStatusTab('completed')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <span>✅ Completed / Resolved</span>
+            <LuCheckCheck size={14} />
+            <span>Completed / Resolved</span>
             <span style={{
               background: statusTab === 'completed' ? 'rgba(255,255,255,0.25)' : '#f0fdf4',
               color: statusTab === 'completed' ? '#fff' : '#16a34a',
@@ -689,7 +698,8 @@ export function HelpdeskTable({ categoryFilter }) {
               onClick={() => setStatusTab('rejected')}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              <span>❌ Rejected</span>
+              <LuCircleX size={14} />
+              <span>Rejected</span>
               <span style={{
                 background: statusTab === 'rejected' ? 'rgba(255,255,255,0.25)' : '#f3f4f6',
                 color: statusTab === 'rejected' ? '#fff' : '#6b7280',
@@ -711,7 +721,8 @@ export function HelpdeskTable({ categoryFilter }) {
             onClick={() => setConferenceTab('upcoming')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <span>📅 Upcoming Bookings</span>
+            <LuCalendar size={14} />
+            <span>Upcoming Bookings</span>
             <span style={{
               background: conferenceTab === 'upcoming' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
               color: conferenceTab === 'upcoming' ? '#fff' : 'var(--color-text-main, #333)',
@@ -726,7 +737,8 @@ export function HelpdeskTable({ categoryFilter }) {
             onClick={() => setConferenceTab('completed')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <span>🏁 Completed Bookings</span>
+            <LuCheckCheck size={14} />
+            <span>Completed Bookings</span>
             <span style={{
               background: conferenceTab === 'completed' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
               color: conferenceTab === 'completed' ? '#fff' : 'var(--color-text-main, #333)',
@@ -741,7 +753,8 @@ export function HelpdeskTable({ categoryFilter }) {
             onClick={() => setConferenceTab('all')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <span>📋 All Bookings</span>
+            <LuListFilter size={14} />
+            <span>All Bookings</span>
             <span style={{
               background: conferenceTab === 'all' ? 'rgba(255,255,255,0.25)' : 'var(--color-bg-secondary, #e4e4e7)',
               color: conferenceTab === 'all' ? '#fff' : 'var(--color-text-main, #333)',
@@ -821,27 +834,44 @@ export function HelpdeskTable({ categoryFilter }) {
 
                   return (
                     <tr key={r.id}>
-                      <td style={{ color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.85rem' }}>{shortId}</td>
+                      <td style={{ fontSize: '0.8rem' }}>
+                        <span style={{
+                          fontFamily: 'var(--font-mono, monospace)',
+                          fontWeight: 700,
+                          color: 'var(--brand-charcoal, #172025)',
+                          background: 'var(--color-surface-2, #f9f9fb)',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          border: '1px solid var(--color-border)'
+                        }}>
+                          {shortId}
+                        </span>
+                      </td>
                       <td style={{ whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
                         {r.category === 'conference' ? (
                           <div>
-                            <div style={{ fontWeight: 600, color: 'var(--brand-amber, #b27f0d)' }}>
-                              📅 {formatDate(r.startDate || r.date)}
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 600, color: 'var(--brand-amber, #b27f0d)' }}>
+                              <LuCalendar size={13} />
+                              <span>{formatDate(r.startDate || r.date)}</span>
                             </div>
                             {r.endDate && r.endDate !== (r.startDate || r.date) && (
-                              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', paddingLeft: '18px' }}>
                                 → {formatDate(r.endDate)}
                               </div>
                             )}
-                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
-                              {r.bookingType === 'full' ? '🔴 Full Day' : `⏰ ${r.startTime || ''} - ${r.endTime || ''}`}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                              <LuClock size={11} />
+                              <span>{r.bookingType === 'full' ? 'Full Day' : `${r.startTime || ''} - ${r.endTime || ''}`}</span>
                             </div>
                             <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                               Booked: {formatDate(r.createdAt || r.created_at)}
                             </div>
                           </div>
                         ) : (
-                          formatDate(r.createdAt || r.created_at)
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
+                            <LuCalendar size={12} style={{ color: 'var(--color-text-muted)' }} />
+                            <span>{formatDate(r.createdAt || r.created_at)}</span>
+                          </div>
                         )}
                       </td>
                       <td>
@@ -850,16 +880,34 @@ export function HelpdeskTable({ categoryFilter }) {
                           borderRadius: 'var(--radius-full)',
                           background: 'var(--color-info-bg)', color: 'var(--color-info)',
                           border: '1px solid var(--color-info-border)',
+                          whiteSpace: 'nowrap'
                         }}>
                           {CATEGORY_LABELS[r.category] || r.category}
                         </span>
                       </td>
                       <td style={{ wordBreak: 'break-word' }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.name || r.requester_name || r.full_name || '—'}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{r.email || r.requester_email || ''}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{r.phone || r.requester_phone || ''}</div>
+                        <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--brand-charcoal, #172025)' }}>
+                          {r.name || r.requester_name || r.full_name || '—'}
+                        </div>
+                        {r.email && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '1px' }}>
+                            <LuMail size={11} />
+                            <span>{r.email || r.requester_email}</span>
+                          </div>
+                        )}
+                        {r.phone && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '1px' }}>
+                            <LuPhone size={11} />
+                            <span>{r.phone || r.requester_phone}</span>
+                          </div>
+                        )}
                       </td>
-                      <td style={{ wordBreak: 'break-word', fontSize: '0.85rem' }}>{r.location || r.floor || '—'}</td>
+                      <td style={{ wordBreak: 'break-word', fontSize: '0.85rem' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <LuBuilding2 size={12} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                          <span>{r.location || r.floor || '—'}</span>
+                        </div>
+                      </td>
                       <td style={{ wordBreak: 'break-word' }}>
                         <div style={{
                           fontSize: '0.83rem', color: 'var(--color-text-secondary)',
@@ -871,42 +919,58 @@ export function HelpdeskTable({ categoryFilter }) {
                           {meta && meta.remarks ? <div style={{marginTop: 4}}><em>Remarks: {meta.remarks}</em></div> : null}
                         </div>
                         {itemsList.length > 0 && (
-                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
-                            Items: {itemsList.map(i => `${i.item || i.name}(${i.qty || i.quantity || 1})`).join(', ')}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                            {itemsList.map((i, iIdx) => (
+                              <span key={iIdx} style={{
+                                background: 'var(--brand-amber-bg, #fdf5e6)',
+                                border: '1px solid rgba(178, 127, 13, 0.25)',
+                                color: 'var(--brand-amber-dark, #8b6209)',
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                                fontSize: '0.74rem',
+                                fontWeight: 600
+                              }}>
+                                {i.item || i.name} <span style={{ opacity: 0.75 }}>×{i.qty || i.quantity || 1}</span>
+                              </span>
+                            ))}
                           </div>
                         )}
                         {r.remarks && (
-                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                             Remarks: {r.remarks}
                           </div>
                         )}
                       </td>
-                      <td>
+                      <td style={{ textAlign: 'center' }}>
                         <Badge status={getStatusBadge(r.status)} label={r.status || 'Pending'} />
                       </td>
                       <td>
-                        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                           <button type="button" className="btn btn--sm btn--secondary"
                             title="View Details"
                             onClick={() => setActiveDetailRequest(r)}
-                            aria-label="View request details">
-                            🔍 Details
+                            aria-label="View request details"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <LuEye size={12} />
+                            <span>Details</span>
                           </button>
                           {r.category === 'conference' ? (
                             <>
                               <button type="button" className="btn btn--sm btn--secondary"
-                                style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', borderColor: 'var(--color-success-border)' }}
+                                style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', borderColor: 'var(--color-success-border)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                 title="Approve Booking"
                                 onClick={() => { setApproveBookingId(r.id); setApproveCategory(r.category); setApprovalRemarks(''); }}
                                 aria-label="Approve booking">
-                                Approve ✅
+                                <LuCheck size={12} />
+                                <span>Approve</span>
                               </button>
                               <button type="button" className="btn btn--sm btn--secondary"
-                                style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', borderColor: 'var(--color-error-border)' }}
+                                style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', borderColor: 'var(--color-error-border)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                 title="Reject Booking"
                                 onClick={() => { setRejectBookingId(r.id); setRejectCategory(r.category); setRejectionReason(''); }}
                                 aria-label="Reject booking">
-                                Reject ❌
+                                <LuX size={12} />
+                                <span>Reject</span>
                               </button>
                             </>
                           ) : (
@@ -914,29 +978,35 @@ export function HelpdeskTable({ categoryFilter }) {
                               <button type="button" className="btn btn--sm btn--secondary"
                                 title="Mark Complete"
                                 onClick={() => openCompleteModal(r)}
-                                aria-label="Mark as completed">
-                                ✅ Complete
+                                aria-label="Mark as completed"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <LuCheckCheck size={12} />
+                                <span>Complete</span>
                               </button>
                               <button type="button" className="btn btn--sm btn--secondary"
                                 title="Set Pending"
                                 onClick={() => handleStatus(r.id, 'pending', r.category)}
-                                aria-label="Set as pending">
-                                🟡 Pending
+                                aria-label="Set as pending"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <LuClock size={12} />
+                                <span>Pending</span>
                               </button>
                               <button type="button" className="btn btn--sm btn--secondary"
-                                style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', borderColor: 'var(--color-error-border)' }}
+                                style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', borderColor: 'var(--color-error-border)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                 title="Reject Request"
                                 onClick={() => { setRejectBookingId(r.id); setRejectCategory(r.category); setRejectionReason(''); }}
                                 aria-label="Reject request">
-                                ❌ Reject
+                                <LuX size={12} />
+                                <span>Reject</span>
                               </button>
                             </>
                           )}
                           <button type="button" className="btn btn--sm btn--danger"
                             title="Delete"
                             onClick={() => setConfirmId(r.id)}
-                            aria-label="Delete request">
-                            🗑️
+                            aria-label="Delete request"
+                            style={{ display: 'inline-flex', alignItems: 'center', padding: '4px 6px' }}>
+                            <LuTrash2 size={13} />
                           </button>
                         </div>
                       </td>
@@ -1034,7 +1104,7 @@ export function HelpdeskTable({ categoryFilter }) {
       <Modal
         isOpen={!!completeRequest}
         onClose={() => { if (!submittingComplete) setCompleteRequest(null); }}
-        title={fulfillmentItems.length > 0 ? "📦 Fulfill & Complete Service Request" : "✅ Complete Service Request"}
+        title={fulfillmentItems.length > 0 ? "Fulfill & Complete Service Request" : "Complete Service Request"}
         size={fulfillmentItems.length > 0 ? "lg" : ""}
         footer={
           <>
@@ -1079,7 +1149,7 @@ export function HelpdeskTable({ categoryFilter }) {
                 {(completeRequest.location || completeRequest.floor) && (
                   <>
                     <span style={{ margin: '0 8px', color: 'var(--color-text-muted)' }}>•</span>
-                    <span>📍 {completeRequest.location || completeRequest.floor}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><LuBuilding2 size={12} /> {completeRequest.location || completeRequest.floor}</span>
                   </>
                 )}
               </div>
@@ -1121,7 +1191,7 @@ export function HelpdeskTable({ categoryFilter }) {
                       style={{ padding: '2px 8px', fontSize: '0.75rem' }}
                       onClick={() => checkAllItems(true)}
                     >
-                      ✓ Select All
+                      Select All
                     </button>
                     <button
                       type="button"
@@ -1129,7 +1199,7 @@ export function HelpdeskTable({ categoryFilter }) {
                       style={{ padding: '2px 8px', fontSize: '0.75rem' }}
                       onClick={() => checkAllItems(false)}
                     >
-                      ✕ Deselect All
+                      Deselect All
                     </button>
                   </div>
                 </div>
@@ -1188,7 +1258,7 @@ export function HelpdeskTable({ categoryFilter }) {
                                   background: item.type === 'printing' ? 'rgba(124, 58, 237, 0.12)' : (item.type === 'housekeeping' ? 'rgba(5, 150, 105, 0.12)' : 'rgba(217, 119, 6, 0.12)'),
                                   color: item.type === 'printing' ? '#7c3aed' : (item.type === 'housekeeping' ? '#059669' : '#b27f0d'),
                                 }}>
-                                  {item.type === 'printing' ? '🖨️ Printing' : (item.type === 'housekeeping' ? '🧹 Housekeeping' : '✏️ Stationery')}
+                                  {item.type === 'printing' ? 'Printing' : (item.type === 'housekeeping' ? 'Housekeeping' : 'Stationery')}
                                 </span>
                               </div>
                               {!item.checked && (
@@ -1305,7 +1375,7 @@ export function HelpdeskTable({ categoryFilter }) {
       <Modal
         isOpen={!!activeDetailRequest}
         onClose={() => setActiveDetailRequest(null)}
-        title={activeDetailRequest?.category === 'conference' ? '📅 Conference Room Reservation Details' : '📋 Service Request Details'}
+        title={activeDetailRequest?.category === 'conference' ? 'Conference Room Reservation Details' : 'Service Request Details'}
         footer={
           activeDetailRequest && (
             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
@@ -1319,8 +1389,10 @@ export function HelpdeskTable({ categoryFilter }) {
                     printGeneralServiceRequest(activeDetailRequest);
                   }
                 }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
-                🖨️ Print Details
+                <LuPrinter size={14} />
+                <span>Print Requisition Slip</span>
               </button>
               <button type="button" className="btn btn--secondary" onClick={() => setActiveDetailRequest(null)}>
                 Close

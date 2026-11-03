@@ -10,6 +10,7 @@ const env = require('../config/env');
  * - Canvas Background: #f5f5f7
  * - Card Surface: #ffffff
  * - Border: #e4e4e7
+ * - Fully mobile-responsive across all email clients
  * - Zero emojis across all templates and subject lines
  */
 
@@ -43,57 +44,147 @@ function extractHelpdeskDetails(request) {
   return { detailsText, subcategory, floor, remarks };
 }
 
-// ── Branded Wrapper ──────────────────────────────────────────────────────────
+// ── Branded Mobile-Responsive Wrapper ──────────────────────────────────────────
 function buildEmail({ title, subtitle = 'Avana Group — Admin Operations Hub', accentColor = '#b27f0d', bodyHtml }) {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
   <title>${title}</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #172025;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f7; padding: 32px 12px;">
-    <tr>
-      <td align="center">
-        <table width="640" cellpadding="0" cellspacing="0" style="max-width: 640px; width: 100%; background: #ffffff; border-radius: 8px; border: 1px solid #e4e4e7; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+  <style type="text/css">
+    /* Client Resets */
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; display: block; }
+    table { border-collapse: collapse !important; }
+    body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #172025; }
 
-          <!-- ── Header ── -->
+    /* Mobile Responsive Styles */
+    @media only screen and (max-width: 600px) {
+      .email-wrapper {
+        padding: 8px 4px !important;
+      }
+      .email-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 6px !important;
+      }
+      .fluid-padding {
+        padding: 20px 16px !important;
+      }
+      .header-padding {
+        padding: 16px 16px !important;
+      }
+      .header-logo {
+        height: 26px !important;
+        max-width: 95px !important;
+      }
+      .header-title {
+        font-size: 16px !important;
+      }
+      .footer-padding {
+        padding: 16px 16px !important;
+      }
+      .table-cell-stack {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+      .table-label {
+        background-color: #fbfbfb !important;
+        color: #71717a !important;
+        font-size: 11px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
+        padding: 8px 12px 2px 12px !important;
+        border-bottom: none !important;
+      }
+      .table-value {
+        padding: 2px 12px 10px 12px !important;
+        border-bottom: 1px solid #e4e4e7 !important;
+        font-size: 13.5px !important;
+      }
+      .mobile-btn {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 12px 16px !important;
+        text-align: center !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+      .mobile-btn-stack {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+      .mobile-btn-stack a {
+        margin-right: 0 !important;
+        margin-bottom: 8px !important;
+      }
+      .otp-box {
+        padding: 16px 10px !important;
+      }
+      .otp-code {
+        font-size: 28px !important;
+        letter-spacing: 6px !important;
+      }
+      .scroll-table-wrap {
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: block !important;
+      }
+      .scroll-table {
+        min-width: 440px !important;
+      }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="email-wrapper" style="background-color: #f5f5f7; padding: 24px 8px; width: 100%;">
+    <tr>
+      <td align="center" style="vertical-align: top;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="email-container" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; border: 1px solid #e4e4e7; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin: 0 auto;">
+
+          <!-- ── Branded Header (Dark Charcoal with White Logo) ── -->
           <tr>
-            <td style="background-color: #172025; padding: 22px 28px; border-bottom: 3px solid ${accentColor};">
-              <table width="100%" cellpadding="0" cellspacing="0">
+            <td class="header-padding" style="background-color: #172025; padding: 20px 24px; border-bottom: 3px solid ${accentColor};">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="vertical-align: middle;">
-                    <div style="font-size: 10px; font-weight: 800; color: #b27f0d; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 3px;">
+                  <td style="vertical-align: middle; text-align: left;">
+                    <div style="font-size: 10px; font-weight: 800; color: #b27f0d; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 2px;">
                       Avana Group
                     </div>
-                    <div style="font-weight: 700; font-size: 19px; color: #ffffff; letter-spacing: -0.01em; line-height: 1.25;">
+                    <div class="header-title" style="font-weight: 700; font-size: 18px; color: #ffffff; letter-spacing: -0.01em; line-height: 1.25;">
                       Admin Request Portal
                     </div>
-                    <div style="font-size: 12.5px; color: #94a3b8; margin-top: 4px; font-weight: 500;">
+                    <div style="font-size: 12px; color: #cbd5e1; margin-top: 3px; font-weight: 500;">
                       ${subtitle}
                     </div>
                   </td>
-                  <td align="right" style="vertical-align: middle;">
-                    <div style="background: #ffffff; padding: 6px 12px; border-radius: 6px; display: inline-block;">
-                      <img src="cid:avanalogo" alt="Avana" style="height: 24px; max-width: 130px; display: block; object-fit: contain;" />
-                    </div>
+                  <td align="right" style="vertical-align: middle; text-align: right; padding-left: 12px;">
+                    <img src="cid:avanalogo" alt="Avana" class="header-logo" style="height: 32px; max-width: 120px; display: inline-block; object-fit: contain;" />
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- ── Body ── -->
+          <!-- ── Email Body Content ── -->
           <tr>
-            <td style="padding: 28px 30px; color: #172025; line-height: 1.6; font-size: 14px;">
+            <td class="fluid-padding" style="padding: 26px 26px; color: #172025; line-height: 1.6; font-size: 14px;">
               ${bodyHtml}
             </td>
           </tr>
 
-          <!-- ── Footer ── -->
+          <!-- ── Branded Footer ── -->
           <tr>
-            <td style="background-color: #fafafa; border-top: 1px solid #e4e4e7; padding: 18px 30px; text-align: center;">
+            <td class="footer-padding" style="background-color: #fafafa; border-top: 1px solid #e4e4e7; padding: 18px 24px; text-align: center;">
               <p style="margin: 0; font-size: 12px; color: #71717a; line-height: 1.5;">
                 This is an automated notification from the <strong>Avana Group — Admin Operations Hub</strong>.
                 Please do not reply directly to this email.
@@ -114,20 +205,20 @@ function buildEmail({ title, subtitle = 'Avana Group — Admin Operations Hub', 
 
 // ── Shared Table and Element Styles ──────────────────────────────────────────
 const TABLE_WRAP = `width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden;`;
-const TD_LABEL = `padding: 10px 14px; font-weight: 600; font-size: 13px; border-bottom: 1px solid #e4e4e7; width: 36%; color: #52525b; background-color: #fafafa;`;
-const TD_VALUE = `padding: 10px 14px; border-bottom: 1px solid #e4e4e7; color: #172025; background-color: #ffffff;`;
-const TD_VALUE_ALT = `padding: 10px 14px; border-bottom: 1px solid #e4e4e7; color: #172025; background-color: #fafafa;`;
+const TD_LABEL = `padding: 10px 14px; font-weight: 600; font-size: 13px; border-bottom: 1px solid #e4e4e7; width: 34%; color: #52525b; background-color: #fafafa; vertical-align: top;`;
+const TD_VALUE = `padding: 10px 14px; border-bottom: 1px solid #e4e4e7; color: #172025; background-color: #ffffff; vertical-align: top; word-break: break-word;`;
+const TD_VALUE_ALT = `padding: 10px 14px; border-bottom: 1px solid #e4e4e7; color: #172025; background-color: #fafafa; vertical-align: top; word-break: break-word;`;
 
 function tableRow(label, value, alt = false) {
   return `
     <tr>
-      <td style="${TD_LABEL}">${label}</td>
-      <td style="${alt ? TD_VALUE_ALT : TD_VALUE}">${value !== undefined && value !== null && value !== '' ? value : 'N/A'}</td>
+      <td class="table-cell-stack table-label" style="${TD_LABEL}">${label}</td>
+      <td class="table-cell-stack table-value" style="${alt ? TD_VALUE_ALT : TD_VALUE}">${value !== undefined && value !== null && value !== '' ? value : 'N/A'}</td>
     </tr>`;
 }
 
 function highlightBox(text, color = '#b27f0d', bg = '#fdf5e6') {
-  return `<div style="background-color: ${bg}; border-left: 4px solid ${color}; padding: 14px 16px; margin: 16px 0; border-radius: 6px; font-size: 13.5px; line-height: 1.5; color: #172025;">${text}</div>`;
+  return `<div style="background-color: ${bg}; border-left: 4px solid ${color}; padding: 13px 15px; margin: 16px 0; border-radius: 6px; font-size: 13px; line-height: 1.5; color: #172025; word-break: break-word;">${text}</div>`;
 }
 
 function statusBadge(text, variant = 'neutral') {
@@ -153,12 +244,12 @@ function statusBadge(text, variant = 'neutral') {
     border = '#bfdbfe';
   }
 
-  return `<span style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; background-color: ${bg}; color: ${color}; border: 1px solid ${border};">${text}</span>`;
+  return `<span style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; background-color: ${bg}; color: ${color}; border: 1px solid ${border};">${text}</span>`;
 }
 
 function actionButton(label, url, color = '#b27f0d', textColor = '#ffffff') {
   return `<p style="margin: 22px 0 8px 0; text-align: center;">
-    <a href="${url}" target="_blank" style="display: inline-block; padding: 11px 26px; background-color: ${color}; color: ${textColor}; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; letter-spacing: 0.01em;">${label}</a>
+    <a href="${url}" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 24px; background-color: ${color}; color: ${textColor}; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; letter-spacing: 0.01em;">${label}</a>
   </p>`;
 }
 
@@ -177,9 +268,9 @@ const templates = {
         <p style="margin: 0 0 20px 0; color: #52525b; line-height: 1.5;">
           A sign-in request was initiated for <strong>${email}</strong> on the <strong>Avana Group Admin Request Portal</strong>. Please enter the verification code below to complete your authentication.
         </p>
-        <div style="background-color: #172025; border: 1px solid #e4e4e7; border-radius: 8px; text-align: center; padding: 22px 0; margin: 20px 0;">
+        <div class="otp-box" style="background-color: #172025; border: 1px solid #e4e4e7; border-radius: 8px; text-align: center; padding: 22px 0; margin: 20px 0;">
           <div style="font-size: 11px; font-weight: 700; color: #b27f0d; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px;">One-Time Passcode</div>
-          <div style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #ffffff; font-family: 'Consolas', 'Courier New', monospace;">${otp}</div>
+          <div class="otp-code" style="font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #ffffff; font-family: 'Consolas', 'Courier New', monospace;">${otp}</div>
           <div style="font-size: 12px; color: #94a3b8; margin-top: 8px;">Valid for 5 minutes</div>
         </div>
         ${highlightBox('Notice: For security, never share this one-time code with anyone. If you did not request this login, please ignore this email.', '#b27f0d', '#fdf5e6')}
@@ -198,9 +289,9 @@ const templates = {
         <p style="margin: 0 0 20px 0; color: #52525b; line-height: 1.5;">
           A password reset was requested for the portal administrator account <strong>${adminEmail}</strong>. Use the 6-digit verification code below to reset your password.
         </p>
-        <div style="background-color: #172025; border: 1px solid #e4e4e7; border-radius: 8px; text-align: center; padding: 22px 0; margin: 20px 0;">
+        <div class="otp-box" style="background-color: #172025; border: 1px solid #e4e4e7; border-radius: 8px; text-align: center; padding: 22px 0; margin: 20px 0;">
           <div style="font-size: 11px; font-weight: 700; color: #b27f0d; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px;">Password Reset Code</div>
-          <div style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #ffffff; font-family: 'Consolas', 'Courier New', monospace;">${otp}</div>
+          <div class="otp-code" style="font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #ffffff; font-family: 'Consolas', 'Courier New', monospace;">${otp}</div>
           <div style="font-size: 12px; color: #94a3b8; margin-top: 8px;">Valid for 10 minutes</div>
         </div>
         ${highlightBox('Security Notice: If you did not request this password reset, please secure your administrative credentials immediately.', '#dc2626', '#fef2f2')}
@@ -219,9 +310,9 @@ const templates = {
         <p style="margin: 0 0 20px 0; color: #52525b; line-height: 1.5;">
           A temporary access password has been generated for your administrator account <strong>${adminEmail}</strong> on the Avana Group Admin Request Portal.
         </p>
-        <div style="background-color: #172025; border: 1px solid #e4e4e7; border-radius: 8px; text-align: center; padding: 22px 0; margin: 20px 0;">
+        <div class="otp-box" style="background-color: #172025; border: 1px solid #e4e4e7; border-radius: 8px; text-align: center; padding: 22px 0; margin: 20px 0;">
           <div style="font-size: 11px; font-weight: 700; color: #b27f0d; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px;">Temporary Admin Password</div>
-          <div style="font-size: 26px; font-weight: 800; letter-spacing: 4px; color: #ffffff; font-family: 'Consolas', 'Courier New', monospace;">${tempPassword}</div>
+          <div style="font-size: 24px; font-weight: 800; letter-spacing: 3px; color: #ffffff; font-family: 'Consolas', 'Courier New', monospace; word-break: break-all;">${tempPassword}</div>
           <div style="font-size: 12px; color: #94a3b8; margin-top: 8px;">Log in and change immediately</div>
         </div>
         ${highlightBox('Action Required: Please log into the Admin portal immediately using this temporary password and update your credentials under Settings.', '#b27f0d', '#fdf5e6')}
@@ -649,7 +740,7 @@ const templates = {
           <strong>${requesterName}</strong> (${requesterEmail}) has requested to merge their dispatch items into your active Delivery Challan (<strong>DC #${target.dcNo}</strong>) heading to the same destination.
         </p>
         <div style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 16px; margin: 16px 0;">
-          <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #71717a; margin-bottom: 8px;">Requested Items to Merge:</div>
+          <div style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: #71717a; margin-bottom: 8px;">Requested Items to Merge:</div>
           <div style="font-size: 13.5px; color: #172025; line-height: 1.6;">
             ${itemsList || 'No item descriptions provided.'}
           </div>
@@ -657,9 +748,9 @@ const templates = {
         <p style="margin: 20px 0 16px 0; font-size: 13.5px; color: #52525b;">
           Please review the request and indicate whether these items should be consolidated into your parcel:
         </p>
-        <div style="text-align: center; margin: 24px 0;">
-          <a href="${acceptUrl}" target="_blank" style="display: inline-block; padding: 11px 24px; background-color: #16a34a; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; margin-right: 12px;">Accept Merge</a>
-          <a href="${rejectUrl}" target="_blank" style="display: inline-block; padding: 11px 24px; background-color: #dc2626; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px;">Decline Merge</a>
+        <div class="mobile-btn-stack" style="text-align: center; margin: 24px 0;">
+          <a href="${acceptUrl}" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 24px; background-color: #16a34a; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; margin-right: 10px;">Accept Merge</a>
+          <a href="${rejectUrl}" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 24px; background-color: #dc2626; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px;">Decline Merge</a>
         </div>
       `,
     });
@@ -866,7 +957,7 @@ const templates = {
         <p style="margin: 16px 0 0 0; color: #52525b; font-size: 13.5px;">
           Please log into the Admin portal to replenish this item.
         </p>
-        ${actionButton(`Go to ${categoryLabel} Stock`, `${APP_URL}/helpdesk-admin/stationery-stock`, '#b27f0d')}
+        ${actionButton(`Manage ${categoryLabel} Stock`, `${APP_URL}/helpdesk-admin/stationery-stock`, '#b27f0d')}
       `,
     });
   },
@@ -897,9 +988,9 @@ const templates = {
         <p style="margin: 0 0 16px 0; color: #52525b;">
           This is an automated notification from your Help Desk Reminder schedule.
         </p>
-        <div style="background-color: #fafafa; border-left: 4px solid ${accent}; padding: 16px 20px; margin: 16px 0; border-radius: 6px;">
+        <div style="background-color: #fafafa; border-left: 4px solid ${accent}; padding: 15px 16px; margin: 16px 0; border-radius: 6px; word-break: break-word;">
           <div style="font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">Reminder Task</div>
-          <div style="font-size: 15px; font-weight: 600; color: #172025; line-height: 1.5;">${text}</div>
+          <div style="font-size: 14.5px; font-weight: 600; color: #172025; line-height: 1.5;">${text}</div>
         </div>
         <table style="${TABLE_WRAP}">
           ${tableRow('Scheduled Time', new Date(dateTime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }))}
@@ -969,10 +1060,10 @@ const templates = {
         <table style="${TABLE_WRAP}">
           ${tableRow('AMC Name', `<strong>${amcName}</strong>`)}
           ${tableRow('Visit Sequence', `<strong>${visitLabel}</strong>`, true)}
-          ${tableRow('Upcoming Service Date', `<strong style="color: #b27f0d;">${upcomingServiceDate}</strong>`)}
-          ${tableRow('Last Service Date', lastServiceDate, true)}
-          ${tableRow('Location', location)}
-          ${tableRow('Vendor Details', vendorDetails, true)}
+          ${tableRow('Scheduled Service Date', `<strong style="color: #b27f0d;">${upcomingServiceDate}</strong>`)}
+          ${tableRow('Last Completed Service', lastServiceDate, true)}
+          ${tableRow('Facility / Location', location)}
+          ${tableRow('Service Vendor', vendorDetails, true)}
           ${tableRow('Vendor Contact', whoShouldWeContact)}
         </table>
         <p style="margin: 18px 0 0 0; color: #52525b; font-size: 13.5px;">
@@ -1028,7 +1119,7 @@ const templates = {
           ${tableRow('Authority / Location', tax.authority_name || tax.location || 'N/A', true)}
           ${tableRow('Assessment Year / Term', `${tax.year || tax.assessment_year || ''} ${tax.term ? `(${tax.term})` : ''}`.trim() || 'N/A')}
           ${tableRow('Bill / Challan No', tax.bill_no || 'N/A', true)}
-          ${tableRow('Due Date', `<strong style="color: #b27f0d; font-size: 16px;">${tax.due_date}</strong>`)}
+          ${tableRow('Payment Due Date', `<strong style="color: #b27f0d; font-size: 16px;">${tax.due_date}</strong>`)}
           ${tableRow('Amount Payable', `<strong style="color: #172025; font-size: 17px;">₹${tax.amount}</strong>`, true)}
           ${tableRow('Status', statusBadge(tax.status || 'Unpaid', 'pending'))}
           ${tableRow('Remarks', tax.remarks || 'None', true)}
@@ -1082,10 +1173,10 @@ const templates = {
     itemList.forEach((it, idx) => {
       itemsRows += `
         <tr>
-          <td style="padding: 10px 14px; border-bottom: 1px solid #e4e4e7; font-size: 13px; color: #71717a; text-align: center;">${idx + 1}</td>
-          <td style="padding: 10px 14px; border-bottom: 1px solid #e4e4e7; font-weight: 600; color: #172025; font-size: 13.5px;">${it.itemName || it.description || it.name || 'Stationery Item'}</td>
-          <td style="padding: 10px 14px; border-bottom: 1px solid #e4e4e7; color: #52525b; font-size: 13px;">${it.serialNo || it.serialNumber || 'N/A'}</td>
-          <td style="padding: 10px 14px; border-bottom: 1px solid #e4e4e7; color: #52525b; font-size: 13px;">${it.condition || 'Good'}</td>
+          <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e7; font-size: 12.5px; color: #71717a; text-align: center;">${idx + 1}</td>
+          <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e7; font-weight: 600; color: #172025; font-size: 13px;">${it.itemName || it.description || it.name || 'Stationery Item'}</td>
+          <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e7; color: #52525b; font-size: 12.5px;">${it.serialNo || it.serialNumber || 'N/A'}</td>
+          <td style="padding: 10px 12px; border-bottom: 1px solid #e4e4e7; color: #52525b; font-size: 12.5px;">${it.condition || 'Good'}</td>
         </tr>
       `;
     });
@@ -1102,19 +1193,21 @@ const templates = {
         <p style="margin: 0 0 20px 0; color: #52525b; line-height: 1.5;">
           ${isAppended ? 'Additional company stationery items have been issued to you by the Admin team.' : 'The company stationery and office items listed below have been assigned to you by the Admin team.'}
         </p>
-        <table style="width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 13.5px; border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden;">
-          <thead>
-            <tr style="background-color: #fafafa; border-bottom: 1px solid #e4e4e7; font-size: 12.5px; color: #52525b;">
-              <th style="padding: 10px 14px; text-align: center; width: 40px;">#</th>
-              <th style="padding: 10px 14px; text-align: left;">Item Description</th>
-              <th style="padding: 10px 14px; text-align: left;">Serial / Identifier</th>
-              <th style="padding: 10px 14px; text-align: left;">Condition</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itemsRows}
-          </tbody>
-        </table>
+        <div class="scroll-table-wrap" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 18px 0; border: 1px solid #e4e4e7; border-radius: 6px;">
+          <table role="presentation" class="scroll-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background-color: #fafafa; border-bottom: 1px solid #e4e4e7; font-size: 12px; color: #52525b;">
+                <th style="padding: 10px 12px; text-align: center; width: 36px;">#</th>
+                <th style="padding: 10px 12px; text-align: left;">Item Description</th>
+                <th style="padding: 10px 12px; text-align: left;">Serial / Identifier</th>
+                <th style="padding: 10px 12px; text-align: left;">Condition</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsRows}
+            </tbody>
+          </table>
+        </div>
         ${highlightBox('<strong>Acknowledgement Required:</strong> Please review the items listed above and complete your digital acknowledgement to confirm receipt.', '#b27f0d', '#fdf5e6')}
         ${actionButton('Acknowledge Receipt Online', ackLink, '#b27f0d')}
         <p style="margin: 16px 0 0 0; font-size: 12.5px; color: #71717a; text-align: center;">
@@ -1176,25 +1269,27 @@ const templates = {
         <p style="margin: 0 0 20px 0; color: #52525b; line-height: 1.5;">
           A purchase request (<strong>${request.requestId}</strong>) has been submitted for your review and approval by <strong>${request.requestedBy}</strong>.
         </p>
-        <table style="width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 13.5px; border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden;">
-          <thead>
-            <tr style="background-color: #fafafa; border-bottom: 1px solid #e4e4e7; color: #52525b; font-size: 12.5px;">
-              <th style="padding: 10px; border-bottom: 1px solid #e4e4e7; text-align: right; width: 36px;">#</th>
-              <th style="padding: 10px; border-bottom: 1px solid #e4e4e7; text-align: left;">Item Name</th>
-              <th style="padding: 10px; border-bottom: 1px solid #e4e4e7; text-align: right; width: 50px;">Qty</th>
-              <th style="padding: 10px; border-bottom: 1px solid #e4e4e7; text-align: right; width: 90px;">Unit Price</th>
-              <th style="padding: 10px; border-bottom: 1px solid #e4e4e7; text-align: right; width: 80px;">GST</th>
-              <th style="padding: 10px; border-bottom: 1px solid #e4e4e7; text-align: right; width: 90px;">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itemsHtml}
-            <tr style="background-color: #fafafa; font-weight: 700; border-top: 2px solid #e4e4e7;">
-              <td colspan="5" style="padding: 10px; text-align: right; color: #172025;">Grand Total:</td>
-              <td style="padding: 10px; text-align: right; color: #16a34a; font-size: 14.5px;">&#8377;${parseFloat(request.finalAmount || 0).toFixed(2)}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="scroll-table-wrap" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 18px 0; border: 1px solid #e4e4e7; border-radius: 6px;">
+          <table role="presentation" class="scroll-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background-color: #fafafa; border-bottom: 1px solid #e4e4e7; color: #52525b; font-size: 12px;">
+                <th style="padding: 10px 8px; border-bottom: 1px solid #e4e4e7; text-align: right; width: 32px;">#</th>
+                <th style="padding: 10px 10px; border-bottom: 1px solid #e4e4e7; text-align: left;">Item Name</th>
+                <th style="padding: 10px 8px; border-bottom: 1px solid #e4e4e7; text-align: right; width: 44px;">Qty</th>
+                <th style="padding: 10px 10px; border-bottom: 1px solid #e4e4e7; text-align: right; width: 85px;">Unit Price</th>
+                <th style="padding: 10px 10px; border-bottom: 1px solid #e4e4e7; text-align: right; width: 75px;">GST</th>
+                <th style="padding: 10px 10px; border-bottom: 1px solid #e4e4e7; text-align: right; width: 85px;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+              <tr style="background-color: #fafafa; font-weight: 700; border-top: 2px solid #e4e4e7;">
+                <td colspan="5" style="padding: 10px; text-align: right; color: #172025;">Grand Total:</td>
+                <td style="padding: 10px; text-align: right; color: #16a34a; font-size: 14.5px;">&#8377;${parseFloat(request.finalAmount || 0).toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <table style="${TABLE_WRAP}">
           ${tableRow('Mode of Purchase', request.modeOfPurchase || 'N/A')}
           ${tableRow('Purchase Reason', request.reason || 'N/A', true)}
@@ -1203,10 +1298,10 @@ const templates = {
         <p style="margin: 20px 0 16px 0; font-size: 13.5px; color: #52525b;">
           Please select your approval decision below:
         </p>
-        <div style="text-align: center; margin: 24px 0;">
-          <a href="${reqUrl}?action=Approve" target="_blank" style="display: inline-block; padding: 11px 22px; background-color: #16a34a; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; margin-right: 10px;">Approve</a>
-          <a href="${reqUrl}?action=Reject" target="_blank" style="display: inline-block; padding: 11px 22px; background-color: #dc2626; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; margin-right: 10px;">Reject</a>
-          <a href="${reqUrl}?action=Discuss" target="_blank" style="display: inline-block; padding: 11px 22px; background-color: #b27f0d; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px;">Need to Discuss</a>
+        <div class="mobile-btn-stack" style="text-align: center; margin: 24px 0;">
+          <a href="${reqUrl}?action=Approve" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 22px; background-color: #16a34a; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; margin-right: 8px;">Approve</a>
+          <a href="${reqUrl}?action=Reject" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 22px; background-color: #dc2626; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; margin-right: 8px;">Reject</a>
+          <a href="${reqUrl}?action=Discuss" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 22px; background-color: #b27f0d; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px;">Need to Discuss</a>
         </div>
       `,
     });
@@ -1256,31 +1351,31 @@ const templates = {
 
       itemsRows += `
         <tr style="border-bottom: 1px solid #e4e4e7;">
-          <td style="padding: 10px 12px; text-align: right; color: #71717a; font-size: 13px;">${index + 1}</td>
-          <td style="padding: 10px 12px; font-weight: 600; color: #172025; font-size: 13px;">${item.itemName || 'Item'}</td>
-          <td style="padding: 10px 12px; text-align: right; color: #172025; font-size: 13px;">${qty}</td>
-          <td style="padding: 10px 12px; text-align: right; color: #172025; font-size: 13px;">&#8377;${unit.toFixed(2)}</td>
-          <td style="padding: 10px 12px; text-align: right; color: #71717a; font-size: 13px;">&#8377;${gst.toFixed(2)}</td>
-          <td style="padding: 10px 12px; text-align: right; font-weight: 700; color: #172025; font-size: 13px;">&#8377;${total.toFixed(2)}</td>
+          <td style="padding: 10px 10px; text-align: right; color: #71717a; font-size: 12.5px;">${index + 1}</td>
+          <td style="padding: 10px 10px; font-weight: 600; color: #172025; font-size: 13px;">${item.itemName || 'Item'}</td>
+          <td style="padding: 10px 8px; text-align: right; color: #172025; font-size: 13px;">${qty}</td>
+          <td style="padding: 10px 10px; text-align: right; color: #172025; font-size: 13px;">&#8377;${unit.toFixed(2)}</td>
+          <td style="padding: 10px 10px; text-align: right; color: #71717a; font-size: 13px;">&#8377;${gst.toFixed(2)}</td>
+          <td style="padding: 10px 10px; text-align: right; font-weight: 700; color: #172025; font-size: 13px;">&#8377;${total.toFixed(2)}</td>
         </tr>
       `;
     });
 
     const itemsBox = `
       <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 6px; overflow: hidden; margin: 20px 0;">
-        <div style="background: #fafafa; padding: 12px 16px; border-bottom: 1px solid #e4e4e7; font-weight: 700; color: #172025; font-size: 13.5px;">
+        <div style="background: #fafafa; padding: 12px 14px; border-bottom: 1px solid #e4e4e7; font-weight: 700; color: #172025; font-size: 13px;">
           Requested Items &amp; Pricing Breakdown
         </div>
-        <div style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <div class="scroll-table-wrap" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+          <table role="presentation" class="scroll-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
             <thead>
-              <tr style="background: #fafafa; color: #52525b; border-bottom: 1px solid #e4e4e7;">
-                <th style="padding: 8px 12px; text-align: right; width: 36px;">#</th>
-                <th style="padding: 8px 12px; text-align: left;">Item Name</th>
-                <th style="padding: 8px 12px; text-align: right; width: 50px;">Qty</th>
-                <th style="padding: 8px 12px; text-align: right; width: 90px;">Price / Unit</th>
-                <th style="padding: 8px 12px; text-align: right; width: 70px;">GST</th>
-                <th style="padding: 8px 12px; text-align: right; width: 90px;">Total</th>
+              <tr style="background: #fafafa; color: #52525b; border-bottom: 1px solid #e4e4e7; font-size: 12px;">
+                <th style="padding: 8px 10px; text-align: right; width: 32px;">#</th>
+                <th style="padding: 8px 10px; text-align: left;">Item Name</th>
+                <th style="padding: 8px 8px; text-align: right; width: 44px;">Qty</th>
+                <th style="padding: 8px 10px; text-align: right; width: 85px;">Price / Unit</th>
+                <th style="padding: 8px 10px; text-align: right; width: 75px;">GST</th>
+                <th style="padding: 8px 10px; text-align: right; width: 85px;">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -1288,8 +1383,8 @@ const templates = {
             </tbody>
             <tfoot>
               <tr style="background: #fafafa; font-weight: 700;">
-                <td colspan="5" style="padding: 10px 12px; text-align: right; color: #172025; border-top: 2px solid #e4e4e7;">Grand Total:</td>
-                <td style="padding: 10px 12px; text-align: right; color: #16a34a; font-size: 14.5px; border-top: 2px solid #e4e4e7;">&#8377;${parseFloat(request.finalAmount || 0).toFixed(2)}</td>
+                <td colspan="5" style="padding: 10px; text-align: right; color: #172025; border-top: 2px solid #e4e4e7;">Grand Total:</td>
+                <td style="padding: 10px; text-align: right; color: #16a34a; font-size: 14.5px; border-top: 2px solid #e4e4e7;">&#8377;${parseFloat(request.finalAmount || 0).toFixed(2)}</td>
               </tr>
             </tfoot>
           </table>

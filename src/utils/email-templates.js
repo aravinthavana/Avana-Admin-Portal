@@ -80,8 +80,10 @@ function buildEmail({ title, subtitle = 'Avana Group — Admin Operations Hub', 
         padding: 16px 16px !important;
       }
       .header-logo {
-        height: 26px !important;
-        max-width: 95px !important;
+        width: 55px !important;
+        height: 21px !important;
+        max-width: 55px !important;
+        max-height: 21px !important;
       }
       .header-title {
         font-size: 16px !important;
@@ -167,8 +169,8 @@ function buildEmail({ title, subtitle = 'Avana Group — Admin Operations Hub', 
                       ${subtitle}
                     </div>
                   </td>
-                  <td align="right" style="vertical-align: middle; text-align: right; padding-left: 12px;">
-                    <img src="cid:avanalogo" alt="Avana" class="header-logo" style="height: 32px; max-width: 120px; display: inline-block; object-fit: contain;" />
+                  <td width="75" align="right" style="vertical-align: middle; text-align: right; width: 75px; min-width: 75px; max-width: 80px; padding-left: 12px;">
+                    <img src="cid:avanalogo" alt="Avana" width="65" height="25" border="0" class="header-logo" style="width: 65px; height: 25px; max-width: 65px; max-height: 25px; display: block; margin-left: auto; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;" />
                   </td>
                 </tr>
               </table>

@@ -1346,148 +1346,233 @@ export function CourierDispatchPage() {
           <EmptyState icon={<LuTruck size={40} style={{ color: 'var(--brand-amber)' }} />} title="No Delivery Challans found" description="Create a new Delivery Challan to manage parcel dispatches." />
         ) : (
           <div className="table-wrapper">
-            <table className="table">
+            <table className="table" style={{ width: '100%' }}>
               <thead>
                 <tr>
-                  <th scope="col">DC #</th>
-                  <th scope="col">Date</th>
-                  <th scope="col">Requested By</th>
-                  <th scope="col">Billing / Category</th>
-                  <th scope="col">Consignee (Recipient)</th>
-                  <th scope="col">Itemized Summary</th>
-                  <th scope="col" style={{ textAlign: 'right' }}>Total Value</th>
+                  <th scope="col" style={{ width: '115px' }}>DC # & Date</th>
+                  <th scope="col">Consignee</th>
+                  <th scope="col">Requester & Purpose</th>
+                  <th scope="col">Items & Value</th>
                   <th scope="col">Courier / Docket</th>
-                  <th scope="col" style={{ textAlign: 'right' }}>Actions</th>
+                  <th scope="col" style={{ textAlign: 'right', width: '145px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((d) => (
-                  <tr key={d.id}>
-                    <td>
-                      <span className="badge badge--info" style={{ fontWeight: 700, fontSize: '0.88rem' }}>
-                        #{d.dcNo}
-                      </span>
-                    </td>
-                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.88rem', fontWeight: 600, color: 'var(--brand-amber)' }}>{formatDate(d.dcDate)}</td>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{d.senderName || 'Admin'}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{d.requesterEmail || d.senderPhone}</div>
-                      {d.mergedRequesters && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--brand-amber)', marginTop: 4 }}>
-                          + Merged: {d.mergedRequesters.split(',').join(', ')}
+                {filtered.map((d) => {
+                  const isToday = (d.dcDate || '').slice(0, 10) === new Date().toISOString().slice(0, 10);
+                  const itemCount = (d.items || []).length;
+                  return (
+                    <tr key={d.id}>
+                      {/* Col 1: DC # & Date */}
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <span className="badge badge--info" style={{ fontWeight: 700, fontSize: '0.82rem', width: 'fit-content' }}>
+                            #{d.dcNo}
+                          </span>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
+                            {formatDate(d.dcDate)}
+                          </span>
+                          {isToday && (
+                            <span className="badge badge--success" style={{ fontSize: '0.65rem', padding: '1px 5px', width: 'fit-content' }}>
+                              Today
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{d.courierBilling || 'Avana Group'}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{d.remarksType}</div>
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{d.receiverName || 'Recipient'}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {d.toAddress}
-                      </div>
-                    </td>
-                    <td>
-                      <ul style={{ margin: 0, paddingLeft: 16, fontSize: '0.82rem' }}>
-                        {(d.items || []).map((it, i) => (
-                          <li key={it.id || i}>
-                            {it.description} x{it.qty}
-                          </li>
-                        ))}
-                      </ul>
-                    </td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-primary-dark)', fontSize: '0.92rem' }}>
-                      ₹{(d.totalAmount || 0).toLocaleString()}
-                    </td>
-                    <td>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 500 }}>{d.transporterName || '—'}</div>
-                      <div style={{ fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>
-                        {d.docketNo ? `Waybill: ${d.docketNo}` : 'No tracking'}
-                      </div>
-                    </td>
-                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                        <button
-                          className="btn btn--sm btn--primary"
-                          title="Download official Delivery Challan PDF"
-                          onClick={() => handleDownloadDCPdf(d)}
+                      </td>
+
+                      {/* Col 2: Consignee (Recipient) */}
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{d.receiverName || 'Recipient'}</div>
+                        <div
+                          style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                          title={d.toAddress}
                         >
-                          <LuFileText size={13} style={{ marginRight: '0.25rem' }} /> DC PDF
-                        </button>
-                        <button
-                          className="btn btn--sm btn--outline"
-                          title="Download A5 Shipping Address Label PDF"
-                          onClick={() => handleDownloadLabelPdf(d)}
-                        >
-                          <LuTag size={13} style={{ marginRight: '0.25rem' }} /> Label
-                        </button>
-                        <button
-                          className="btn btn--sm btn--outline"
-                          title="Print / Preview Delivery Challan"
-                          onClick={() => handleDownloadSingleDC(d)}
-                        >
-                          <LuPrinter size={13} style={{ marginRight: '0.25rem' }} /> Print
-                        </button>
-                        {(d.dcDate || '').slice(0, 10) === new Date().toISOString().slice(0, 10) && (
-                          <button
-                            className="btn btn--sm btn--primary"
-                            title="Recall and Refill into New DC Form"
-                            style={{ background: '#d97706', borderColor: '#d97706' }}
-                            onClick={() => {
-                              setAddForm({
-                                dcNo: d.dcNo || '',
-                                dcDate: d.dcDate || new Date().toISOString().slice(0,10),
-                                remarksType: d.remarksType || 'Service',
-                                remarksOther: d.remarksOther || '',
-                                courierBilling: d.courierBilling || 'Avana Medical Devices Pvt Ltd',
-                                signatoryCompany: d.signatoryCompany || 'Avana Medical Devices Pvt. Ltd',
-                                senderName: d.senderName || 'Admin',
-                                senderPhone: d.senderPhone || '',
-                                fromAddressSelection: 'other',
-                                fromAddressText: d.fromAddressText || '',
-                                receiverName: d.receiverName || '',
-                                receiverPhone: d.receiverPhone || '',
-                                toAddressSelection: 'other',
-                                toAddress: d.toAddress || '',
-                                ccEmails: d.ccEmails || '',
-                                transporterName: d.transporterName || '',
-                                docketNo: d.docketNo || '',
-                                transporterAmount: d.transporterAmount || '',
-                                items: d.items && d.items.length > 0 ? d.items : [{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }],
-                                declaration: !!d.declaration
-                              });
-                              setAddModalOpen(true);
-                              toast.info(`Recalled DC #${d.dcNo}! All form fields populated.`);
-                            }}
-                          >
-                            <LuRotateCcw size={13} style={{ marginRight: '0.25rem' }} /> Refill
-                          </button>
+                          {d.toAddress}
+                        </div>
+                        {d.receiverPhone && (
+                          <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>{d.receiverPhone}</div>
                         )}
-                        <button
-                          className="btn btn--sm btn--outline"
-                          title="Send tracking details to requester"
-                          onClick={() => {
-                            setSelectedDispatch(d);
-                            const tName = d.transporterName || 'Dxpress';
-                            const isKnown = ['Dxpress', 'Bluedart', 'Professional Courier', 'DTDC', 'Delhivery'].includes(tName);
-                            setTrackingForm({ 
-                              transporterName: isKnown ? tName : 'Other', 
-                              customTrackingLink: !isKnown && tName !== 'Dxpress' ? '' : '', 
-                              docketNo: d.docketNo || '', 
-                              transporterAmount: d.transporterAmount || '', 
-                              status: d.status || 'Assigned' 
-                            });
-                            setTrackingModalOpen(true);
-                          }}
+                      </td>
+
+                      {/* Col 3: Requester & Purpose */}
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <div style={{ fontWeight: 600 }}>{d.senderName || 'Admin'}</div>
+                        <div
+                          style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                          title={d.requesterEmail || d.senderPhone}
                         >
-                          <LuSend size={13} style={{ marginRight: '0.25rem' }} /> Send Tracking
-                        </button>
-                        <button className="btn btn--sm btn--outline" onClick={() => setDeleteId(d.id)} style={{ color: "#dc2626", borderColor: "#e4e4e7", display: "inline-flex", alignItems: "center", padding: "0.4rem 0.5rem" }} aria-label="Delete dispatch"><LuTrash2 size={14} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {d.requesterEmail || d.senderPhone}
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '3px', flexWrap: 'wrap' }}>
+                          <span className="badge badge--neutral" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
+                            {d.remarksType || 'Service'}
+                          </span>
+                          {d.courierBilling && (
+                            <span
+                              style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)', maxWidth: 140, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                              title={d.courierBilling}
+                            >
+                              {d.courierBilling.replace(/ Pvt\.? Ltd\.?/i, '')}
+                            </span>
+                          )}
+                          {d.mergedRequesters && (
+                            <span className="badge badge--warning" style={{ fontSize: '0.68rem', padding: '1px 5px' }} title={`Merged: ${d.mergedRequesters}`}>
+                              +Merged
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Col 4: Items & Value */}
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <div style={{ fontSize: '0.8rem', lineHeight: 1.35 }}>
+                          {(d.items || []).slice(0, 2).map((it, i) => (
+                            <div key={it.id || i} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px' }} title={`${it.description} x${it.qty}`}>
+                              • {it.description || 'Item'} <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>×{it.qty}</span>
+                            </div>
+                          ))}
+                          {itemCount > 2 && (
+                            <div
+                              style={{ fontSize: '0.72rem', color: 'var(--brand-amber)', fontWeight: 600 }}
+                              title={(d.items || []).slice(2).map(it => `${it.description} x${it.qty}`).join(', ')}
+                            >
+                              +{itemCount - 2} more item{itemCount - 2 > 1 ? 's' : ''}
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-primary-dark)', marginTop: 2 }}>
+                          ₹{(d.totalAmount || 0).toLocaleString()}
+                        </div>
+                      </td>
+
+                      {/* Col 5: Courier / Docket */}
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{d.transporterName || '—'}</div>
+                        <div style={{ marginTop: '2px' }}>
+                          {d.docketNo ? (
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.76rem', background: 'var(--color-surface-2)', padding: '1px 6px', borderRadius: '4px', border: '1px solid var(--color-border)', display: 'inline-block' }}>
+                              {d.docketNo}
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>No tracking</span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Col 6: Actions */}
+                      <td style={{ textAlign: 'right', verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                          {/* Row 1: Document downloads */}
+                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                            <button
+                              type="button"
+                              className="btn btn--xs btn--primary"
+                              title="Download official Delivery Challan PDF"
+                              onClick={() => handleDownloadDCPdf(d)}
+                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}
+                            >
+                              <LuFileText size={12} /> DC PDF
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn--xs btn--outline"
+                              title="Download A5 Shipping Address Label PDF"
+                              onClick={() => handleDownloadLabelPdf(d)}
+                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}
+                            >
+                              <LuTag size={12} /> Label
+                            </button>
+                          </div>
+
+                          {/* Row 2: Tracking & Utilities */}
+                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              className="btn btn--xs btn--secondary"
+                              title="Send tracking details to requester"
+                              onClick={() => {
+                                setSelectedDispatch(d);
+                                const tName = d.transporterName || 'Dxpress';
+                                const isKnown = ['Dxpress', 'Bluedart', 'Professional Courier', 'DTDC', 'Delhivery'].includes(tName);
+                                setTrackingForm({ 
+                                  transporterName: isKnown ? tName : 'Other', 
+                                  customTrackingLink: !isKnown && tName !== 'Dxpress' ? '' : '', 
+                                  docketNo: d.docketNo || '', 
+                                  transporterAmount: d.transporterAmount || '', 
+                                  status: d.status || 'Assigned' 
+                                });
+                                setTrackingModalOpen(true);
+                              }}
+                              style={{ padding: '0.25rem 0.45rem', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap' }}
+                            >
+                              <LuSend size={11} /> Track
+                            </button>
+
+                            <button
+                              type="button"
+                              className="btn btn--xs btn--outline"
+                              title="Print / HTML Preview Delivery Challan"
+                              onClick={() => handleDownloadSingleDC(d)}
+                              style={{ padding: '0.25rem 0.4rem', display: 'inline-flex', alignItems: 'center' }}
+                              aria-label="Print DC"
+                            >
+                              <LuPrinter size={12} />
+                            </button>
+
+                            {isToday && (
+                              <button
+                                type="button"
+                                className="btn btn--xs btn--outline"
+                                title="Recall and refill into New DC form"
+                                onClick={() => {
+                                  setAddForm({
+                                    dcNo: d.dcNo || '',
+                                    dcDate: d.dcDate || new Date().toISOString().slice(0,10),
+                                    remarksType: d.remarksType || 'Service',
+                                    remarksOther: d.remarksOther || '',
+                                    courierBilling: d.courierBilling || 'Avana Medical Devices Pvt Ltd',
+                                    signatoryCompany: d.signatoryCompany || 'Avana Medical Devices Pvt. Ltd',
+                                    senderName: d.senderName || 'Admin',
+                                    senderPhone: d.senderPhone || '',
+                                    fromAddressSelection: 'other',
+                                    fromAddressText: d.fromAddressText || '',
+                                    receiverName: d.receiverName || '',
+                                    receiverPhone: d.receiverPhone || '',
+                                    toAddressSelection: 'other',
+                                    toAddress: d.toAddress || '',
+                                    ccEmails: d.ccEmails || '',
+                                    transporterName: d.transporterName || '',
+                                    docketNo: d.docketNo || '',
+                                    transporterAmount: d.transporterAmount || '',
+                                    items: d.items && d.items.length > 0 ? d.items : [{ itemCode: '', description: '', serialNo: '', qty: 1, rate: 0, value: 0 }],
+                                    declaration: !!d.declaration
+                                  });
+                                  setAddModalOpen(true);
+                                  toast.info(`Recalled DC #${d.dcNo}! All form fields populated.`);
+                                }}
+                                style={{ padding: '0.25rem 0.4rem', color: '#d97706', borderColor: '#fde68a', display: 'inline-flex', alignItems: 'center' }}
+                                aria-label="Refill DC"
+                              >
+                                <LuRotateCcw size={12} />
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              className="btn btn--xs btn--outline"
+                              onClick={() => setDeleteId(d.id)}
+                              style={{ color: "#dc2626", borderColor: "#fecaca", padding: "0.25rem 0.4rem", display: "inline-flex", alignItems: "center" }}
+                              title="Delete Delivery Challan"
+                              aria-label="Delete dispatch"
+                            >
+                              <LuTrash2 size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -313,6 +313,24 @@ ul { list-style: none; }
   border-radius: var(--radius-sm);
 }
 
+.btn--xs {
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  border-radius: var(--radius-sm);
+  gap: var(--space-1);
+  line-height: 1.2;
+}
+
+.btn--outline {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+.btn--outline:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  border-color: var(--color-text-muted);
+}
+
 .btn--lg {
   padding: var(--space-4) var(--space-8);
   font-size: 1rem;

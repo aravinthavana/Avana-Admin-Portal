@@ -387,7 +387,7 @@ ul { list-style: none; }
 .form-textarea:focus {
   outline: none;
   border-color: var(--brand-amber);
-  box-shadow: 0 0 0 3px rgba(193,127,36,0.12);
+  box-shadow: 0 0 0 3px rgba(178, 127, 13, 0.15);
 }
 
 .form-input::placeholder,

@@ -1,10 +1,21 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { employeeApi, adminApi } from '../lib/api';
-import { AvanaLogo, Alert, Spinner } from '../components/ui';
-import { LuShield, LuSmartphone, LuKeyRound } from 'react-icons/lu';
+import { AvanaLogo } from '../components/ui';
+import {
+  LuShield,
+  LuSmartphone,
+  LuKeyRound,
+  LuMail,
+  LuLock,
+  LuEye,
+  LuEyeOff,
+  LuCircleAlert,
+  LuArrowRight,
+  LuRotateCcw
+} from 'react-icons/lu';
 import '../styles/Login.css';
 
 const ALLOWED_DOMAINS = ['avanamedical.com', 'avanasurgical.com'];
@@ -13,7 +24,7 @@ function validateEmail(email) {
   const parts = email.split('@');
   if (parts.length !== 2) return 'Enter a valid email address.';
   if (!ALLOWED_DOMAINS.includes(parts[1].toLowerCase())) {
-    return `Only @avanamedical.com or @avanasurgical.com emails are allowed.`;
+    return 'Only @avanamedical.com or @avanasurgical.com emails are allowed.';
   }
   return null;
 }
@@ -63,8 +74,13 @@ function OtpLoginPanel({ onSuccess }) {
     return (
       <form autoComplete="off" onSubmit={handleVerifyOtp} noValidate>
         <div className="login-panel__otp-hint">
-          OTP sent to <strong>{email}</strong>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => { setStep('email'); setOtp(''); setError(''); }}>
+          <span>OTP sent to <strong>{email}</strong></span>
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            onClick={() => { setStep('email'); setOtp(''); setError(''); }}
+            style={{ padding: '2px 8px', fontSize: '0.78rem' }}
+          >
             Change
           </button>
         </div>
@@ -77,7 +93,7 @@ function OtpLoginPanel({ onSuccess }) {
             pattern="[0-9]{6}"
             maxLength={6}
             className={`form-input login-panel__otp-input${error ? ' form-input--error' : ''}`}
-            placeholder="• • • • • •"
+            placeholder="••••••"
             value={otp}
             onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
             autoComplete="one-time-code"
@@ -85,14 +101,21 @@ function OtpLoginPanel({ onSuccess }) {
             required
             aria-describedby={error ? 'otp-error' : undefined}
           />
-          {error && <span id="otp-error" className="form-error" role="alert">⚠ {error}</span>}
+          {error && (
+            <span id="otp-error" className="form-error" role="alert">
+              <LuCircleAlert size={14} style={{ flexShrink: 0 }} />
+              <span>{error}</span>
+            </span>
+          )}
         </div>
         <button type="submit" className={`btn btn--primary btn--full btn--lg${loading ? ' btn--loading' : ''}`} disabled={loading}>
           {!loading && 'Verify & Sign In'}
         </button>
         <p className="login-panel__resend">
           Didn't receive it?{' '}
-          <button type="button" className="btn btn--ghost btn--sm" onClick={handleSendOtp}>Resend OTP</button>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={handleSendOtp} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+            <LuRotateCcw size={12} /> Resend OTP
+          </button>
         </p>
       </form>
     );
@@ -102,22 +125,31 @@ function OtpLoginPanel({ onSuccess }) {
     <form autoComplete="off" onSubmit={handleSendOtp} noValidate>
       <div className="form-group" style={{ marginBottom: 'var(--space-5)' }}>
         <label className="form-label form-label--required" htmlFor="otp-email">Work Email</label>
-        <input
-          id="otp-email"
-          type="email"
-          className={`form-input${error ? ' form-input--error' : ''}`}
-          placeholder="you@avanamedical.com"
-          value={email}
-          onChange={e => { setEmail(e.target.value); setError(''); }}
-          autoComplete="email"
-          autoFocus
-          required
-          aria-describedby={error ? 'email-error' : 'email-hint'}
-        />
-        {error
-          ? <span id="email-error" className="form-error" role="alert">⚠ {error}</span>
-          : <span id="email-hint" className="form-hint">Must be an @avanamedical.com or @avanasurgical.com address</span>
-        }
+        <div className="login-input-wrap">
+          <span className="login-input-icon">
+            <LuMail size={16} />
+          </span>
+          <input
+            id="otp-email"
+            type="email"
+            className={`form-input${error ? ' form-input--error' : ''}`}
+            placeholder="you@avanamedical.com"
+            value={email}
+            onChange={e => { setEmail(e.target.value); setError(''); }}
+            autoComplete="email"
+            autoFocus
+            required
+            aria-describedby={error ? 'email-error' : 'email-hint'}
+          />
+        </div>
+        {error ? (
+          <span id="email-error" className="form-error" role="alert">
+            <LuCircleAlert size={14} style={{ flexShrink: 0 }} />
+            <span>{error}</span>
+          </span>
+        ) : (
+          <span id="email-hint" className="form-hint">Must be an @avanamedical.com or @avanasurgical.com address</span>
+        )}
       </div>
       <button type="submit" className={`btn btn--primary btn--full btn--lg${loading ? ' btn--loading' : ''}`} disabled={loading}>
         {!loading && 'Send OTP'}
@@ -130,6 +162,7 @@ function OtpLoginPanel({ onSuccess }) {
 function PasswordLoginPanel({ onSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -154,31 +187,55 @@ function PasswordLoginPanel({ onSuccess }) {
     <form autoComplete="off" onSubmit={handleSubmit} noValidate>
       <div className="form-group" style={{ marginBottom: 'var(--space-4)' }}>
         <label className="form-label form-label--required" htmlFor="pass-email">Work Email</label>
-        <input
-          id="pass-email"
-          type="email"
-          className={`form-input${error ? ' form-input--error' : ''}`}
-          placeholder="you@avanamedical.com"
-          value={email}
-          onChange={e => { setEmail(e.target.value); setError(''); }}
-          autoComplete="email"
-          required
-        />
+        <div className="login-input-wrap">
+          <span className="login-input-icon">
+            <LuMail size={16} />
+          </span>
+          <input
+            id="pass-email"
+            type="email"
+            className={`form-input${error ? ' form-input--error' : ''}`}
+            placeholder="you@avanamedical.com"
+            value={email}
+            onChange={e => { setEmail(e.target.value); setError(''); }}
+            autoComplete="email"
+            required
+          />
+        </div>
       </div>
       <div className="form-group" style={{ marginBottom: 'var(--space-5)' }}>
         <label className="form-label form-label--required" htmlFor="pass-password">Password</label>
-        <input
-          id="pass-password"
-          type="password"
-          className={`form-input${error ? ' form-input--error' : ''}`}
-          placeholder="Enter your password"
-          value={password}
-          onChange={e => { setPassword(e.target.value); setError(''); }}
-          autoComplete="current-password"
-          required
-          aria-describedby={error ? 'pass-error' : undefined}
-        />
-        {error && <span id="pass-error" className="form-error" role="alert">⚠ {error}</span>}
+        <div className="login-input-wrap">
+          <span className="login-input-icon">
+            <LuLock size={16} />
+          </span>
+          <input
+            id="pass-password"
+            type={showPass ? 'text' : 'password'}
+            className={`form-input${error ? ' form-input--error' : ''}`}
+            placeholder="Enter your password"
+            value={password}
+            onChange={e => { setPassword(e.target.value); setError(''); }}
+            autoComplete="current-password"
+            required
+            aria-describedby={error ? 'pass-error' : undefined}
+          />
+          <button
+            type="button"
+            className="login-input-toggle"
+            onClick={() => setShowPass(!showPass)}
+            title={showPass ? 'Hide password' : 'Show password'}
+            aria-label={showPass ? 'Hide password' : 'Show password'}
+          >
+            {showPass ? <LuEyeOff size={16} /> : <LuEye size={16} />}
+          </button>
+        </div>
+        {error && (
+          <span id="pass-error" className="form-error" role="alert">
+            <LuCircleAlert size={14} style={{ flexShrink: 0 }} />
+            <span>{error}</span>
+          </span>
+        )}
       </div>
       <button type="submit" className={`btn btn--primary btn--full btn--lg${loading ? ' btn--loading' : ''}`} disabled={loading}>
         {!loading && 'Sign In'}
@@ -190,8 +247,17 @@ function PasswordLoginPanel({ onSuccess }) {
 // ── Admin Quick-Login (within employee portal) ─────────────────────────────
 function AdminLoginModal({ onClose, onAdminSuccess }) {
   const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -209,28 +275,62 @@ function AdminLoginModal({ onClose, onAdminSuccess }) {
   };
 
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="admin-modal-title">
-      <div className="modal">
+    <div
+      className="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-modal-title"
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="modal" style={{ maxWidth: '400px' }}>
         <div className="modal__header">
-          <h3 id="admin-modal-title">Admin Sign In</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              width: 28, height: 28, borderRadius: 6,
+              background: 'var(--brand-amber-bg)', color: 'var(--brand-amber-dark)',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <LuShield size={16} />
+            </span>
+            <h3 id="admin-modal-title" style={{ margin: 0, fontSize: '1.1rem' }}>Admin Sign In</h3>
+          </div>
           <button type="button" className="modal__close" onClick={onClose} aria-label="Close">✕</button>
         </div>
         <div className="modal__body">
           <form autoComplete="off" onSubmit={handleSubmit} noValidate>
             <div className="form-group" style={{ marginBottom: 'var(--space-5)' }}>
               <label className="form-label form-label--required" htmlFor="admin-modal-pass">Admin Password</label>
-              <input
-                id="admin-modal-pass"
-                type="password"
-                className={`form-input${error ? ' form-input--error' : ''}`}
-                placeholder="Enter admin password"
-                value={password}
-                onChange={e => { setPassword(e.target.value); setError(''); }}
-                autoFocus
-                required
-                aria-describedby={error ? 'admin-pass-error' : undefined}
-              />
-              {error && <span id="admin-pass-error" className="form-error" role="alert">⚠ {error}</span>}
+              <div className="login-input-wrap">
+                <span className="login-input-icon">
+                  <LuLock size={16} />
+                </span>
+                <input
+                  id="admin-modal-pass"
+                  type={showPass ? 'text' : 'password'}
+                  className={`form-input${error ? ' form-input--error' : ''}`}
+                  placeholder="Enter admin password"
+                  value={password}
+                  onChange={e => { setPassword(e.target.value); setError(''); }}
+                  autoFocus
+                  required
+                  aria-describedby={error ? 'admin-pass-error' : undefined}
+                />
+                <button
+                  type="button"
+                  className="login-input-toggle"
+                  onClick={() => setShowPass(!showPass)}
+                  title={showPass ? 'Hide password' : 'Show password'}
+                  aria-label={showPass ? 'Hide password' : 'Show password'}
+                >
+                  {showPass ? <LuEyeOff size={16} /> : <LuEye size={16} />}
+                </button>
+              </div>
+              {error && (
+                <span id="admin-pass-error" className="form-error" role="alert">
+                  <LuCircleAlert size={14} style={{ flexShrink: 0 }} />
+                  <span>{error}</span>
+                </span>
+              )}
             </div>
             <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end' }}>
               <button type="button" className="btn btn--secondary" onClick={onClose}>Cancel</button>
@@ -269,19 +369,17 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       {/* Background decorative elements */}
-      <div className="login-page__bg" aria-hidden="true">
-        <div className="login-page__bg-circle login-page__bg-circle--1" />
-        <div className="login-page__bg-circle login-page__bg-circle--2" />
-      </div>
+      <div className="login-page__bg" aria-hidden="true" />
 
       {/* Admin login button (top-right) */}
       <button
         type="button"
-        className="btn btn--ghost login-page__admin-btn"
+        className="login-page__admin-btn"
         onClick={() => setShowAdminModal(true)}
-        aria-label="Admin sign in"
+        aria-label="Admin Portal"
       >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuShield size={16} /> Admin Sign In</span>
+        <LuShield size={14} />
+        <span>Admin Portal</span>
       </button>
 
       {/* Login card */}
@@ -291,8 +389,11 @@ export default function LoginPage() {
         </div>
 
         <div className="login-page__header">
+          <div className="login-page__badge">
+            <LuShield size={12} /> Secure Workspace
+          </div>
           <h1 className="login-page__title">Employee Portal</h1>
-          <p className="login-page__subtitle">Submit requests, book the conference room, and track your tickets</p>
+          <p className="login-page__subtitle">Submit requests, manage parcels, and track operations</p>
         </div>
 
         {/* Mode toggle */}
@@ -306,7 +407,8 @@ export default function LoginPage() {
             onClick={() => setMode('otp')}
             type="button"
           >
-            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuSmartphone size={16} /> OTP Login</span>
+            <LuSmartphone size={15} />
+            <span>OTP Login</span>
           </button>
           <button
             role="tab"
@@ -317,7 +419,8 @@ export default function LoginPage() {
             onClick={() => setMode('password')}
             type="button"
           >
-            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><LuKeyRound size={16} /> Password Login</span>
+            <LuKeyRound size={15} />
+            <span>Password Login</span>
           </button>
         </div>
 
@@ -334,8 +437,10 @@ export default function LoginPage() {
         </div>
 
         <p className="login-page__footer-link">
-          Want to check booking status?{' '}
-          <a href="/status" target="_blank" rel="noopener noreferrer">View Status Page →</a>
+          Need to verify service status?{' '}
+          <a href="/status" target="_blank" rel="noopener noreferrer">
+            Live Status <LuArrowRight size={12} />
+          </a>
         </p>
       </main>
 

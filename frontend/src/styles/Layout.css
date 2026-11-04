@@ -347,7 +347,7 @@
 
 .portal-header__dash-btn {
   background: var(--brand-amber-bg, #fdf5e6);
-  border: 1px solid #d7d0bc;
+  border: 1px solid rgba(178, 127, 13, 0.25);
   color: var(--brand-amber-dark, #8b6209);
   padding: 0.45rem 0.9rem;
   border-radius: 8px;

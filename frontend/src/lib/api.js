@@ -36,6 +36,42 @@ async function request(path, options = {}, role = 'employee') {
   return response.json();
 }
 
+async function downloadBlobFromApi(path, defaultFilename, role = 'employee') {
+  const token = getToken(role);
+  const response = await fetch(`${BASE}${path}`, {
+    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+  });
+  if (!response.ok) {
+    let err;
+    try { err = await response.json(); } catch { err = {}; }
+    throw new Error(err.error || `Download failed (HTTP ${response.status})`);
+  }
+  const blob = await response.blob();
+  const blobUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = blobUrl;
+  a.download = defaultFilename || 'document.pdf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+}
+
+async function openBlobFromApi(path, role = 'employee') {
+  const token = getToken(role);
+  const response = await fetch(`${BASE}${path}`, {
+    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+  });
+  if (!response.ok) {
+    let err;
+    try { err = await response.json(); } catch { err = {}; }
+    throw new Error(err.error || `Preview failed (HTTP ${response.status})`);
+  }
+  const blob = await response.blob();
+  const blobUrl = window.URL.createObjectURL(blob);
+  window.open(blobUrl, '_blank');
+}
+
 // ─── Employee Auth ───────────────────────────────────────────
 export const employeeApi = {
   sendOtp: (email) =>
@@ -110,6 +146,15 @@ export const employeeApi = {
     }
     return response.blob(); // returns PDF blob
   },
+
+  downloadDCPdf: (id, dcNo) =>
+    downloadBlobFromApi(`/employee/courier-dispatch/${id}/pdf`, `DC_Copy_${dcNo || id}.pdf`, 'employee'),
+  downloadAddressLabelPdf: (id, dcNo) =>
+    downloadBlobFromApi(`/employee/courier-dispatch/${id}/label`, `Address_Label_${dcNo || id}.pdf`, 'employee'),
+  viewDCPdf: (id) =>
+    openBlobFromApi(`/employee/courier-dispatch/${id}/pdf`, 'employee'),
+  viewAddressLabelPdf: (id) =>
+    openBlobFromApi(`/employee/courier-dispatch/${id}/label`, 'employee'),
 };
 
 // ─── Admin Auth ──────────────────────────────────────────────
@@ -342,6 +387,15 @@ export const courierApi = {
 
   delete: (id) =>
     request(`/admin/courier-dispatches/${id}`, { method: 'DELETE' }, 'admin'),
+
+  downloadDCPdf: (id, dcNo) =>
+    downloadBlobFromApi(`/admin/courier-dispatches/${id}/pdf`, `DC_Copy_${dcNo || id}.pdf`, 'admin'),
+  downloadAddressLabelPdf: (id, dcNo) =>
+    downloadBlobFromApi(`/admin/courier-dispatches/${id}/label`, `Address_Label_${dcNo || id}.pdf`, 'admin'),
+  viewDCPdf: (id) =>
+    openBlobFromApi(`/admin/courier-dispatches/${id}/pdf`, 'admin'),
+  viewAddressLabelPdf: (id) =>
+    openBlobFromApi(`/admin/courier-dispatches/${id}/label`, 'admin'),
 };
 
 // ─── Petty Cash / Cash Handling Ledger ─────────────────────

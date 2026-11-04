@@ -8,7 +8,7 @@ import {
   LuSprayCan, LuMonitor, LuPrinter, LuTruck, LuMessageSquare,
   LuBuilding2, LuLock, LuRefreshCw, LuArrowRight, LuUser,
   LuMail, LuPhone, LuClock, LuCircleCheck, LuCircleX, LuCircleAlert,
-  LuPackageOpen, LuFolder, LuLayers
+  LuPackageOpen, LuFolder, LuLayers, LuFileText, LuTag, LuDownload, LuExternalLink
 } from 'react-icons/lu';
 import {
   Badge, Spinner, EmptyState, Alert, Modal, ConfirmModal,
@@ -1739,6 +1739,31 @@ function AllDispatchesHistory({ onRefill }) {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const todayStr = new Date().toISOString().slice(0, 10);
+  const [downloadingId, setDownloadingId] = useState(null);
+
+  async function handleDownloadDCPdf(dc) {
+    try {
+      setDownloadingId(`dc-${dc.id}`);
+      await employeeApi.downloadDCPdf(dc.id, dc.dcNo);
+      toast.success(`DC #${dc.dcNo} PDF downloaded.`);
+    } catch (err) {
+      toast.error(err.message || 'Failed to download Delivery Challan PDF.');
+    } finally {
+      setDownloadingId(null);
+    }
+  }
+
+  async function handleDownloadLabelPdf(dc) {
+    try {
+      setDownloadingId(`label-${dc.id}`);
+      await employeeApi.downloadAddressLabelPdf(dc.id, dc.dcNo);
+      toast.success(`Shipping Label #${dc.dcNo} downloaded.`);
+    } catch (err) {
+      toast.error(err.message || 'Failed to download Shipping Label.');
+    } finally {
+      setDownloadingId(null);
+    }
+  }
 
   async function handleDeleteDc(dc) {
     const hasMerge = dc.mergeRequests && dc.mergeRequests.length > 0;
@@ -1860,6 +1885,26 @@ function AllDispatchesHistory({ onRefill }) {
                       <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                         <button
                           type="button"
+                          className="btn btn--sm btn--primary"
+                          onClick={() => handleDownloadDCPdf(d)}
+                          disabled={downloadingId === `dc-${d.id}`}
+                          title="Download official Delivery Challan PDF"
+                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <LuFileText size={12} /> {downloadingId === `dc-${d.id}` ? '...' : 'DC PDF'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--sm btn--outline"
+                          onClick={() => handleDownloadLabelPdf(d)}
+                          disabled={downloadingId === `label-${d.id}`}
+                          title="Download A5 Shipping Address Label PDF"
+                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <LuTag size={12} /> {downloadingId === `label-${d.id}` ? '...' : 'Label'}
+                        </button>
+                        <button
+                          type="button"
                           className="btn btn--sm btn--outline"
                           onClick={() => setViewDc(d)}
                           title="View Details"
@@ -1928,6 +1973,33 @@ function AllDispatchesHistory({ onRefill }) {
               <div><strong>Signatory Entity:</strong> {viewDc.signatoryCompany || '—'}</div>
               <div><strong>Items Count:</strong> {viewDc.items?.length || 0} items</div>
             </div>
+
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.04em' }}>
+                Official Documents (PDF)
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn--primary btn--sm"
+                  style={{ flex: 1, minWidth: '130px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.8rem' }}
+                  onClick={() => handleDownloadDCPdf(viewDc)}
+                  disabled={downloadingId === `dc-${viewDc.id}`}
+                >
+                  <LuFileText size={14} /> {downloadingId === `dc-${viewDc.id}` ? 'Downloading...' : 'Download DC (PDF)'}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--outline btn--sm"
+                  style={{ flex: 1, minWidth: '130px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.8rem' }}
+                  onClick={() => handleDownloadLabelPdf(viewDc)}
+                  disabled={downloadingId === `label-${viewDc.id}`}
+                >
+                  <LuTag size={14} /> {downloadingId === `label-${viewDc.id}` ? 'Downloading...' : 'Shipping Label (PDF)'}
+                </button>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
               {((viewDc.dcDate || '').slice(0, 10) === todayStr) && (
                 <>

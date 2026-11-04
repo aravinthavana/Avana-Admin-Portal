@@ -109,6 +109,8 @@ router.post('/courier-dispatches', courierController.createDispatch);
 router.patch('/courier-dispatches/:id', courierUpload.single('attachment'), courierController.updateTrackingInfo);
 router.post('/courier-dispatches/merge', courierController.mergeParcel);
 router.delete('/courier-dispatches/:id', courierController.deleteDispatch);
+router.get('/courier-dispatches/:id/pdf', courierController.downloadDCCopy);
+router.get('/courier-dispatches/:id/label', courierController.downloadAddressLabel);
 
 // Petty Cash / Cash Handling Ledger
 const pettyCashController = require('../controllers/petty-cash.controller');

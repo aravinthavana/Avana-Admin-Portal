@@ -32,6 +32,8 @@ const courierController = require('../controllers/courier-dispatch.controller');
 router.get('/courier-dispatch/next-dc', requireEmployee, courierController.getNextDcNumber);
 router.get('/courier-dispatch/by-date', requireEmployee, courierController.getDispatchesByDate);
 router.get('/courier-dispatch/all', requireEmployee, courierController.getAllDispatches);
+router.get('/courier-dispatch/:id/pdf', requireEmployee, courierController.downloadDCCopy);
+router.get('/courier-dispatch/:id/label', requireEmployee, courierController.downloadAddressLabel);
 router.post('/courier-dispatch/merge-request', requireEmployee, courierController.createMergeRequest);
 router.post('/courier-dispatch', requireEmployee, courierController.createDispatch);
 router.put('/courier-dispatch/:id', requireEmployee, courierController.updateDispatchEmployee);

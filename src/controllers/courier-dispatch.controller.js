@@ -302,3 +302,62 @@ exports.rejectMergeRequest = async (req, res, next) => {
     next(error);
   }
 };
+
+
+exports.downloadDCCopy = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const dispatch = await courierService.getDispatchById(id);
+    if (!dispatch) return res.status(404).json({ error: 'Delivery Challan not found.' });
+
+    // Verify ownership if requested via employee auth
+    if (req.user && req.user.email) {
+      const userEmail = req.user.email.toLowerCase();
+      const isOwner = dispatch.requesterEmail && dispatch.requesterEmail.toLowerCase() === userEmail;
+      const isAdmin = req.user.role === 'admin';
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ error: 'You are not authorized to download this Delivery Challan.' });
+      }
+    }
+
+    const { generateDCCopyPDF } = require('../utils/courier_pdf_generator');
+    const pdfBytes = await generateDCCopyPDF(dispatch);
+    const cleanDcNo = String(dispatch.dcNo || 'Document').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = `DC_Copy_${cleanDcNo}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    res.status(200).send(Buffer.from(pdfBytes));
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.downloadAddressLabel = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const dispatch = await courierService.getDispatchById(id);
+    if (!dispatch) return res.status(404).json({ error: 'Delivery Challan not found.' });
+
+    // Verify ownership if requested via employee auth
+    if (req.user && req.user.email) {
+      const userEmail = req.user.email.toLowerCase();
+      const isOwner = dispatch.requesterEmail && dispatch.requesterEmail.toLowerCase() === userEmail;
+      const isAdmin = req.user.role === 'admin';
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ error: 'You are not authorized to download this Shipping Label.' });
+      }
+    }
+
+    const { generateAddressLabelPDF } = require('../utils/courier_pdf_generator');
+    const pdfBytes = await generateAddressLabelPDF(dispatch);
+    const cleanDcNo = String(dispatch.dcNo || 'Document').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = `Address_Label_${cleanDcNo}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    res.status(200).send(Buffer.from(pdfBytes));
+  } catch (error) {
+    next(error);
+  }
+};

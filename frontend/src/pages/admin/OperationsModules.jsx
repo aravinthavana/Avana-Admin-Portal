@@ -4,7 +4,7 @@ import {
   LuLaptop, LuPrinter, LuPlus, LuBell, LuEye, LuTrash2, LuPackage, LuX,
   LuBookOpen, LuTruck, LuSend, LuRotateCcw, LuDownload, LuFileText,
   LuShieldCheck, LuReceipt, LuBoxes, LuPencil, LuHistory, LuArrowUpRight,
-  LuPackageCheck, LuZap, LuClock, LuCheck, LuChevronRight, LuBellRing,
+  LuPackageCheck, LuZap, LuClock, LuCheck, LuChevronRight, LuBellRing, LuTag,
 } from 'react-icons/lu';
 import { useToast } from '../../context/ToastContext';
 import {
@@ -1229,6 +1229,24 @@ export function CourierDispatchPage() {
     });
   };
 
+  const handleDownloadDCPdf = async (d) => {
+    try {
+      await courierApi.downloadDCPdf(d.id, d.dcNo);
+      toast.success(`DC #${d.dcNo} PDF downloaded.`);
+    } catch (err) {
+      toast.error(err.message || 'Failed to download DC PDF.');
+    }
+  };
+
+  const handleDownloadLabelPdf = async (d) => {
+    try {
+      await courierApi.downloadAddressLabelPdf(d.id, d.dcNo);
+      toast.success(`Shipping Label #${d.dcNo} downloaded.`);
+    } catch (err) {
+      toast.error(err.message || 'Failed to download Shipping Label.');
+    }
+  };
+
   const handleDownloadSingleDC = (d) => {
     openLegacyPrintReport({
       title: 'DELIVERY CHALLAN',
@@ -1391,11 +1409,25 @@ export function CourierDispatchPage() {
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                         <button
+                          className="btn btn--sm btn--primary"
+                          title="Download official Delivery Challan PDF"
+                          onClick={() => handleDownloadDCPdf(d)}
+                        >
+                          <LuFileText size={13} style={{ marginRight: '0.25rem' }} /> DC PDF
+                        </button>
+                        <button
                           className="btn btn--sm btn--outline"
-                          title="View Delivery Challan PDF"
+                          title="Download A5 Shipping Address Label PDF"
+                          onClick={() => handleDownloadLabelPdf(d)}
+                        >
+                          <LuTag size={13} style={{ marginRight: '0.25rem' }} /> Label
+                        </button>
+                        <button
+                          className="btn btn--sm btn--outline"
+                          title="Print / Preview Delivery Challan"
                           onClick={() => handleDownloadSingleDC(d)}
                         >
-                          <LuEye size={13} style={{ marginRight: '0.25rem' }} /> View DC
+                          <LuPrinter size={13} style={{ marginRight: '0.25rem' }} /> Print
                         </button>
                         {(d.dcDate || '').slice(0, 10) === new Date().toISOString().slice(0, 10) && (
                           <button

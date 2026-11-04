@@ -1613,6 +1613,15 @@ function CourierMergeForm({ userEmail }) {
       .finally(() => setLoading(false));
   }, [date]);
 
+  useEffect(() => {
+    if (!viewDc) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setViewDc(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [viewDc]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedDc) return toast.error('Select a Delivery Challan to merge into.');
@@ -1687,11 +1696,23 @@ function CourierMergeForm({ userEmail }) {
         </div>
       )}
       {viewDc && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div style={{ background: 'white', borderRadius: '12px', padding: '1.5rem', maxWidth: '400px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
+        <div
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => { if (e.target === e.currentTarget) setViewDc(null); }}
+        >
+          <div style={{ background: 'white', borderRadius: '12px', padding: '1.5rem', maxWidth: '420px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.5rem' }}>
               <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#172025' }}>DC #{viewDc.dcNo} Details</h3>
-              <button onClick={() => setViewDc(null)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
+              <button
+                type="button"
+                onClick={() => setViewDc(null)}
+                style={{ background: 'none', border: 'none', fontSize: '1.3rem', cursor: 'pointer', color: '#6b7280', padding: '4px', lineHeight: 1 }}
+                aria-label="Close details"
+              >
+                ✕
+              </button>
             </div>
             <div style={{ fontSize: '0.85rem', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div><strong>Date:</strong> {viewDc.dcDate}</div>
@@ -1700,12 +1721,27 @@ function CourierMergeForm({ userEmail }) {
               <div><strong>Receiver:</strong> {viewDc.receiverName} ({viewDc.receiverPhone || 'No Phone'})</div>
               <div><strong>To Address:</strong> {viewDc.toAddress}</div>
               <div><strong>Transporter:</strong> {viewDc.transporterName || 'N/A'}</div>
-              <div><strong>No. of Boxes:</strong> {viewDc.noOfBoxes}</div>
+              <div><strong>No. of Boxes:</strong> {viewDc.noOfBoxes || 1}</div>
               <div><strong>Items Count:</strong> {viewDc.items?.length || 0}</div>
             </div>
-            <button onClick={() => { setSelectedDc(viewDc.id); setViewDc(null); }} className="btn btn--primary" style={{ marginTop: '0.5rem', width: '100%' }}>
-              Merge into this DC
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setViewDc(null)}
+                className="btn btn--outline"
+                style={{ flex: 1 }}
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSelectedDc(viewDc.id); setViewDc(null); }}
+                className="btn btn--primary"
+                style={{ flex: 1.2 }}
+              >
+                Merge into this DC
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1737,6 +1773,15 @@ function AllDispatchesHistory({ onRefill }) {
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  useEffect(() => {
+    if (!viewDc) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setViewDc(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [viewDc]);
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const [downloadingId, setDownloadingId] = useState(null);
@@ -1952,7 +1997,12 @@ function AllDispatchesHistory({ onRefill }) {
       )}
 
       {viewDc && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, padding: '1rem' }}>
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, padding: '1rem' }}
+          role="dialog"
+          aria-modal="true"
+          onClick={e => { if (e.target === e.currentTarget) setViewDc(null); }}
+        >
           <div style={{ background: 'white', borderRadius: '12px', padding: '1.5rem', maxWidth: '480px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.5rem' }}>
               <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#172025', fontWeight: 800 }}>

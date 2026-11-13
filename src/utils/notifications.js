@@ -51,7 +51,10 @@ exports.sendEmail = async ({ to, cc, bcc, subject, htmlBody, html, attachments =
       },
       tls: {
         rejectUnauthorized: true
-      }
+      },
+      connectionTimeout: 5000, // 5s timeout connecting to SMTP
+      greetingTimeout: 5000,   // 5s timeout for server greeting
+      socketTimeout: 8000      // 8s timeout for socket idle
     });
 
     const finalAttachments = [...attachments];
@@ -93,8 +96,7 @@ exports.sendEmail = async ({ to, cc, bcc, subject, htmlBody, html, attachments =
     console.log(`Email sent to ${to} (CC: ${cc || 'None'}): ${info.messageId}`);
     return { success: true, info };
   } catch (error) {
-    console.error('Nodemailer send error:', error);
-    // Removed legacy PowerShell and raw socket fallbacks for security and reliability.
-    throw error;
+    console.error('Nodemailer send error (email service unavailable):', error.message || error);
+    return { success: false, error: error.message || 'Email delivery failed' };
   }
 };

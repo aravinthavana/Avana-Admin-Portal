@@ -36,11 +36,18 @@ exports.createDispatch = async (req, res, next) => {
     if (!dcNo || !String(dcNo).trim()) {
       return res.status(400).json({ error: 'Delivery Challan No is mandatory and required.' });
     }
-    const requesterEmail = req.user.email;
+    const requesterEmail = req.user?.email || req.body.requesterEmail || 'admin@avanamedical.com';
     const host = req.protocol + '://' + req.get('host');
     const created = await courierService.createDispatch(req.body, requesterEmail, host);
 
-    res.status(201).json({ message: 'Delivery Challan created successfully.', dispatch: created });
+    res.status(201).json({
+      message: created.emailSent !== false
+        ? 'Delivery Challan created successfully.'
+        : 'Delivery Challan created successfully. Email service is currently unavailable; please download your DC and label directly from the portal.',
+      dispatch: created,
+      emailSent: created.emailSent !== false,
+      emailError: created.emailError
+    });
   } catch (error) {
     next(error);
   }
@@ -160,18 +167,22 @@ exports.generateShippingLabel = async (req, res, next) => {
     const emailHtml = templates.shippingLabelGenerated({ from, to });
 
     if (toEmail) {
-      await sendEmail({
-        to: toEmail,
-        subject: 'Shipping Label – Avana Group',
-        htmlBody: emailHtml,
-        attachments: [
-          {
-            filename: `shipping-label-${Date.now()}.pdf`,
-            content: pdfBuffer,
-            contentType: 'application/pdf',
-          },
-        ],
-      });
+      try {
+        await sendEmail({
+          to: toEmail,
+          subject: 'Shipping Label – Avana Group',
+          htmlBody: emailHtml,
+          attachments: [
+            {
+              filename: `shipping-label-${Date.now()}.pdf`,
+              content: pdfBuffer,
+              contentType: 'application/pdf',
+            },
+          ],
+        });
+      } catch (mailErr) {
+        console.warn('[Shipping Label] Email notification failed (service unavailable):', mailErr.message);
+      }
     }
 
     // Return the PDF directly for browser download

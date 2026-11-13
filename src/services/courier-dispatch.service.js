@@ -181,7 +181,10 @@ exports.createDispatch = async (data, requesterEmail, host) => {
   created.isFragile = data.isFragile || false;
   created.ccEmails = ccEmails;
 
-  // Send Emails
+  // Send Emails safely in background/non-blocking
+  let emailSent = false;
+  let emailError = null;
+
   try {
     const attachments = [];
     try {
@@ -198,35 +201,51 @@ exports.createDispatch = async (data, requesterEmail, host) => {
       console.error('Failed to generate Address Label PDF:', labelErr);
     }
 
-    // 1. Separate confirmation email to Employee + CC to additional emails
     const recipient = requesterEmail || data.requesterEmail;
+    const emailPromises = [];
+
     if (recipient) {
-      await sendEmail({
+      emailPromises.push(sendEmail({
         to: recipient,
         cc: ccEmails || undefined,
         subject: `Delivery Challan #${created.dcNo} Generated`,
         htmlBody: templates.courierDispatchSubmission(created),
         attachments
-      });
+      }));
     } else if (ccEmails) {
-      await sendEmail({
+      emailPromises.push(sendEmail({
         to: ccEmails,
         subject: `Delivery Challan #${created.dcNo} Generated`,
         htmlBody: templates.courierDispatchSubmission(created),
         attachments
-      });
+      }));
     }
-    
+
     // 2. Alert email to Admin
-    await sendEmail({
+    emailPromises.push(sendEmail({
       to: env.ADMIN_EMAIL,
       subject: `New Courier Dispatch (#${created.dcNo})`,
       htmlBody: templates.courierDispatchAdminAlert(created, host),
       attachments
-    });
+    }));
+
+    const results = await Promise.allSettled(emailPromises);
+    const anyFailed = results.some(r => r.status === 'rejected' || (r.value && r.value.success === false));
+    if (anyFailed) {
+      emailSent = false;
+      emailError = 'Email service is currently unavailable.';
+      console.warn('[Courier Dispatch] Notice: Email notifications could not be sent (service unavailable). DC saved successfully.');
+    } else {
+      emailSent = true;
+    }
   } catch (err) {
     console.error('Failed to send Courier Dispatch emails:', err);
+    emailSent = false;
+    emailError = err.message || 'Email service unavailable';
   }
+
+  created.emailSent = emailSent;
+  created.emailError = emailError;
 
   return created;
 };
@@ -476,16 +495,18 @@ exports.updateDispatch = async (id, data, requesterEmail, host) => {
     const { sendEmail } = require('../utils/notifications');
     const recipient = requesterEmail || updated.requesterEmail;
     if (recipient) {
-      await sendEmail({
+      const sent = await sendEmail({
         to: recipient,
         cc: updated.ccEmails || undefined,
         subject: `Delivery Challan Updated - #${updated.dcNo}`,
         htmlBody: `<p>Your Delivery Challan #${updated.dcNo} has been successfully updated.</p>`,
         attachments
       });
+      updated.emailSent = sent && sent.success !== false;
     }
   } catch (err) {
     console.error('Failed to generate or send updated PDFs:', err);
+    updated.emailSent = false;
   }
 
   return updated;

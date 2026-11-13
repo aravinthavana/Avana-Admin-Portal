@@ -2926,13 +2926,31 @@ function HelpdeskRequestView() {
           if (formData._hasMergeRequests) {
             toast.warning(`⚠️ DC #${formData._recalledDcNo} had merge requests. They will be cancelled and the requesters will be notified to create their own DC.`);
           }
-          await employeeApi.updateCourierDispatch(formData._recalledDcId, payload);
+          const res = await employeeApi.updateCourierDispatch(formData._recalledDcId, payload);
+          const emailSent = res?.emailSent !== false && res?.dispatch?.emailSent !== false;
           toast.success(`Delivery Challan #${formData._recalledDcNo} updated successfully!`);
-          navigate('/helpdesk');
+          const updatedDc = {
+            ...(res?.dispatch || {}),
+            id: formData._recalledDcId,
+            dcNo: formData._recalledDcNo,
+            emailSent
+          };
+          setCreatedDcModal(updatedDc);
+          return;
         } else {
           const res = await employeeApi.createCourierDispatch(payload);
-          toast.success('Courier dispatch request & Delivery Challan created!');
-          const createdDc = res?.dispatch || { id: res?.id, dcNo: formData.dcNo };
+          const emailSent = res?.emailSent !== false && res?.dispatch?.emailSent !== false;
+          if (!emailSent) {
+            toast.warning('Delivery Challan created. Please download your DC and Label directly in the portal as email service is unavailable.');
+          } else {
+            toast.success('Courier dispatch request & Delivery Challan created!');
+          }
+          const createdDc = {
+            ...(res?.dispatch || {}),
+            id: res?.dispatch?.id || res?.id,
+            dcNo: res?.dispatch?.dcNo || formData.dcNo,
+            emailSent
+          };
           setCreatedDcModal(createdDc);
           return;
         }
@@ -2950,8 +2968,8 @@ function HelpdeskRequestView() {
       }
     } catch (err) {
         if (err.message && err.message.toLowerCase().includes('dc number')) {
-          setErrors({ dcNo: 'Already used DC number. Please use a different one.' });
-          toast.error('Already used DC number. Please use a different one.');
+          setErrors({ dcNo: 'This DC Number has already been used. Please use a different one.' });
+          toast.error('This DC number already exists. If you previously submitted it, you can download its DC copy and label directly from "My DCs & Downloads" or the Requests Tracker.');
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           toast.error(err.message || 'Failed to submit request');
@@ -3095,14 +3113,35 @@ function HelpdeskRequestView() {
                   Delivery Challan #{createdDcModal.dcNo} Created
                 </h3>
                 <p style={{ margin: '2px 0 0 0', fontSize: '0.85rem', color: '#6b7280' }}>
-                  Email notification with DC and Shipping Label has been sent.
+                  {createdDcModal.emailSent === false ? 'Saved successfully in portal records.' : 'Email notification with DC and Shipping Label has been sent.'}
                 </p>
               </div>
             </div>
 
-            <p style={{ margin: '0.25rem 0', fontSize: '0.88rem', color: '#374151', lineHeight: 1.5 }}>
-              You can download your official documents directly right now:
-            </p>
+            {createdDcModal.emailSent === false ? (
+              <div style={{
+                background: '#fffbeb',
+                border: '1.5px solid #f59e0b',
+                borderRadius: '8px',
+                padding: '0.85rem 1rem',
+                color: '#92400e',
+                fontSize: '0.88rem',
+                lineHeight: 1.5,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '10px'
+              }}>
+                <LuCircleAlert size={20} style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <strong style={{ display: 'block', marginBottom: '2px', color: '#b45309' }}>Email Service Unavailable:</strong>
+                  Please kindly download your Delivery Challan and Shipping Label directly in the portal below as email service is unavailable.
+                </div>
+              </div>
+            ) : (
+              <p style={{ margin: '0.25rem 0', fontSize: '0.88rem', color: '#374151', lineHeight: 1.5 }}>
+                An email copy has been dispatched. You can also download your official documents directly below:
+              </p>
+            )}
 
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               <button

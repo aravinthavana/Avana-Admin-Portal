@@ -153,11 +153,18 @@ exports.getRequests = async (req, res, next) => {
     try {
       const dispatches = await courierService.getAllDispatches();
       myDispatches = dispatches
-        .filter(d => d.requesterEmail && d.requesterEmail.toLowerCase() === emailLower)
+        .filter(d => {
+          const reqEmail = (d.requesterEmail || '').trim().toLowerCase();
+          const inCc = d.ccEmails && d.ccEmails.toLowerCase().includes(emailLower);
+          const inMerged = d.mergedRequesters && d.mergedRequesters.toLowerCase().includes(emailLower);
+          return reqEmail === emailLower || inCc || inMerged;
+        })
         .map(d => {
           const dateStr = d.submittedAt || d.createdAt || (d.dcDate ? `${d.dcDate}T09:00:00.000Z` : new Date().toISOString());
           return {
+            ...d,
             id: d.id,
+            dcNo: d.dcNo,
             submittedAt: dateStr,
             createdAt: dateStr,
             created_at: dateStr,

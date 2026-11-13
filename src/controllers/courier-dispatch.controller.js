@@ -312,10 +312,13 @@ exports.downloadDCCopy = async (req, res, next) => {
 
     // Verify ownership if requested via employee auth
     if (req.user && req.user.email) {
-      const userEmail = req.user.email.toLowerCase();
-      const isOwner = dispatch.requesterEmail && dispatch.requesterEmail.toLowerCase() === userEmail;
+      const userEmail = (req.user.email || '').toLowerCase().trim();
+      const reqEmail = (dispatch.requesterEmail || '').toLowerCase().trim();
+      const isOwner = reqEmail && reqEmail === userEmail;
       const isAdmin = req.user.role === 'admin';
-      if (!isOwner && !isAdmin) {
+      const inCc = dispatch.ccEmails && dispatch.ccEmails.toLowerCase().includes(userEmail);
+      const inMerged = dispatch.mergedRequesters && dispatch.mergedRequesters.toLowerCase().includes(userEmail);
+      if (!isOwner && !isAdmin && !inCc && !inMerged) {
         return res.status(403).json({ error: 'You are not authorized to download this Delivery Challan.' });
       }
     }
@@ -341,10 +344,13 @@ exports.downloadAddressLabel = async (req, res, next) => {
 
     // Verify ownership if requested via employee auth
     if (req.user && req.user.email) {
-      const userEmail = req.user.email.toLowerCase();
-      const isOwner = dispatch.requesterEmail && dispatch.requesterEmail.toLowerCase() === userEmail;
+      const userEmail = (req.user.email || '').toLowerCase().trim();
+      const reqEmail = (dispatch.requesterEmail || '').toLowerCase().trim();
+      const isOwner = reqEmail && reqEmail === userEmail;
       const isAdmin = req.user.role === 'admin';
-      if (!isOwner && !isAdmin) {
+      const inCc = dispatch.ccEmails && dispatch.ccEmails.toLowerCase().includes(userEmail);
+      const inMerged = dispatch.mergedRequesters && dispatch.mergedRequesters.toLowerCase().includes(userEmail);
+      if (!isOwner && !isAdmin && !inCc && !inMerged) {
         return res.status(403).json({ error: 'You are not authorized to download this Shipping Label.' });
       }
     }

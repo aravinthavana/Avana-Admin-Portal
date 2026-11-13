@@ -8,7 +8,8 @@ import {
   LuSprayCan, LuMonitor, LuPrinter, LuTruck, LuMessageSquare,
   LuBuilding2, LuLock, LuRefreshCw, LuArrowRight, LuUser,
   LuMail, LuPhone, LuClock, LuCircleCheck, LuCircleX, LuCircleAlert,
-  LuPackageOpen, LuFolder, LuLayers, LuFileText, LuTag, LuDownload, LuExternalLink
+  LuPackageOpen, LuFolder, LuLayers, LuFileText, LuTag, LuDownload, LuExternalLink,
+  LuEye
 } from 'react-icons/lu';
 import {
   Badge, Spinner, EmptyState, Alert, Modal, ConfirmModal,
@@ -301,6 +302,8 @@ function RequestTracker() {
   const [activeTab, setActiveTab] = useState('all');
   const [cancelId, setCancelId] = useState(null);
   const [cancelling, setCancelling] = useState(false);
+  const [downloadingDcId, setDownloadingDcId] = useState(null);
+  const [viewingDc, setViewingDc] = useState(null);
 
   const fetchRequests = useCallback(() => {
     setLoading(true);
@@ -313,6 +316,39 @@ function RequestTracker() {
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
+
+  useEffect(() => {
+    if (!viewingDc) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setViewingDc(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [viewingDc]);
+
+  async function handleDownloadDCPdf(r) {
+    try {
+      setDownloadingDcId(`dc-${r.id}`);
+      await employeeApi.downloadDCPdf(r.id, r.dcNo || r.id);
+      toast.success(`DC #${r.dcNo || ''} PDF downloaded.`);
+    } catch (err) {
+      toast.error(err.message || 'Failed to download Delivery Challan PDF.');
+    } finally {
+      setDownloadingDcId(null);
+    }
+  }
+
+  async function handleDownloadLabelPdf(r) {
+    try {
+      setDownloadingDcId(`label-${r.id}`);
+      await employeeApi.downloadAddressLabelPdf(r.id, r.dcNo || r.id);
+      toast.success(`Shipping Label #${r.dcNo || ''} downloaded.`);
+    } catch (err) {
+      toast.error(err.message || 'Failed to download Shipping Label.');
+    } finally {
+      setDownloadingDcId(null);
+    }
+  }
 
   const handleCancelConfirm = async () => {
     if (!cancelId) return;
@@ -446,12 +482,111 @@ function RequestTracker() {
                           Cancel Booking
                         </button>
                       )}
+                      {r.category === 'courier_dispatch' && (
+                        <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            className="btn btn--sm btn--primary"
+                            onClick={() => handleDownloadDCPdf(r)}
+                            disabled={downloadingDcId === `dc-${r.id}`}
+                            title="Download official Delivery Challan PDF"
+                            style={{ padding: '0.25rem 0.55rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          >
+                            <LuFileText size={12} /> {downloadingDcId === `dc-${r.id}` ? '...' : 'DC PDF'}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn--sm btn--outline"
+                            onClick={() => handleDownloadLabelPdf(r)}
+                            disabled={downloadingDcId === `label-${r.id}`}
+                            title="Download A5 Shipping Address Label PDF"
+                            style={{ padding: '0.25rem 0.55rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          >
+                            <LuTag size={12} /> {downloadingDcId === `label-${r.id}` ? '...' : 'Label'}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn--sm btn--outline"
+                            onClick={() => setViewingDc(r)}
+                            title="View Delivery Challan Details"
+                            style={{ padding: '0.25rem 0.55rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                          >
+                            <LuEye size={12} /> View
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ── Delivery Challan Details Modal ── */}
+      {viewingDc && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, padding: '1rem' }}
+          role="dialog"
+          aria-modal="true"
+          onClick={e => { if (e.target === e.currentTarget) setViewingDc(null); }}
+        >
+          <div style={{ background: 'white', borderRadius: '12px', padding: '1.5rem', maxWidth: '480px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e4e4e7', paddingBottom: '0.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#172025', fontWeight: 800 }}>
+                Delivery Challan #{viewingDc.dcNo}
+              </h3>
+              <button type="button" onClick={() => setViewingDc(null)} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#6b7280' }} aria-label="Close">×</button>
+            </div>
+            <div style={{ fontSize: '0.85rem', color: '#172025', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div><strong>Date:</strong> <span style={{ color: '#d97706', fontWeight: 700 }}>{formatDate(viewingDc.dcDate || viewingDc.submittedAt)}</span></div>
+              <div><strong>Sender / Employee:</strong> {viewingDc.senderName || '—'} {viewingDc.senderPhone ? `(${viewingDc.senderPhone})` : ''}</div>
+              <div><strong>Requester Email:</strong> {viewingDc.requesterEmail || '—'}</div>
+              <div><strong>Receiver Name:</strong> {viewingDc.receiverName || '—'} {viewingDc.receiverPhone ? `(${viewingDc.receiverPhone})` : ''}</div>
+              <div><strong>Destination Address:</strong> {viewingDc.toAddress || '—'}</div>
+              {viewingDc.ccEmails && <div><strong>CC Recipients:</strong> {viewingDc.ccEmails}</div>}
+              <div><strong>Transporter:</strong> {viewingDc.transporterName || '—'}</div>
+              {viewingDc.courierBilling && <div><strong>Courier Billing:</strong> {viewingDc.courierBilling}</div>}
+              {viewingDc.items && <div><strong>Items:</strong> {Array.isArray(viewingDc.items) ? `${viewingDc.items.length} items` : 'Listed'}</div>}
+            </div>
+
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.04em' }}>
+                Official Documents (PDF)
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn--primary btn--sm"
+                  style={{ flex: 1, minWidth: '130px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.8rem' }}
+                  onClick={() => handleDownloadDCPdf(viewingDc)}
+                  disabled={downloadingDcId === `dc-${viewingDc.id}`}
+                >
+                  <LuFileText size={14} /> {downloadingDcId === `dc-${viewingDc.id}` ? 'Downloading...' : 'Download DC (PDF)'}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--outline btn--sm"
+                  style={{ flex: 1, minWidth: '130px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.8rem' }}
+                  onClick={() => handleDownloadLabelPdf(viewingDc)}
+                  disabled={downloadingDcId === `label-${viewingDc.id}`}
+                >
+                  <LuTag size={14} /> {downloadingDcId === `label-${viewingDc.id}` ? 'Downloading...' : 'Shipping Label (PDF)'}
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+              <button
+                type="button"
+                className="btn btn--outline"
+                onClick={() => setViewingDc(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -2187,7 +2322,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
           Shipping Label
         </button>
         <button type="button" style={tabStyle(activeTab === 'all-dcs')} onClick={() => switchTab('all-dcs')}>
-          My DCs & Recall
+          My DCs & Downloads
         </button>
       </div>
 
@@ -2658,6 +2793,8 @@ function HelpdeskRequestView() {
   const [courierTab, setCourierTab] = useState('challan'); // tracks tab inside CourierDispatchForm
   const [stockData, setStockData] = useState(null);
   const [locations, setLocations] = useState(DEFAULT_LOCATIONS);
+  const [createdDcModal, setCreatedDcModal] = useState(null);
+  const [downloadingNewDc, setDownloadingNewDc] = useState(null);
 
   useEffect(() => {
     locationsApi.getLocations()
@@ -2791,9 +2928,13 @@ function HelpdeskRequestView() {
           }
           await employeeApi.updateCourierDispatch(formData._recalledDcId, payload);
           toast.success(`Delivery Challan #${formData._recalledDcNo} updated successfully!`);
+          navigate('/helpdesk');
         } else {
-          await employeeApi.createCourierDispatch(payload);
+          const res = await employeeApi.createCourierDispatch(payload);
           toast.success('Courier dispatch request & Delivery Challan created!');
+          const createdDc = res?.dispatch || { id: res?.id, dcNo: formData.dcNo };
+          setCreatedDcModal(createdDc);
+          return;
         }
       } else {
         const payload = {
@@ -2805,8 +2946,8 @@ function HelpdeskRequestView() {
         };
         await helpdeskApi.submit(payload);
         toast.success('Request submitted successfully!');
+        navigate('/helpdesk');
       }
-      navigate('/helpdesk');
     } catch (err) {
         if (err.message && err.message.toLowerCase().includes('dc number')) {
           setErrors({ dcNo: 'Already used DC number. Please use a different one.' });
@@ -2936,6 +3077,89 @@ function HelpdeskRequestView() {
           )}
         </form>
       </div>
+
+      {/* ── Created Delivery Challan Success Modal ── */}
+      {createdDcModal && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, padding: '1rem' }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div style={{ background: 'white', borderRadius: '12px', padding: '1.75rem', maxWidth: '480px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <LuCircleCheck size={26} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#172025', fontWeight: 800 }}>
+                  Delivery Challan #{createdDcModal.dcNo} Created
+                </h3>
+                <p style={{ margin: '2px 0 0 0', fontSize: '0.85rem', color: '#6b7280' }}>
+                  Email notification with DC and Shipping Label has been sent.
+                </p>
+              </div>
+            </div>
+
+            <p style={{ margin: '0.25rem 0', fontSize: '0.88rem', color: '#374151', lineHeight: 1.5 }}>
+              You can download your official documents directly right now:
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn--primary"
+                style={{ flex: 1, minWidth: '150px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.65rem 1rem' }}
+                onClick={async () => {
+                  try {
+                    setDownloadingNewDc('dc');
+                    await employeeApi.downloadDCPdf(createdDcModal.id, createdDcModal.dcNo);
+                    toast.success(`DC #${createdDcModal.dcNo} PDF downloaded.`);
+                  } catch (err) {
+                    toast.error(err.message || 'Failed to download DC PDF.');
+                  } finally {
+                    setDownloadingNewDc(null);
+                  }
+                }}
+                disabled={downloadingNewDc === 'dc'}
+              >
+                <LuFileText size={16} /> {downloadingNewDc === 'dc' ? 'Downloading...' : 'Download DC (PDF)'}
+              </button>
+              <button
+                type="button"
+                className="btn btn--outline"
+                style={{ flex: 1, minWidth: '150px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.65rem 1rem' }}
+                onClick={async () => {
+                  try {
+                    setDownloadingNewDc('label');
+                    await employeeApi.downloadAddressLabelPdf(createdDcModal.id, createdDcModal.dcNo);
+                    toast.success(`Shipping Label #${createdDcModal.dcNo} downloaded.`);
+                  } catch (err) {
+                    toast.error(err.message || 'Failed to download Shipping Label.');
+                  } finally {
+                    setDownloadingNewDc(null);
+                  }
+                }}
+                disabled={downloadingNewDc === 'label'}
+              >
+                <LuTag size={16} /> {downloadingNewDc === 'label' ? 'Downloading...' : 'Download Label (PDF)'}
+              </button>
+            </div>
+
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '0.75rem', marginTop: '0.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn btn--secondary"
+                onClick={() => {
+                  setCreatedDcModal(null);
+                  navigate('/helpdesk');
+                }}
+              >
+                Done & Go to Requests
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

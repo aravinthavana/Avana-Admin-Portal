@@ -17,6 +17,9 @@ const { requireEmployee } = require('../middlewares/employee-auth.middleware');
 // GET /api/employee/requests
 router.get('/requests', requireEmployee, employeeAuthController.getRequests);
 
+// POST /api/employee/bookings/:id/cancel
+router.post('/bookings/:id/cancel', requireEmployee, employeeAuthController.cancelBooking);
+
 // POST /api/employee/set-password
 router.post('/set-password', requireEmployee, employeeAuthController.setPassword);
 

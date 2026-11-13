@@ -1,5 +1,6 @@
 const env = require('../config/env');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const bookingService = require('../services/bookings.service');
 const auditLogger = require('../utils/audit-logger');
 
@@ -93,7 +94,34 @@ exports.createBooking = async (req, res, next) => {
 exports.cancelBooking = async (req, res, next) => {
   try {
     const { id, email, sig } = req.query;
-    if (!id || !email || !sig) {
+    const isJson = req.xhr || req.headers.accept?.includes('application/json');
+
+    let isAuthorized = false;
+    let authorizedEmail = email;
+
+    if (id && email && sig) {
+      const expectedSig = getCancelSig(id, email);
+      if (sig === expectedSig) {
+        isAuthorized = true;
+      }
+    }
+
+    // Check bearer token in authorization header if sig is missing or not matched
+    if (!isAuthorized && req.headers.authorization && id) {
+      try {
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(token, env.JWT_SECRET);
+        if (decoded && decoded.email) {
+          isAuthorized = true;
+          authorizedEmail = decoded.email;
+        }
+      } catch {}
+    }
+
+    if (!id || !isAuthorized) {
+      if (isJson) {
+        return res.status(403).json({ error: 'Missing required parameters, invalid signature, or unauthorized.' });
+      }
       return res.status(400).send(`
         <html>
           <head>
@@ -119,15 +147,13 @@ exports.cancelBooking = async (req, res, next) => {
       `);
     }
 
-    const expectedSig = getCancelSig(id, email);
-    if (sig !== expectedSig) {
-      return res.status(403).send('Invalid signature.');
-    }
-
     const bookings = await bookingService.getAllBookings();
-    const booking = bookings.find(b => String(b.id) === String(id) && b.email && b.email.trim().toLowerCase() === email.trim().toLowerCase());
+    const booking = bookings.find(b => String(b.id) === String(id) && (!authorizedEmail || (b.email && b.email.trim().toLowerCase() === authorizedEmail.trim().toLowerCase())));
 
     if (!booking) {
+      if (isJson) {
+        return res.status(404).json({ error: 'The booking does not exist or has already been cancelled.' });
+      }
       return res.status(404).send(`
         <html>
           <head>
@@ -157,6 +183,9 @@ exports.cancelBooking = async (req, res, next) => {
     const endDateTimeStr = `${booking.endDate || booking.date || ''}T${booking.endTime || '18:00'}:00`;
     const meetingEndTime = new Date(endDateTimeStr);
     if (!isNaN(meetingEndTime.getTime()) && new Date() > meetingEndTime) {
+      if (isJson) {
+        return res.status(400).json({ error: 'The meeting is already completed and cannot be cancelled.' });
+      }
       return res.status(200).send(`
         <html>
           <head>
@@ -186,6 +215,10 @@ exports.cancelBooking = async (req, res, next) => {
     if (await bookingService.saveBooking(booking)) {
       bookingService.sendBookingCancellationNotification(booking).catch(console.error);
 
+      if (isJson) {
+        return res.status(200).json({ message: 'Booking cancelled successfully.' });
+      }
+
       res.status(200).send(`
         <html>
           <head>
@@ -210,6 +243,9 @@ exports.cancelBooking = async (req, res, next) => {
         </html>
       `);
     } else {
+      if (isJson) {
+        return res.status(500).json({ error: 'Server error updating database.' });
+      }
       res.status(500).send('Server Error updating database');
     }
   } catch (error) {

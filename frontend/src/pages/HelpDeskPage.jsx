@@ -141,7 +141,10 @@ function getStatusBadge(status) {
   const map = {
     pending: 'pending',
     completed: 'approved',
+    approved: 'approved',
+    confirmed: 'approved',
     rejected: 'rejected',
+    cancelled: 'rejected',
     'in-progress': 'in-progress',
   };
   return map[(status || '').toLowerCase()] || 'pending';
@@ -315,8 +318,7 @@ function RequestTracker() {
     if (!cancelId) return;
     setCancelling(true);
     try {
-      const res = await fetch(`/api/bookings/cancel?id=${cancelId}&email=${encodeURIComponent(employeeEmail)}`);
-      if (!res.ok) throw new Error('Failed to cancel booking');
+      await employeeApi.cancelBooking(cancelId);
       toast.success('Booking cancelled successfully!');
       fetchRequests();
     } catch (err) {
@@ -327,17 +329,22 @@ function RequestTracker() {
     }
   };
 
+  const isCompletedOrApproved = (st) => {
+    const s = (st || '').toLowerCase();
+    return s === 'completed' || s === 'confirmed' || s === 'approved';
+  };
+
   const filtered = requests.filter(r => {
     if (activeTab === 'all') return true;
     if (activeTab === 'pending') return (r.status || '').toLowerCase() === 'pending';
-    if (activeTab === 'completed') return (r.status || '').toLowerCase() === 'completed';
+    if (activeTab === 'completed') return isCompletedOrApproved(r.status);
     return true;
   });
 
   const tabs = [
     { key: 'all', label: `All (${requests.length})` },
     { key: 'pending', label: `Pending (${requests.filter(r => (r.status||'').toLowerCase()==='pending').length})` },
-    { key: 'completed', label: `Completed (${requests.filter(r => (r.status||'').toLowerCase()==='completed').length})` },
+    { key: 'completed', label: `Approved / Completed (${requests.filter(r => isCompletedOrApproved(r.status)).length})` },
   ];
 
   return (

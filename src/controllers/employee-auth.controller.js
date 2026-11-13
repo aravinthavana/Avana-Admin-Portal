@@ -280,3 +280,46 @@ exports.loginPassword = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.cancelBooking = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const employeeEmail = req.employee?.email;
+    if (!id || !employeeEmail) {
+      return res.status(400).json({ error: 'Missing booking ID or authentication.' });
+    }
+
+    const bookingService = require('../services/bookings.service');
+    const bookings = await bookingService.getAllBookings();
+    const booking = bookings.find(b => String(b.id) === String(id));
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found.' });
+    }
+
+    if (!booking.email || booking.email.trim().toLowerCase() !== employeeEmail.trim().toLowerCase()) {
+      return res.status(403).json({ error: 'You are not authorized to cancel this booking.' });
+    }
+
+    if (booking.status === 'cancelled') {
+      return res.status(200).json({ message: 'Booking is already cancelled.' });
+    }
+
+    // Check if the meeting is already completed
+    const endDateTimeStr = `${booking.endDate || booking.date || ''}T${booking.endTime || '18:00'}:00`;
+    const meetingEndTime = new Date(endDateTimeStr);
+    if (!isNaN(meetingEndTime.getTime()) && new Date() > meetingEndTime) {
+      return res.status(400).json({ error: 'The meeting is already completed and cannot be cancelled.' });
+    }
+
+    booking.status = 'cancelled';
+    if (await bookingService.saveBooking(booking)) {
+      bookingService.sendBookingCancellationNotification(booking).catch(console.error);
+      return res.status(200).json({ message: 'Booking cancelled successfully.' });
+    } else {
+      return res.status(500).json({ error: 'Failed to cancel booking.' });
+    }
+  } catch (error) {
+    next(error);
+  }
+};

@@ -20,7 +20,7 @@ export function getStatusBadge(status) {
   if (s === 'completed' || s === 'paid' || s === 'approved' || s === 'confirmed') return 'approved';
   if (s === 'pending' || s === 'unpaid') return 'pending';
   if (s === 'in-progress') return 'in-progress';
-  if (s === 'rejected' || s === 'overdue') return 'rejected';
+  if (s === 'rejected' || s === 'overdue' || s === 'cancelled') return 'rejected';
   return 'pending';
 }
 

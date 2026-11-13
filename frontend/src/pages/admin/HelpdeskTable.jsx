@@ -15,7 +15,7 @@ import {
   LuListFilter, LuCalendar, LuClock, LuCircleCheck, LuCheckCheck,
   LuCircleX, LuPrinter, LuTrash2, LuCheck, LuX, LuSearch,
   LuUser, LuMail, LuPhone, LuBuilding2, LuEye, LuCircleAlert,
-  LuRefreshCw, LuInbox
+  LuRefreshCw, LuInbox, LuDownload, LuBan
 } from 'react-icons/lu';
 
 /* ─── Skeleton Rows ───────────────────────────────────────── */
@@ -109,6 +109,66 @@ function parseAttendeesList(att) {
   return [];
 }
 
+export function parseItems(items) {
+  if (!items) return [];
+  try {
+    const parsed = typeof items === 'string' ? JSON.parse(items) : items;
+    if (Array.isArray(parsed)) return parsed;
+    return [];
+  } catch { return []; }
+}
+
+export function parseItemsData(items) {
+  if (!items) return null;
+  try {
+    const parsed = typeof items === 'string' ? JSON.parse(items) : items;
+    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+      return parsed;
+    }
+    return null;
+  } catch { return null; }
+}
+
+export function downloadItemsCSV(req, items) {
+  if (!items || items.length === 0) return;
+  const reqNo = String(req.id || '').slice(0, 8).toUpperCase();
+  const requester = req.name || req.requester_name || req.full_name || 'Requester';
+  const category = CATEGORY_LABELS[req.category] || req.category || 'Stationery';
+  const dateStr = formatDateTime(req.createdAt || req.created_at || new Date().toISOString());
+
+  const header = ['#', 'Item Name', 'Category / Type', 'Requested Quantity', 'Fulfillment Status', 'Fulfilled Quantity', 'Item Remarks'];
+  const rows = items.map((it, idx) => {
+    const name = `"${(it.item || it.name || 'Item').replace(/"/g, '""')}"`;
+    const type = it.isCustom || it.type === 'unlisted' ? 'Unlisted' : (it.type === 'printing' ? 'Printing' : (it.type === 'housekeeping' ? 'Housekeeping' : 'Stationery'));
+    const qty = it.qty || it.quantity || 1;
+    const fulfilled = it.fulfilled === false ? 'Unfulfilled' : (it.fulfilled === true ? 'Fulfilled' : 'Pending');
+    const fulfilledQty = it.fulfilledQty ?? (it.fulfilled ? qty : '');
+    const remarks = `"${(it.remarks || '').replace(/"/g, '""')}"`;
+    return [idx + 1, name, type, qty, fulfilled, fulfilledQty, remarks].join(',');
+  });
+
+  const csvContent = [
+    `Requisition Details`,
+    `Request ID,#${reqNo}`,
+    `Category,"${category}"`,
+    `Requester,"${requester.replace(/"/g, '""')}"`,
+    `Date Submitted,"${dateStr}"`,
+    ``,
+    header.join(','),
+    ...rows,
+  ].join('\r\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Requisition_Items_${reqNo}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 function printConferenceBooking(b) {
   const attendeesList = parseAttendeesList(b.attendees);
   const foodName = b.food === 'others' && b.foodSpecify ? b.foodSpecify : b.food;
@@ -196,6 +256,9 @@ export function HelpdeskTable({ categoryFilter }) {
   const [rejectBookingId, setRejectBookingId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [rejectCategory, setRejectCategory] = useState('');
+  const [cancelAdminBookingId, setCancelAdminBookingId] = useState(null);
+  const [cancelAdminCategory, setCancelAdminCategory] = useState('');
+  const [cancelAdminReason, setCancelAdminReason] = useState('');
   const [activeDetailRequest, setActiveDetailRequest] = useState(null);
   const [approveBookingId, setApproveBookingId] = useState(null);
   const [approvalRemarks, setApprovalRemarks] = useState('');
@@ -381,26 +444,6 @@ export function HelpdeskTable({ categoryFilter }) {
     } finally {
       setConfirmId(null);
     }
-  }
-
-  function parseItems(items) {
-    if (!items) return [];
-    try {
-      const parsed = typeof items === 'string' ? JSON.parse(items) : items;
-      if (Array.isArray(parsed)) return parsed;
-      return [];
-    } catch { return []; }
-  }
-
-  function parseItemsData(items) {
-    if (!items) return null;
-    try {
-      const parsed = typeof items === 'string' ? JSON.parse(items) : items;
-      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
-        return parsed;
-      }
-      return null;
-    } catch { return null; }
   }
 
   async function openCompleteModal(req) {
@@ -957,22 +1000,36 @@ export function HelpdeskTable({ categoryFilter }) {
                           </button>
                           {r.category === 'conference' ? (
                             <>
-                              <button type="button" className="btn btn--sm btn--secondary"
-                                style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', borderColor: 'var(--color-success-border)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                                title="Approve Booking"
-                                onClick={() => { setApproveBookingId(r.id); setApproveCategory(r.category); setApprovalRemarks(''); }}
-                                aria-label="Approve booking">
-                                <LuCheck size={12} />
-                                <span>Approve</span>
-                              </button>
-                              <button type="button" className="btn btn--sm btn--secondary"
-                                style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', borderColor: 'var(--color-error-border)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                                title="Reject Booking"
-                                onClick={() => { setRejectBookingId(r.id); setRejectCategory(r.category); setRejectionReason(''); }}
-                                aria-label="Reject booking">
-                                <LuX size={12} />
-                                <span>Reject</span>
-                              </button>
+                              {(r.status || '').toLowerCase() === 'pending' && (
+                                <>
+                                  <button type="button" className="btn btn--sm btn--secondary"
+                                    style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', borderColor: 'var(--color-success-border)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                    title="Approve Booking"
+                                    onClick={() => { setApproveBookingId(r.id); setApproveCategory(r.category); setApprovalRemarks(''); }}
+                                    aria-label="Approve booking">
+                                    <LuCheck size={12} />
+                                    <span>Approve</span>
+                                  </button>
+                                  <button type="button" className="btn btn--sm btn--secondary"
+                                    style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', borderColor: 'var(--color-error-border)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                    title="Reject Booking"
+                                    onClick={() => { setRejectBookingId(r.id); setRejectCategory(r.category); setRejectionReason(''); }}
+                                    aria-label="Reject booking">
+                                    <LuX size={12} />
+                                    <span>Reject</span>
+                                  </button>
+                                </>
+                              )}
+                              {((r.status || '').toLowerCase() === 'confirmed' || (r.status || '').toLowerCase() === 'approved') && (
+                                <button type="button" className="btn btn--sm btn--secondary"
+                                  style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', borderColor: 'var(--color-error-border)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                  title="Cancel Confirmed Booking"
+                                  onClick={() => { setCancelAdminBookingId(r.id); setCancelAdminCategory(r.category); setCancelAdminReason(''); }}
+                                  aria-label="Cancel booking">
+                                  <LuBan size={12} />
+                                  <span>Cancel</span>
+                                </button>
+                              )}
                             </>
                           ) : (
                             <>
@@ -1066,6 +1123,42 @@ export function HelpdeskTable({ categoryFilter }) {
             placeholder="Please specify why the booking is rejected..."
             value={rejectionReason}
             onChange={e => setRejectionReason(e.target.value)}
+          />
+        </FormField>
+      </Modal>
+
+      {/* ── Cancel Conference Room Booking Modal ── */}
+      <Modal
+        isOpen={!!cancelAdminBookingId}
+        onClose={() => setCancelAdminBookingId(null)}
+        title="Cancel Conference Room Booking"
+        footer={
+          <>
+            <button type="button" className="btn btn--secondary" onClick={() => setCancelAdminBookingId(null)}>Close</button>
+            <button
+              type="button"
+              className="btn btn--danger"
+              onClick={() => {
+                handleStatus(cancelAdminBookingId, 'cancelled', cancelAdminCategory, cancelAdminReason);
+                setCancelAdminBookingId(null);
+              }}
+            >
+              Confirm Cancellation
+            </button>
+          </>
+        }
+      >
+        <p style={{ margin: '0 0 var(--space-3) 0', fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
+          This will cancel the booking, release the reserved conference room time slot, and send an automated cancellation notification email to the requester.
+        </p>
+        <FormField label="Cancellation Reason / Remarks (Optional)" htmlFor="hd-cancel-reason">
+          <textarea
+            id="hd-cancel-reason"
+            className="form-textarea"
+            rows={3}
+            placeholder="e.g., Room required for VIP meeting, rescheduled, maintenance..."
+            value={cancelAdminReason}
+            onChange={e => setCancelAdminReason(e.target.value)}
           />
         </FormField>
       </Modal>
@@ -1379,22 +1472,35 @@ export function HelpdeskTable({ categoryFilter }) {
         title={activeDetailRequest?.category === 'conference' ? 'Conference Room Reservation Details' : 'Service Request Details'}
         footer={
           activeDetailRequest && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-              <button
-                type="button"
-                className="btn btn--primary"
-                onClick={() => {
-                  if (activeDetailRequest.category === 'conference') {
-                    printConferenceBooking(activeDetailRequest);
-                  } else {
-                    printGeneralServiceRequest(activeDetailRequest);
-                  }
-                }}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              >
-                <LuPrinter size={14} />
-                <span>Print Requisition Slip</span>
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  onClick={() => {
+                    if (activeDetailRequest.category === 'conference') {
+                      printConferenceBooking(activeDetailRequest);
+                    } else {
+                      printGeneralServiceRequest(activeDetailRequest);
+                    }
+                  }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <LuPrinter size={14} />
+                  <span>Print Requisition Slip</span>
+                </button>
+                {activeDetailRequest.category !== 'conference' && parseItems(activeDetailRequest.items).length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn--secondary"
+                    onClick={() => downloadItemsCSV(activeDetailRequest, parseItems(activeDetailRequest.items))}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <LuDownload size={14} />
+                    <span>Download Items CSV</span>
+                  </button>
+                )}
+              </div>
               <button type="button" className="btn btn--secondary" onClick={() => setActiveDetailRequest(null)}>
                 Close
               </button>
@@ -1543,7 +1649,21 @@ export function HelpdeskTable({ categoryFilter }) {
 
                   {itemsList.length > 0 && (
                     <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
-                      <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>Requested Items</strong>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+                          Requested Items ({itemsList.length})
+                        </strong>
+                        <button
+                          type="button"
+                          className="btn btn--xs btn--outline"
+                          onClick={() => downloadItemsCSV(r, itemsList)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', padding: '2px 8px' }}
+                          title="Download requested items as CSV"
+                        >
+                          <LuDownload size={12} />
+                          <span>Download Items</span>
+                        </button>
+                      </div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                         <thead>
                           <tr style={{ background: 'var(--color-background-secondary)', textAlign: 'left' }}>

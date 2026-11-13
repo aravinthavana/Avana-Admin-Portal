@@ -58,6 +58,8 @@ function getCalendarDays(year, month) {
 function getBookedMinutes(bookings, dateStr) {
   let total = 0;
   for (const b of bookings) {
+    const st = (b.status || '').toLowerCase();
+    if (st === 'rejected' || st === 'cancelled') continue;
     const start = b.startDate || b.date;
     const end = b.endDate || b.date || start;
     if (dateStr < start || dateStr > end) continue;
@@ -75,6 +77,8 @@ function getBookedMinutes(bookings, dateStr) {
 /* Get bookings for a specific date */
 function getBookingsForDate(bookings, dateStr) {
   return bookings.filter(b => {
+    const st = (b.status || '').toLowerCase();
+    if (st === 'rejected' || st === 'cancelled') return false;
     const start = b.startDate || b.date;
     const end = b.endDate || b.date || start;
     return dateStr >= start && dateStr <= end;
@@ -207,7 +211,8 @@ export default function BookingPage() {
 
     for (const d of dates) {
       const sameDateBookings = bookings.filter(b => {
-        if (b.status && b.status.toLowerCase() === 'rejected') return false;
+        const st = (b.status || '').toLowerCase();
+        if (st === 'rejected' || st === 'cancelled') return false;
         const bStart = b.startDate || b.date;
         const bEnd = b.endDate || b.date;
         return d >= bStart && d <= bEnd;

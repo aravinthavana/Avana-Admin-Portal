@@ -158,6 +158,9 @@ exports.updateStatus = async (req, res, next) => {
       } else if (status === 'confirmed' && approvalRemarks) {
         // Store approval remarks inside the remarks field in SQLite
         b.remarks = b.remarks ? `${b.remarks} | Admin Remarks: ${approvalRemarks}` : `Admin Remarks: ${approvalRemarks}`;
+      } else if (status === 'cancelled') {
+        const cancelNote = rejectionReason || resolution || 'Cancelled by Admin';
+        b.remarks = b.remarks ? `${b.remarks} | Admin Cancellation: ${cancelNote}` : `Admin Cancellation: ${cancelNote}`;
       }
       
       if (await bookingsService.saveBooking(b)) {
@@ -166,7 +169,10 @@ exports.updateStatus = async (req, res, next) => {
           bookingsService.sendBookingApprovalToEmployeeNotification(b, host, approvalRemarks).catch(console.error);
         } else if (status === 'rejected') {
           bookingsService.sendBookingRejectionToEmployeeNotification(b, b.rejectionReason).catch(console.error);
+        } else if (status === 'cancelled') {
+          bookingsService.sendBookingCancellationNotification(b).catch(console.error);
         }
+        await auditLogger.logAdminAction(req, `UPDATE_BOOKING_STATUS_${status.toUpperCase()}`, 'Booking', id, { status });
         return res.status(200).json({ message: 'Booking status updated successfully.' });
       } else {
         return res.status(500).json({ error: 'Failed to update booking status.' });
@@ -313,16 +319,30 @@ exports.deleteRequest = async (req, res, next) => {
     const requests = await helpdeskService.getAllRequests();
     const reqIndex = requests.findIndex(r => r.id === id);
 
-    if (reqIndex === -1) {
-      return res.status(404).json({ error: 'Request not found.' });
+    if (reqIndex !== -1) {
+      if (await helpdeskService.deleteRequest(id)) {
+        await auditLogger.logAdminAction(req, 'DELETE_TICKET', 'HelpdeskRequest', id, null);
+        return res.status(200).json({ message: 'Request deleted successfully.' });
+      } else {
+        return res.status(500).json({ error: 'Failed to delete request.' });
+      }
     }
 
-    if (await helpdeskService.deleteRequest(id)) {
-      await auditLogger.logAdminAction(req, 'DELETE_TICKET', 'HelpdeskRequest', req.params.id, null);
-    res.status(200).json({ message: 'Request deleted successfully.' });
-    } else {
-      res.status(500).json({ error: 'Failed to delete request.' });
+    // If not found in helpdesk tickets, check conference room bookings
+    const bookingsService = require('../services/bookings.service');
+    const bookings = await bookingsService.getAllBookings();
+    const bIndex = bookings.findIndex(b => b.id === id);
+
+    if (bIndex !== -1) {
+      if (await bookingsService.deleteBooking(id)) {
+        await auditLogger.logAdminAction(req, 'DELETE_BOOKING', 'Booking', id, null);
+        return res.status(200).json({ message: 'Booking deleted successfully.' });
+      } else {
+        return res.status(500).json({ error: 'Failed to delete booking.' });
+      }
     }
+
+    return res.status(404).json({ error: 'Request not found.' });
   } catch (error) {
     next(error);
   }

@@ -93,6 +93,9 @@ export const employeeApi = {
   getRequests: () =>
     request('/employee/requests', {}, 'employee'),
 
+  cancelBooking: (id) =>
+    request(`/employee/bookings/${id}/cancel`, { method: 'POST' }, 'employee'),
+
   getDispatchesByDate: (date) =>
     request(`/employee/courier-dispatch/by-date?date=${date}`, {}, 'employee'),
 

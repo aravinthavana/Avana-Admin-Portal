@@ -124,12 +124,29 @@ exports.getRequests = async (req, res, next) => {
     const requests = await helpdeskService.getAllRequests();
     const myRequests = requests
       .filter(r => r.email && r.email.toLowerCase() === emailLower)
-      .map(r => ({
-        ...r,
-        submittedAt: r.createdAt || r.submittedAt || new Date().toISOString(),
-        createdAt: r.createdAt || r.submittedAt || new Date().toISOString(),
-        created_at: r.createdAt || r.submittedAt || new Date().toISOString(),
-      }));
+      .map(r => {
+        let desc = r.description || r.details || r.issue || '';
+        if (!desc && r.items) {
+          try {
+            const parsed = typeof r.items === 'string' ? JSON.parse(r.items) : r.items;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const isComp = (r.status || '').toLowerCase() === 'completed';
+              desc = parsed.map(it => {
+                const name = it.name || it.item || 'Item';
+                const q = (isComp && it.fulfilledQty !== undefined) ? it.fulfilledQty : (it.quantity || it.qty || 1);
+                return `${name} (Qty: ${q})`;
+              }).join(', ');
+            }
+          } catch {}
+        }
+        return {
+          ...r,
+          description: desc || '—',
+          submittedAt: r.createdAt || r.submittedAt || new Date().toISOString(),
+          createdAt: r.createdAt || r.submittedAt || new Date().toISOString(),
+          created_at: r.createdAt || r.submittedAt || new Date().toISOString(),
+        };
+      });
 
     const bookings = await bookingService.getAllBookings();
     const myBookings = bookings

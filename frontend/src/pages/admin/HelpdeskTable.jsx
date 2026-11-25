@@ -140,7 +140,7 @@ export function downloadItemsCSV(req, items) {
   const rows = items.map((it, idx) => {
     const name = `"${(it.item || it.name || 'Item').replace(/"/g, '""')}"`;
     const type = it.isCustom || it.type === 'unlisted' ? 'Unlisted' : (it.type === 'printing' ? 'Printing' : (it.type === 'housekeeping' ? 'Housekeeping' : 'Stationery'));
-    const qty = it.qty || it.quantity || 1;
+    const qty = it.requestedQty || it.qty || it.quantity || 1;
     const fulfilled = it.fulfilled === false ? 'Unfulfilled' : (it.fulfilled === true ? 'Fulfilled' : 'Pending');
     const fulfilledQty = it.fulfilledQty ?? (it.fulfilled ? qty : '');
     const remarks = `"${(it.remarks || '').replace(/"/g, '""')}"`;
@@ -1720,7 +1720,7 @@ export function HelpdeskTable({ categoryFilter }) {
                                     </span>
                                   )}
                                 </td>
-                                <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600 }}>{i.qty || i.quantity || 1}</td>
+                                <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600 }}>{i.requestedQty || i.qty || i.quantity || 1}</td>
                               </tr>
                             );
                           })}

@@ -209,13 +209,33 @@ exports.updateStatus = async (req, res, next) => {
           reqItems = reqItems.map(it => {
             const key = (it.name || it.item || '').trim().toLowerCase();
             const isFulfilled = fulfilledNames.has(key);
+            const reqQty = parseInt(it.requestedQty || it.qty || it.quantity || 1, 10);
+            const fulfilledQty = isFulfilled ? (fulfilledNames.get(key) || 0) : 0;
             return {
               ...it,
-              fulfilled: isFulfilled,
-              fulfilledQty: isFulfilled ? fulfilledNames.get(key) : 0
+              requestedQty: reqQty,
+              qty: isFulfilled ? fulfilledQty : reqQty,
+              quantity: isFulfilled ? fulfilledQty : reqQty,
+              fulfilled: isFulfilled && fulfilledQty > 0,
+              fulfilledQty: isFulfilled ? fulfilledQty : 0
             };
           });
           request.items = JSON.stringify(reqItems);
+        }
+
+        // Handle single-item requests if present
+        if (request.item) {
+          const itemKey = request.item.trim().toLowerCase();
+          const match = fulfilledItems.find(f => (f.name || f.item || '').trim().toLowerCase() === itemKey);
+          if (match) {
+            const reqQty = parseInt(request.requestedQuantity || request.quantity || 1, 10);
+            const fQty = parseInt(match.qty || match.quantity || 0, 10);
+            request.requestedQuantity = reqQty;
+            request.fulfilledQty = fQty;
+            request.quantity = fQty;
+            request.qty = fQty;
+            request.fulfilled = fQty > 0;
+          }
         }
       }
     }

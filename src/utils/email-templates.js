@@ -28,18 +28,54 @@ function extractHelpdeskDetails(request) {
      itemsArr = null;
   }
 
+  const isCompleted = (request.status || '').toLowerCase() === 'completed';
+
   let detailsText = '';
   if (Array.isArray(itemsArr) && itemsArr.length) {
-    detailsText = itemsArr.map(it => `• <strong>${it.item || it.name || 'Item'}</strong> &times; ${it.quantity || it.qty || 1}`).join('<br/>');
+    detailsText = itemsArr.map(it => {
+      const name = it.item || it.name || 'Item';
+      if (isCompleted) {
+        const isUnfulfilled = it.fulfilled === false || (it.fulfilledQty !== undefined && it.fulfilledQty === 0);
+        if (isUnfulfilled) {
+          const reqQ = it.requestedQty || it.quantity || it.qty || 1;
+          return `• <strong>${name}</strong> &times; 0 Qty <span style="color: #dc2626; font-size: 12px;">(Out of stock / Unfulfilled, Requested: ${reqQ})</span>`;
+        }
+        const issuedQty = it.fulfilledQty !== undefined ? it.fulfilledQty : (it.quantity || it.qty || 1);
+        const reqQty = it.requestedQty || null;
+        if (reqQty && reqQty !== issuedQty) {
+          return `• <strong>${name}</strong> &times; ${issuedQty} Qty <span style="color: #71717a; font-size: 12px;">(Requested: ${reqQty})</span>`;
+        }
+        return `• <strong>${name}</strong> &times; ${issuedQty} Qty`;
+      }
+      return `• <strong>${name}</strong> &times; ${it.quantity || it.qty || 1}`;
+    }).join('<br/>');
   } else if (request.item) {
-    detailsText = `${request.stationery_type || 'Item'}: <strong>${request.item}</strong> &times; ${request.quantity || 1}`;
+    const name = request.item;
+    const type = request.stationery_type || 'Item';
+    if (isCompleted) {
+      const isUnfulfilled = request.fulfilled === false || (request.fulfilledQty !== undefined && request.fulfilledQty === 0);
+      if (isUnfulfilled) {
+        const reqQ = request.requestedQuantity || request.quantity || 1;
+        detailsText = `${type}: <strong>${name}</strong> &times; 0 Qty <span style="color: #dc2626; font-size: 12px;">(Out of stock / Unfulfilled, Requested: ${reqQ})</span>`;
+      } else {
+        const issuedQty = request.fulfilledQty !== undefined ? request.fulfilledQty : (request.quantity || 1);
+        const reqQty = request.requestedQuantity || request.requestedQty;
+        if (reqQty && reqQty !== issuedQty) {
+          detailsText = `${type}: <strong>${name}</strong> &times; ${issuedQty} Qty <span style="color: #71717a; font-size: 12px;">(Requested: ${reqQty})</span>`;
+        } else {
+          detailsText = `${type}: <strong>${name}</strong> &times; ${issuedQty} Qty`;
+        }
+      }
+    } else {
+      detailsText = `${type}: <strong>${name}</strong> &times; ${request.quantity || 1}`;
+    }
   } else {
     detailsText = request.exact_issue || request.description || 'N/A';
   }
   
   const subcategory = request.subcategory || request.item_type || extraFields.request_type || extraFields.support_type || extraFields.service_type || extraFields.issue_type || 'N/A';
   const floor = request.floor || request.location || extraFields.floor || extraFields.location || 'N/A';
-  const remarks = request.remarks || extraFields.remarks || 'None';
+  const remarks = request.resolution || request.remarks || extraFields.remarks || 'None';
   
   return { detailsText, subcategory, floor, remarks };
 }
@@ -878,6 +914,7 @@ const templates = {
   helpdeskCompleted(request) {
     const { detailsText, subcategory, floor, remarks } = extractHelpdeskDetails(request);
     const catTitle = request.categoryTitle || request.category;
+    const isMaterial = request.category === 'stationery' || request.category === 'hk_material';
 
     return buildEmail({
       title: `Service Request #${request.id} Completed`,
@@ -896,8 +933,8 @@ const templates = {
           ${tableRow('Category', catTitle, true)}
           ${tableRow('Sub-Type / Priority', subcategory)}
           ${tableRow('Floor', floor, true)}
-          ${tableRow('Details / Issue', detailsText)}
-          ${tableRow('Remarks', remarks, true)}
+          ${tableRow(isMaterial ? 'Issued Items' : 'Details / Issue', detailsText)}
+          ${tableRow('Remarks / Resolution', remarks, true)}
           ${tableRow('Status', statusBadge('Completed', 'completed'))}
         </table>
         <p style="margin: 16px 0 0 0; color: #52525b; font-size: 13.5px;">In case of any further assistance, please feel free to contact us.</p>

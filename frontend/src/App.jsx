@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { MotionConfig } from 'motion/react';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { EmployeeLayout, AdminLayout, ConferenceAdminLayout } from './components/Layout';
 import { RequireEmployee, RequireAdmin, RedirectIfEmployee, RedirectIfAdmin } from './components/ProtectedRoute';
 
 // ── Pages (lazy-loaded for performance) ────────────────────────────────────
-import { lazy, Suspense } from 'react';
 import { Spinner } from './components/ui';
 
 const LoginPage          = lazy(() => import('./pages/LoginPage'));
 const HelpDeskPage       = lazy(() => import('./pages/HelpDeskPage'));
+const MyRequestsPage     = lazy(() => import('./pages/MyRequestsPage'));
 const BookingPage        = lazy(() => import('./pages/BookingPage'));
 const StatusPage         = lazy(() => import('./pages/StatusPage'));
 const AdminLoginPage     = lazy(() => import('./pages/AdminLoginPage'));
@@ -28,30 +29,32 @@ function PageLoader() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              {/* ── Public ── */}
-              <Route path="/status" element={<StatusPage />} />
-              <Route path="/asset-acknowledgement" element={<AssetAcknowledgementPage />} />
+    <MotionConfig reducedMotion="user">
+      <BrowserRouter>
+        <AuthProvider>
+          <ToastProvider>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* ── Public ── */}
+                <Route path="/status" element={<StatusPage />} />
+                <Route path="/asset-acknowledgement" element={<AssetAcknowledgementPage />} />
 
-              {/* ── Employee Auth & Portal ── */}
-              <Route path="/" element={
-                <RedirectIfEmployee>
-                  <LoginPage />
-                </RedirectIfEmployee>
-              } />
+                {/* ── Employee Auth & Portal ── */}
+                <Route path="/" element={
+                  <RedirectIfEmployee>
+                    <LoginPage />
+                  </RedirectIfEmployee>
+                } />
 
-              <Route element={
-                <RequireEmployee>
-                  <EmployeeLayout />
-                </RequireEmployee>
-              }>
-                <Route path="/helpdesk/*" element={<HelpDeskPage />} />
-                <Route path="/booking" element={<BookingPage />} />
-              </Route>
+                <Route element={
+                  <RequireEmployee>
+                    <EmployeeLayout />
+                  </RequireEmployee>
+                }>
+                  <Route path="/helpdesk/my-requests" element={<MyRequestsPage />} />
+                  <Route path="/helpdesk/*" element={<HelpDeskPage />} />
+                  <Route path="/booking" element={<BookingPage />} />
+                </Route>
 
               {/* ── Admin Login ── */}
               <Route path="/admin-login" element={
@@ -85,5 +88,6 @@ export default function App() {
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
+    </MotionConfig>
   );
 }

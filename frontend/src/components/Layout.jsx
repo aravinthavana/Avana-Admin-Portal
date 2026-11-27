@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { AvanaLogo } from '../components/ui';
-import { LuUser, LuLayoutDashboard, LuLogOut, LuChevronLeft, LuChevronRight, LuHouse } from 'react-icons/lu';
+import {
+  LuUser, LuLayoutDashboard, LuLogOut, LuChevronLeft, LuChevronRight, LuHouse,
+  LuMenu, LuX, LuClock, LuCalendar, LuPenTool, LuSparkles, LuBriefcase,
+  LuWrench, LuSprayCan, LuMonitor, LuPrinter, LuTruck, LuMessageSquare
+} from 'react-icons/lu';
 import '../styles/Layout.css';
 
 // ── Header Navigation & Breadcrumbs ─────────────────────────────────────────
@@ -45,7 +50,8 @@ function HeaderNavigation() {
     'locations': 'Office Locations',
     'audit-logs': 'Audit Logs',
     'booking': 'Room Booking',
-    'helpdesk': 'Helpdesk'
+    'helpdesk': 'Helpdesk',
+    'my-requests': 'My Requests & Activity'
   };
 
   const pathSnippets = location.pathname.split('/').filter(i => i);
@@ -139,11 +145,28 @@ function HeaderNavigation() {
   );
 }
 
+const RESTRICTED_EMAIL = 'bhuvaneshravi@avanamedical.com';
+
 // ── Employee Layout ────────────────────────────────────────────────────────
 export function EmployeeLayout() {
   const { employeeEmail, logoutEmployee } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile drawer on Escape
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') setSidebarOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [sidebarOpen]);
 
   const handleLogout = () => {
     logoutEmployee();
@@ -151,47 +174,173 @@ export function EmployeeLayout() {
     navigate('/');
   };
 
-  return (
-    <div className="layout layout--employee" style={{ background: 'var(--color-bg, #f5f5f7)', minHeight: '100vh' }}>
-      <a href="#main-content" className="skip-link">Skip to main content</a>
-      <header role="banner" className="portal-header">
-        <div className="portal-header__top">
-          <div className="portal-header__brand">
-            <AvanaLogo size="md" style={{ filter: 'none' }} />
-            <div>
-              <div className="portal-header__title">
-                Avana <span style={{ color: 'var(--brand-amber, #b27f0d)' }}>Group</span>
-              </div>
-              <div className="portal-header__subtitle">
-                Admin Request Portal
-              </div>
+  const mainLinks = [
+    { to: '/helpdesk', label: 'Service Desks', icon: <LuHouse size={17} />, end: true },
+    { to: '/helpdesk/my-requests', label: 'My Requests & Activity', icon: <LuClock size={17} /> },
+    { to: '/booking', label: 'Conference Room', icon: <LuCalendar size={17} /> },
+  ];
+
+  const deskLinks = [
+    { to: '/helpdesk/stationery', label: 'Stationery', icon: <LuPenTool size={16} /> },
+    { to: '/helpdesk/courier_dispatch', label: 'Courier & Dispatch', icon: <LuTruck size={16} /> },
+    ...(employeeEmail === RESTRICTED_EMAIL
+      ? [{ to: '/helpdesk/hk_material', label: 'HK Material', icon: <LuSparkles size={16} /> }]
+      : []),
+    { to: '/helpdesk/admin_support', label: 'Admin Support', icon: <LuBriefcase size={16} /> },
+    { to: '/helpdesk/maintenance', label: 'Maintenance', icon: <LuWrench size={16} /> },
+    { to: '/helpdesk/housekeeping', label: 'Housekeeping', icon: <LuSprayCan size={16} /> },
+    { to: '/helpdesk/office_asset', label: 'Office Asset', icon: <LuMonitor size={16} /> },
+    { to: '/helpdesk/print_scan', label: 'Printing & Scanning', icon: <LuPrinter size={16} /> },
+    { to: '/helpdesk/app_feedback', label: 'App Feedback', icon: <LuMessageSquare size={16} /> },
+  ];
+
+  const renderSidebarNav = () => (
+    <>
+      <div className="sidebar__header">
+        <Link to="/helpdesk" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', color: '#fff' }}>
+          <AvanaLogo size="sm" />
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '0.98rem', lineHeight: 1.15 }}>
+              Avana <span style={{ color: '#f5c358' }}>Group</span>
+            </div>
+            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
+              Employee Portal
             </div>
           </div>
+        </Link>
+        <button
+          type="button"
+          className="emp-sidebar__close"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close navigation menu"
+        >
+          <LuX size={20} />
+        </button>
+      </div>
 
-          <div className="portal-header__actions">
-            {employeeEmail && (
-              <div className="portal-header__user-pill">
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><LuUser size={13} /> {employeeEmail}</span>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="portal-header__logout-btn"
-                  aria-label="Log Out"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
+      <nav className="emp-sidebar__nav" aria-label="Employee Portal Navigation">
+        <div className="emp-sidebar__section-label">Workspace</div>
+        {mainLinks.map(item => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            className={({ isActive }) => `emp-sidebar__link${isActive ? ' emp-sidebar__link--active' : ''}`}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </NavLink>
+        ))}
+
+        <div className="sidebar__divider" />
+        <div className="emp-sidebar__section-label">Service Desks</div>
+        {deskLinks.map(item => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) => `emp-sidebar__link${isActive ? ' emp-sidebar__link--active' : ''}`}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
+
+      {employeeEmail && (
+        <div className="sidebar__footer">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.78)', fontSize: '0.78rem', marginBottom: '0.6rem', overflow: 'hidden' }}>
+            <LuUser size={14} style={{ flexShrink: 0, color: '#f5c358' }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={employeeEmail}>{employeeEmail}</span>
           </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="emp-sidebar__logout-btn"
+            aria-label="Log Out"
+          >
+            <LuLogOut size={15} />
+            <span>Log Out</span>
+          </button>
         </div>
+      )}
+    </>
+  );
 
-        <div className="portal-header__nav-row">
-          <HeaderNavigation />
-        </div>
-      </header>
-      <main className="layout__main" id="main-content" tabIndex={-1}>
-        <Outlet />
-      </main>
+  return (
+    <div className="layout layout--employee-shell">
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+
+      {/* Desktop persistent sidebar */}
+      <aside className="emp-sidebar emp-sidebar--desktop" aria-label="Primary Sidebar">
+        {renderSidebarNav()}
+      </aside>
+
+      {/* Mobile off-canvas drawer */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <>
+            <motion.div
+              className="emp-sidebar-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setSidebarOpen(false)}
+              aria-hidden="true"
+            />
+            <motion.aside
+              className="emp-sidebar emp-sidebar--mobile"
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              aria-label="Mobile Navigation"
+            >
+              {renderSidebarNav()}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content Shell */}
+      <div className="emp-shell__content">
+        <header role="banner" className="portal-header portal-header--compact">
+          <div className="portal-header__top">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+              <button
+                type="button"
+                className="emp-hamburger"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open navigation menu"
+                aria-expanded={sidebarOpen}
+              >
+                <LuMenu size={20} />
+              </button>
+              <HeaderNavigation />
+            </div>
+
+            <div className="portal-header__actions">
+              {employeeEmail && (
+                <div className="portal-header__user-pill emp-header-user">
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><LuUser size={13} /> {employeeEmail}</span>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="portal-header__logout-btn"
+                    aria-label="Log Out"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <main className="layout__main" id="main-content" tabIndex={-1}>
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

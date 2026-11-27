@@ -16,6 +16,11 @@
 }
 
 /* Subtle background accent grid */
+@keyframes loginBgPulse {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}
+
 .login-page__bg {
   position: absolute;
   inset: 0;
@@ -24,6 +29,13 @@
   background-size: 24px 24px;
   mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, black 25%, transparent 75%);
   -webkit-mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, black 25%, transparent 75%);
+  animation: loginBgPulse 8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page__bg {
+    animation: none;
+  }
 }
 
 /* Admin sign-in button (top right) */
@@ -66,7 +78,6 @@
   padding: var(--space-8);
   width: 100%;
   max-width: 440px;
-  animation: fadeInUp 0.35s ease;
 }
 
 .login-page__logo {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { adminApi } from '../lib/api';
@@ -55,7 +56,13 @@ export default function AdminLoginPage() {
         <span>Employee Portal</span>
       </Link>
 
-      <main className="login-page__card" role="main">
+      <motion.main
+        className="login-page__card"
+        role="main"
+        initial={{ opacity: 0, y: 14, scale: 0.99 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      >
         <div className="login-page__logo">
           <AvanaLogo size="lg" />
         </div>
@@ -118,7 +125,7 @@ export default function AdminLoginPage() {
             <LuArrowLeft size={13} /> Back to Employee Portal
           </Link>
         </p>
-      </main>
+      </motion.main>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { employeeApi, adminApi } from '../lib/api';
@@ -383,7 +384,13 @@ export default function LoginPage() {
       </button>
 
       {/* Login card */}
-      <main className="login-page__card" role="main">
+      <motion.main
+        className="login-page__card"
+        role="main"
+        initial={{ opacity: 0, y: 14, scale: 0.99 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      >
         <div className="login-page__logo">
           <AvanaLogo size="lg" />
         </div>
@@ -430,10 +437,20 @@ export default function LoginPage() {
           aria-labelledby={mode === 'otp' ? 'tab-otp' : 'tab-password'}
           style={{ marginTop: 'var(--space-6)' }}
         >
-          {mode === 'otp'
-            ? <OtpLoginPanel onSuccess={handleEmployeeSuccess} />
-            : <PasswordLoginPanel onSuccess={handleEmployeeSuccess} />
-          }
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {mode === 'otp'
+                ? <OtpLoginPanel onSuccess={handleEmployeeSuccess} />
+                : <PasswordLoginPanel onSuccess={handleEmployeeSuccess} />
+              }
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <p className="login-page__footer-link">
@@ -442,7 +459,7 @@ export default function LoginPage() {
             Live Status <LuArrowRight size={12} />
           </a>
         </p>
-      </main>
+      </motion.main>
 
       {/* Admin login modal */}
       {showAdminModal && (

@@ -45,12 +45,11 @@ exports.sendOtp = async (req, res, next) => {
 
     // Note: Captcha validation has been explicitly removed per user request.
 
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6-digit OTP using CSPRNG
+    const otp = crypto.randomInt(100000, 1000000).toString();
     const expires = Date.now() + 5 * 60 * 1000; // 5 minutes
 
-    const otpIp = req.socket.remoteAddress || req.headers['x-forwarded-for'] || '127.0.0.1';
-    otpStore.set(otpIp, { email: email.toLowerCase(), otp, expires });
+    otpStore.set(emailLower, { email: emailLower, otp, expires, attempts: 0 });
 
     const { templates } = require('../utils/email-templates');
     const subject = 'Your Avana Employee Login OTP';
@@ -72,14 +71,21 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Email and OTP are required.' });
     }
 
-    const otpIp = req.socket.remoteAddress || req.headers['x-forwarded-for'] || '127.0.0.1';
-    const storedOtpData = otpStore.get(otpIp);
+    const emailLower = email.toLowerCase().trim();
+    const storedOtpData = otpStore.get(emailLower);
 
     if (!storedOtpData || Date.now() > storedOtpData.expires) {
+      otpStore.delete(emailLower);
       return res.status(400).json({ success: false, error: 'OTP has expired or was not requested.' });
     }
 
-    if (storedOtpData.email !== email.toLowerCase() || storedOtpData.otp !== otp) {
+    const { timingSafeEqualStr } = require('../utils/tokens');
+    if (storedOtpData.email !== emailLower || !timingSafeEqualStr(String(otp).trim(), storedOtpData.otp)) {
+      storedOtpData.attempts = (storedOtpData.attempts || 0) + 1;
+      if (storedOtpData.attempts >= 5) {
+        otpStore.delete(emailLower);
+        return res.status(429).json({ success: false, error: 'Too many invalid OTP attempts. Please request a new OTP.' });
+      }
       return res.status(400).json({ success: false, error: 'Invalid OTP.' });
     }
 
@@ -89,7 +95,7 @@ exports.login = async (req, res) => {
     }
 
     // Success! Clear the OTP and issue a JWT token.
-    otpStore.delete(otpIp);
+    otpStore.delete(emailLower);
     userManagementService.recordLogin(storedOtpData.email).catch(() => {});
 
     const jwtSecret = env.JWT_SECRET;
@@ -216,18 +222,25 @@ exports.setPassword = async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'Missing email, password, or OTP.' });
     }
 
-    const otpIp = req.socket.remoteAddress || req.headers['x-forwarded-for'] || '127.0.0.1';
-    const storedOtpData = otpStore.get(otpIp);
+    const emailLower = email.toLowerCase().trim();
+    const storedOtpData = otpStore.get(emailLower);
 
     if (!storedOtpData || Date.now() > storedOtpData.expires) {
+      otpStore.delete(emailLower);
       return res.status(400).json({ success: false, error: 'OTP has expired or was not requested.' });
     }
 
-    if (storedOtpData.email !== email.toLowerCase() || storedOtpData.otp !== otp) {
+    const { timingSafeEqualStr } = require('../utils/tokens');
+    if (storedOtpData.email !== emailLower || !timingSafeEqualStr(String(otp).trim(), storedOtpData.otp)) {
+      storedOtpData.attempts = (storedOtpData.attempts || 0) + 1;
+      if (storedOtpData.attempts >= 5) {
+        otpStore.delete(emailLower);
+        return res.status(429).json({ success: false, error: 'Too many invalid OTP attempts. Please request a new OTP.' });
+      }
       return res.status(400).json({ success: false, error: 'Invalid OTP.' });
     }
 
-    otpStore.delete(otpIp);
+    otpStore.delete(emailLower);
 
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
@@ -308,7 +321,7 @@ exports.loginPassword = async (req, res, next) => {
 exports.cancelBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const employeeEmail = req.employee?.email;
+    const employeeEmail = req.user?.email;
     if (!id || !employeeEmail) {
       return res.status(400).json({ error: 'Missing booking ID or authentication.' });
     }

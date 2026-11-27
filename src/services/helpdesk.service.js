@@ -4,47 +4,36 @@ const { templates } = require('../utils/email-templates');
 const prisma = require('../config/db');
 
 exports.getAllRequests = async () => {
-  try {
-    const rows = await prisma.helpdeskRequest.findMany({
-      orderBy: { createdAt: 'desc' }
-    });
-    return rows;
-  } catch (err) {
-    console.error('Error reading helpdesk:', err);
-    return [];
-  }
+  return prisma.helpdeskRequest.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
+};
+
+exports.getRequestById = async (id) => {
+  return prisma.helpdeskRequest.findUnique({ where: { id } });
 };
 
 exports.saveRequest = async (r) => {
-  try {
-    const itemsStr = r.items ? (typeof r.items === 'string' ? r.items : JSON.stringify(r.items)) : '';
-    await prisma.helpdeskRequest.upsert({
-      where: { id: r.id },
-      update: {
-        category: r.category, name: r.name, email: r.email, phone: r.phone,
-        location: r.location, description: r.description, items: itemsStr,
-        status: r.status, createdAt: r.createdAt, resolution: r.resolution
-      },
-      create: {
-        id: r.id, category: r.category, name: r.name, email: r.email, phone: r.phone,
-        location: r.location, description: r.description, items: itemsStr,
-        status: r.status, createdAt: r.createdAt, resolution: r.resolution
-      }
-    });
-    return true;
-  } catch (err) {
-    console.error('Error writing helpdesk request:', err);
-    return false;
-  }
+  const itemsStr = r.items ? (typeof r.items === 'string' ? r.items : JSON.stringify(r.items)) : '';
+  await prisma.helpdeskRequest.upsert({
+    where: { id: r.id },
+    update: {
+      category: r.category, name: r.name, email: r.email, phone: r.phone,
+      location: r.location, description: r.description, items: itemsStr,
+      status: r.status, createdAt: r.createdAt, resolution: r.resolution
+    },
+    create: {
+      id: r.id, category: r.category, name: r.name, email: r.email, phone: r.phone,
+      location: r.location, description: r.description, items: itemsStr,
+      status: r.status, createdAt: r.createdAt, resolution: r.resolution
+    }
+  });
+  return true;
 };
 
 exports.deleteRequest = async (id) => {
-  try {
-    await prisma.helpdeskRequest.delete({ where: { id } });
-    return true;
-  } catch (err) {
-    return false;
-  }
+  await prisma.helpdeskRequest.delete({ where: { id } });
+  return true;
 };
 
 const NOTIFICATION_CC = env.NOTIFICATION_CC;

@@ -53,8 +53,6 @@ exports.createBooking = async (req, res, next) => {
       return res.status(400).json({ error: 'Please fill in all required fields. Missing: ' + missing.join(', ') });
     }
 
-    const bookings = await bookingService.getAllBookings();
-
     const newBooking = {
       id: crypto.randomUUID(),
       name, email, phone,
@@ -74,18 +72,14 @@ exports.createBooking = async (req, res, next) => {
     
     newBooking.cancelSig = getCancelSig(newBooking.id, newBooking.email);
 
-    const conflictError = bookingService.checkConflict(newBooking, bookings);
+    const { conflictError } = await bookingService.createBookingAtomic(newBooking);
     if (conflictError) {
       return res.status(409).json({ error: conflictError });
     }
 
-    if (await bookingService.saveBooking(newBooking)) {
-      const host = origin || (req.headers.origin) || (req.headers.host ? `${req.protocol}://${req.headers.host}` : env.APP_URL);
-      bookingService.sendBookingRequestToAdminNotification(newBooking, host).catch(console.error);
-      res.status(201).json({ message: 'Booking request submitted for Admin approval.', booking: newBooking });
-    } else {
-      res.status(500).json({ error: 'Database save failure.' });
-    }
+    const host = origin || (req.headers.origin) || (req.headers.host ? `${req.protocol}://${req.headers.host}` : env.APP_URL);
+    bookingService.sendBookingRequestToAdminNotification(newBooking, host).catch(console.error);
+    res.status(201).json({ message: 'Booking request submitted for Admin approval.', booking: newBooking });
   } catch (error) {
     next(error);
   }
@@ -147,8 +141,8 @@ exports.cancelBooking = async (req, res, next) => {
       `);
     }
 
-    const bookings = await bookingService.getAllBookings();
-    const booking = bookings.find(b => String(b.id) === String(id) && (!authorizedEmail || (b.email && b.email.trim().toLowerCase() === authorizedEmail.trim().toLowerCase())));
+    const found = await bookingService.getBookingById(String(id));
+    const booking = found && (!authorizedEmail || (found.email && found.email.trim().toLowerCase() === authorizedEmail.trim().toLowerCase())) ? found : null;
 
     if (!booking) {
       if (isJson) {
@@ -169,7 +163,6 @@ exports.cancelBooking = async (req, res, next) => {
           </head>
           <body>
             <div class="card">
-              <div style="font-size: 48px; margin-bottom: 20px;">ℹ️</div>
               <h1>Booking Not Found</h1>
               <p>The booking does not exist or has already been cancelled.</p>
               <a href="/" class="btn">Go to Portal</a>
@@ -177,6 +170,13 @@ exports.cancelBooking = async (req, res, next) => {
           </body>
         </html>
       `);
+    }
+
+    if (booking.status === 'cancelled' || booking.status === 'rejected') {
+      if (isJson) {
+        return res.status(400).json({ error: `Booking is already ${booking.status}.` });
+      }
+      return res.status(200).send(`<h3>Booking is already ${booking.status}.</h3>`);
     }
 
     // Check if the meeting is already completed
@@ -201,7 +201,6 @@ exports.cancelBooking = async (req, res, next) => {
           </head>
           <body>
             <div class="card">
-              <div style="font-size: 48px; margin-bottom: 20px;">⏰</div>
               <h1>Meeting Already Completed</h1>
               <p>The meeting scheduled for <strong>${booking.startDate || booking.date || ''}</strong> (${booking.startTime || '09:00'} - ${booking.endTime || '18:00'}) is already over and cannot be cancelled.</p>
               <a href="/" class="btn">Go to Portal</a>

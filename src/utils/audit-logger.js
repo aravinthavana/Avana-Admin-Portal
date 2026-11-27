@@ -23,7 +23,7 @@ exports.logAdminAction = async (req, action, entity, entityId = null, details = 
         admin: adminEmail,
         action,
         entity,
-        entityId: String(entityId),
+        entityId: entityId != null ? String(entityId) : null,
         details: detailsString,
         ip,
         timestamp: new Date().toISOString()

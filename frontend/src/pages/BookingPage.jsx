@@ -326,7 +326,10 @@ export default function BookingPage() {
   /* Submit */
   async function handleSubmit(e) {
     e.preventDefault();
-    if (liveConflict) { return; }
+    if (liveConflict) {
+      toast.error(liveConflict);
+      return;
+    }
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setSubmitting(true);
@@ -693,8 +696,9 @@ export default function BookingPage() {
               display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)',
               marginBottom: 'var(--space-4)',
             }}>
-              <FormField label="Start Time" error={errors.start_time} required>
+              <FormField label="Start Time" htmlFor="booking-start-time" error={errors.start_time} required>
                 <input
+                  id="booking-start-time"
                   type="time"
                   autoComplete="off"
                   value={form.start_time}
@@ -774,8 +778,9 @@ export default function BookingPage() {
                 required
               />
             </FormField>
-            <FormField label="Email" error={errors.email} required>
+            <FormField label="Email" htmlFor="booking-email" error={errors.email} required>
             <input
+              id="booking-email"
               type="email"
               autoComplete="off"
               value={form.email}

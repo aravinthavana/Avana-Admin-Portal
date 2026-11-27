@@ -52,6 +52,16 @@ const path = require('path');
 const fs = require('fs');
 
 const baseDataDir = fs.existsSync('/app/data') ? '/app/data' : path.join(__dirname, '../../data');
+const ALLOWED_UPLOAD_EXTS = new Set(['.pdf', '.jpg', '.jpeg', '.png', '.webp']);
+const ALLOWED_UPLOAD_MIMES = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
+const safeFileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname || '').toLowerCase();
+  if (ALLOWED_UPLOAD_EXTS.has(ext) && ALLOWED_UPLOAD_MIMES.has(file.mimetype)) {
+    return cb(null, true);
+  }
+  return cb(new Error('Invalid file type. Only PDF, JPEG, PNG, and WebP files are allowed.'), false);
+};
+
 const utilUploadDir = path.join(baseDataDir, 'uploads', 'utilities');
 if (!fs.existsSync(utilUploadDir)) fs.mkdirSync(utilUploadDir, { recursive: true });
 const utilUpload = multer({
@@ -59,6 +69,7 @@ const utilUpload = multer({
     destination: (req, file, cb) => cb(null, utilUploadDir),
     filename: (req, file, cb) => cb(null, 'util-' + Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'))
   }),
+  fileFilter: safeFileFilter,
   limits: { fileSize: 10 * 1024 * 1024 }
 });
 
@@ -101,6 +112,7 @@ const courierUpload = multer({
     destination: (req, file, cb) => cb(null, courierUploadDir),
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'))
   }),
+  fileFilter: safeFileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 

@@ -145,24 +145,30 @@ exports.updateStatus = async (req, res, next) => {
 
     if (category === 'conference') {
       const bookingsService = require('../services/bookings.service');
-      const bookings = await bookingsService.getAllBookings();
-      const bIndex = bookings.findIndex(b => b.id === id);
-      if (bIndex === -1) {
+      const prisma = require('../config/db');
+      const b = await bookingsService.getBookingById(id);
+      if (!b) {
         return res.status(404).json({ error: 'Booking not found.' });
       }
-      
-      const b = bookings[bIndex];
+
+      if (status === 'confirmed' && b.status !== 'confirmed') {
+        const allBookings = await prisma.booking.findMany({ where: { id: { not: id } } });
+        const conflictErr = bookingsService.checkConflict(b, allBookings);
+        if (conflictErr) {
+          return res.status(409).json({ error: conflictErr });
+        }
+      }
+
       b.status = status;
       if (status === 'rejected') {
         b.rejectionReason = rejectionReason || 'No reason provided.';
       } else if (status === 'confirmed' && approvalRemarks) {
-        // Store approval remarks inside the remarks field in SQLite
         b.remarks = b.remarks ? `${b.remarks} | Admin Remarks: ${approvalRemarks}` : `Admin Remarks: ${approvalRemarks}`;
       } else if (status === 'cancelled') {
         const cancelNote = rejectionReason || resolution || 'Cancelled by Admin';
         b.remarks = b.remarks ? `${b.remarks} | Admin Cancellation: ${cancelNote}` : `Admin Cancellation: ${cancelNote}`;
       }
-      
+
       if (await bookingsService.saveBooking(b)) {
         const host = req.headers.origin || (req.protocol + '://' + req.get('host'));
         if (status === 'confirmed') {
@@ -179,14 +185,12 @@ exports.updateStatus = async (req, res, next) => {
       }
     }
 
-    const requests = await helpdeskService.getAllRequests();
-    const reqIndex = requests.findIndex(r => r.id === id);
-
-    if (reqIndex === -1) {
+    const request = await helpdeskService.getRequestById(id);
+    if (!request) {
       return res.status(404).json({ error: 'Request not found.' });
     }
 
-    const request = requests[reqIndex];
+    const wasCompleted = (request.status || '').toLowerCase() === 'completed';
     request.status = status;
     if (resolution) {
       request.resolution = resolution;
@@ -242,10 +246,10 @@ exports.updateStatus = async (req, res, next) => {
 
     if (await helpdeskService.saveRequest(request)) {
       const host = req.headers.origin || (req.protocol + '://' + req.get('host'));
-      if (status === 'completed') {
+      if (status === 'completed' && !wasCompleted) {
         helpdeskService.sendHelpdeskCompletionEmailNotification(request, host).catch(console.error);
 
-        // Automated Stock Deduction
+        // Automated Stock Deduction (idempotent: only on transition into 'completed')
         if (request.category === 'stationery' || request.category === 'hk_material') {
           try {
             const inventoryService = require('../services/inventory.service');
@@ -266,7 +270,6 @@ exports.updateStatus = async (req, res, next) => {
                 if (!name || isNaN(qty) || qty <= 0) continue;
                 if (it.isCustom || it.type === 'unlisted') continue;
 
-                // Determine the correct category for this specific item:
                 let itemType = 'housekeeping';
                 if (request.category === 'stationery') {
                   if (it.type === 'printing' || it.type === 'stationery') {
@@ -278,7 +281,6 @@ exports.updateStatus = async (req, res, next) => {
                     if (existingItem) {
                       itemType = existingItem.category;
                     } else {
-                      // Case-insensitive fallback
                       const allCatItems = await prisma.inventoryItem.findMany({
                         where: { category: { in: ['stationery', 'printing'] } }
                       });
@@ -288,24 +290,13 @@ exports.updateStatus = async (req, res, next) => {
                   }
                 }
 
-                const stock = await inventoryService.getStock(itemType);
-                const previousStock = stock[name] ?? 0;
-                let newStock = previousStock - qty;
-                if (newStock < 0) newStock = 0;
-                stock[name] = newStock;
-
-                const logs = await inventoryService.getTransactions(itemType);
-                logs.push({
-                  item: name,
-                  type: 'use',
-                  quantity: qty,
-                  previousStock,
-                  newStock,
-                  timestamp: new Date().toISOString(),
-                  remarks: `Auto-deducted from completed Request #${request.id}`
-                });
-                await inventoryService.saveTransactions(itemType, logs);
-                await inventoryService.saveStock(itemType, { [name]: newStock });
+                const { previousStock, newStock } = await inventoryService.adjustStock(
+                  itemType,
+                  name,
+                  -qty,
+                  'use',
+                  `Auto-deducted from completed Request #${request.id}`
+                );
 
                 if (newStock < previousStock) {
                   inventoryService.checkLowStockAlert(name, newStock, itemType).catch(console.error);

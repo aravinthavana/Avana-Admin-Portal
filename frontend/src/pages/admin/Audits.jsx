@@ -18,7 +18,7 @@ import { PrintHeader } from './PrintHeader';
 
 export function StationeryAudit() {
   const toast = useToast();
-  const [audit, setAudit] = useState([]);
+  const [audit, setAudit] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM

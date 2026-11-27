@@ -78,12 +78,17 @@ exports.deleteHandover = async (req, res, next) => {
   }
 };
 
-// Public Employee Acknowledgement Handlers
+// Public Employee Acknowledgement Handlers (secured via HMAC token)
 exports.getAckDetails = async (req, res, next) => {
   try {
+    const { verifyActionToken } = require('../utils/tokens');
     const { id } = req.params;
+    const token = req.query?.token;
     const handover = await assetTrackerService.getHandoverById(id);
     if (!handover) return res.status(404).json({ error: 'Asset handover record not found.' });
+    if (!verifyActionToken('asset-ack', handover.id, token, handover.createdAt || '')) {
+      return res.status(403).json({ error: 'Invalid or missing acknowledgement token.' });
+    }
 
     res.status(200).json(handover);
   } catch (error) {
@@ -93,8 +98,15 @@ exports.getAckDetails = async (req, res, next) => {
 
 exports.submitAck = async (req, res, next) => {
   try {
+    const { verifyActionToken } = require('../utils/tokens');
     const { id } = req.params;
-    const { signature, remarks } = req.body;
+    const { signature, remarks, token } = req.body;
+    const handover = await assetTrackerService.getHandoverById(id);
+    if (!handover) return res.status(404).json({ error: 'Handover record not found.' });
+    if (!verifyActionToken('asset-ack', handover.id, token || req.query?.token, handover.createdAt || '')) {
+      return res.status(403).json({ error: 'Invalid or missing acknowledgement token.' });
+    }
+
     const updated = await assetTrackerService.acknowledgeAssets(id, signature, remarks);
     if (!updated) return res.status(404).json({ error: 'Handover record not found.' });
 

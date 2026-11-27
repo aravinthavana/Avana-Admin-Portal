@@ -217,8 +217,10 @@ exports.deleteHandover = async (id) => {
 exports.sendHandoverEmailNotification = async (handover, host, isAppended = false) => {
   if (!handover || !handover.email) return;
 
+  const { signActionToken } = require('../utils/tokens');
   const baseUrl = host || process.env.APP_URL || 'http://172.30.10.21:8086';
-  const ackLink = `${baseUrl}/asset-acknowledgement?id=${handover.id}`;
+  const token = signActionToken('asset-ack', handover.id, handover.createdAt || '');
+  const ackLink = `${baseUrl}/asset-acknowledgement?id=${handover.id}&token=${encodeURIComponent(token)}`;
   const { templates } = require('../utils/email-templates');
   const subject = isAppended
     ? '[ACTION REQUIRED] Additional Office Stationery Assigned - ' + (handover.employeeName || handover.name)

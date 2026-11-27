@@ -472,7 +472,7 @@ export function AssetTrackerPage() {
 
       {/* Modal: Append Items */}
       {appendModalOpen && selectedHandover && (
-        <Modal isOpen={appendModalOpen} onClose={() => setAppendModalOpen(false)} title={`<LuPlus size={13} style={{ marginRight: '0.25rem' }} /> Append Items for ${selectedHandover.name}`}>
+        <Modal isOpen={appendModalOpen} onClose={() => setAppendModalOpen(false)} title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><LuPlus size={15} /> Append Items for {selectedHandover.name}</span>}>
           <form autoComplete="off" onSubmit={handleAppend}>
             {appendItems.map((it, idx) => (
               <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)', alignItems: 'center' }}>

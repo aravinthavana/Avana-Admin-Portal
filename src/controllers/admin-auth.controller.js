@@ -5,7 +5,8 @@ const prisma = require('../config/db');
 const addressBookService = require('../services/address-book.service');
 
 // ─── Session helpers ──────────────────────────────────────────
-const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours idle
+const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days absolute
 
 async function createSession(token) {
   const now = new Date().toISOString();
@@ -16,7 +17,11 @@ async function validateSession(token) {
   if (!token) return false;
   const session = await prisma.adminSession.findUnique({ where: { token } });
   if (!session) return false;
-  if (Date.now() - new Date(session.lastUsed).getTime() > SESSION_TTL_MS) {
+  const now = Date.now();
+  if (
+    now - new Date(session.lastUsed).getTime() > SESSION_TTL_MS ||
+    now - new Date(session.createdAt).getTime() > SESSION_MAX_AGE_MS
+  ) {
     await prisma.adminSession.delete({ where: { token } }).catch(() => {});
     return false;
   }
@@ -39,14 +44,17 @@ purgeStaleSessions();
 
 // ─── Password helpers ─────────────────────────────────────────
 function verifyPassword(password, storedHash) {
-  const parts = storedHash.split(':');
-  if (parts.length === 2) {
-    const [salt, hash] = parts;
-    const derived = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
-    return derived === hash;
+  if (!password || typeof password !== 'string' || !storedHash || typeof storedHash !== 'string') {
+    return false;
   }
-  // Fallback: plain text (legacy)
-  return password === storedHash;
+  const parts = storedHash.split(':');
+  if (parts.length !== 2 || !parts[0] || !parts[1]) {
+    return false;
+  }
+  const [salt, hash] = parts;
+  const derived = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
+  const { timingSafeEqualStr } = require('../utils/tokens');
+  return timingSafeEqualStr(derived, hash);
 }
 
 function hashPassword(password) {
@@ -124,7 +132,8 @@ exports.login = async (req, res, next) => {
       }
     }).catch(err => console.error('[Admin Login Audit] Failed to log:', err));
 
-    res.setHeader('Set-Cookie', `admin_token=${token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=86400`);
+    const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
+    res.setHeader('Set-Cookie', `admin_token=${token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=86400${isHttps ? '; Secure' : ''}`);
     return res.status(200).json({ success: true, message: 'Login successful', token });
   } catch (error) {
     next(error);
@@ -145,12 +154,17 @@ exports.logout = async (req, res, next) => {
 exports.changePassword = async (req, res, next) => {
   try {
     const { oldPassword, newPassword } = req.body;
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ error: 'New password must be at least 8 characters.' });
+    }
     const currentHash = await getAdminPasswordHash();
     if (!verifyPassword(oldPassword, currentHash)) {
       return res.status(401).json({ error: 'Invalid old password.' });
     }
     await setAdminPasswordHash(hashPassword(newPassword));
-    res.status(200).json({ message: 'Password changed successfully.' });
+    // Revoke all existing admin sessions upon password rotation
+    await prisma.adminSession.deleteMany({}).catch(() => {});
+    res.status(200).json({ message: 'Password changed successfully. Please log in again.' });
   } catch (error) {
     next(error);
   }
@@ -201,6 +215,10 @@ exports.requireAdmin = async (req, res, next) => {
   if (!valid) {
     return res.status(401).json({ error: 'Unauthorized. Admin token required.' });
   }
+  req.admin = {
+    role: 'admin',
+    email: process.env.ADMIN_EMAIL || 'admin'
+  };
   next();
 };
 

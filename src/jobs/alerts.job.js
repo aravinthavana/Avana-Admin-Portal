@@ -1,16 +1,24 @@
 const cron = require('node-cron');
 const { checkAndSendReminders } = require('../services/reminders.service');
 
-// Run once on startup (delayed by 10 seconds to let database connection initialize)
-// Removed on-startup run to avoid spam during deployments.
+let isRunning = false;
 
 // Schedule tasks to be run on the server at 9:30 AM every day.
-cron.schedule('30 9 * * *', () => {
+const dailyAlertsTask = cron.schedule('30 9 * * *', async () => {
+  if (isRunning) {
+    console.warn('[CRON] Daily alerts already running; skipping overlapping trigger.');
+    return;
+  }
+  isRunning = true;
   console.log('[CRON] Running daily alerts check at 9:30 AM...');
   try {
-    checkAndSendReminders().catch(console.error);
+    await checkAndSendReminders();
     console.log('[CRON] Daily alerts completed successfully.');
   } catch (error) {
     console.error('[CRON] Error running daily alerts:', error);
+  } finally {
+    isRunning = false;
   }
 });
+
+module.exports = { dailyAlertsTask };

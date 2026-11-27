@@ -7,6 +7,7 @@ import { LuCheck, LuPackage, LuPenTool } from 'react-icons/lu';
 export default function AssetAcknowledgementPage() {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
+  const token = searchParams.get('token') || '';
 
   const [handover, setHandover] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +27,7 @@ export default function AssetAcknowledgementPage() {
       return;
     }
 
-    assetTrackerApi.getAckDetails(id)
+    assetTrackerApi.getAckDetails(id, token)
       .then(data => {
         setHandover(data);
         if (data.signature) setSignature(data.signature);
@@ -34,7 +35,7 @@ export default function AssetAcknowledgementPage() {
       })
       .catch(err => setError(err.message || 'Failed to load asset handover details.'))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, token]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -49,7 +50,7 @@ export default function AssetAcknowledgementPage() {
 
     setSubmitting(true);
     try {
-      await assetTrackerApi.submitAck(id, signature.trim(), remarks.trim());
+      await assetTrackerApi.submitAck(id, signature.trim(), remarks.trim(), token);
       setSubmitted(true);
     } catch (err) {
       setError(err.message || 'Submission failed.');

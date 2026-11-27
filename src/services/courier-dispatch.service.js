@@ -335,17 +335,17 @@ exports.updateTrackingInfo = async (id, data) => {
 };
 
 exports.mergeParcel = async (parentDispatchId, requesterEmail, items, remarks) => {
-  const parent = await prisma.courierDispatch.findUnique({ where: { id: parentDispatchId }, include: { items: true } });
-  if (!parent) return null;
+  return prisma.$transaction(async (tx) => {
+    const parent = await tx.courierDispatch.findUnique({ where: { id: parentDispatchId }, include: { items: true } });
+    if (!parent) return null;
 
-  let addedVal = 0;
-  for (const it of items) {
-    const qty = parseInt(it.qty, 10) || 1;
-    const rate = parseFloat(it.rate) || 0;
-    const val = parseFloat(it.value) || (qty * rate);
-    addedVal += val;
-    await prisma.courierDispatchItem.create({
-      data: {
+    let addedVal = 0;
+    const itemCreates = items.map(it => {
+      const qty = parseInt(it.qty, 10) || 1;
+      const rate = parseFloat(it.rate) || 0;
+      const val = parseFloat(it.value) || (qty * rate);
+      addedVal += val;
+      return {
         dispatchId: parentDispatchId,
         itemCode: it.itemCode || 'MERGED',
         description: it.description || 'Item',
@@ -353,21 +353,23 @@ exports.mergeParcel = async (parentDispatchId, requesterEmail, items, remarks) =
         qty,
         rate,
         value: val
-      }
+      };
     });
-  }
 
-  const updated = await prisma.courierDispatch.update({
-    where: { id: parentDispatchId },
-    data: {
-      totalAmount: parent.totalAmount + addedVal,
-      remarksOther: remarks ? (parent.remarksOther ? `${parent.remarksOther} | Merged: ${remarks}` : `Merged: ${remarks}`) : parent.remarksOther,
-      updatedAt: new Date().toISOString()
-    },
-    include: { items: true }
+    for (const data of itemCreates) {
+      await tx.courierDispatchItem.create({ data });
+    }
+
+    return tx.courierDispatch.update({
+      where: { id: parentDispatchId },
+      data: {
+        totalAmount: parent.totalAmount + addedVal,
+        remarksOther: remarks ? (parent.remarksOther ? `${parent.remarksOther} | Merged: ${remarks}` : `Merged: ${remarks}`) : parent.remarksOther,
+        updatedAt: new Date().toISOString()
+      },
+      include: { items: true }
+    });
   });
-
-  return updated;
 };
 
 exports.deleteDispatch = async (id) => {
@@ -417,11 +419,7 @@ exports.updateDispatch = async (id, data, requesterEmail, host) => {
         })
       });
     }
-    // Delete merge requests as they are invalidated
-    await prisma.courierMergeRequest.deleteMany({ where: { targetDispatchId: id } });
-  }
-
-  let totalAmount = 0;
+    let totalAmount = 0;
   const itemsData = (data.items || []).map(it => {
     const qty = parseInt(it.qty, 10) || 1;
     const rate = parseFloat(it.rate) || 0;
@@ -437,38 +435,41 @@ exports.updateDispatch = async (id, data, requesterEmail, host) => {
     };
   });
 
-  await prisma.courierDispatchItem.deleteMany({ where: { dispatchId: id } });
-
   const rawCc = data.ccEmails !== undefined ? data.ccEmails : data.cc;
   const ccEmails = rawCc !== undefined ? (rawCc ? String(rawCc).replace(/;/g, ',').split(',').map(s => s.trim()).filter(Boolean).join(', ') : null) : undefined;
+  const parsedTransporterAmt = data.transporterAmount ? parseFloat(data.transporterAmount) : null;
 
-  const updated = await prisma.courierDispatch.update({
-    where: { id },
-    data: {
-      remarksType: data.remarksType || 'Service',
-      remarksOther: data.remarksOther || '',
-      transporterName: data.transporterName || '',
-      transporterAmount: data.transporterAmount ? parseFloat(data.transporterAmount) : null,
-      docketNo: data.docketNo || '',
-      noOfBoxes: parseInt(data.noOfBoxes, 10) || 1,
-      courierBilling: data.courierBilling || 'Avana Medical Devices Pvt Ltd',
-      signatoryCompany: data.signatoryCompany || 'Avana Medical Devices Pvt. Ltd.',
-      fromAddressText: data.fromAddressText || 'Avana Medical Devices Pvt Ltd.,\nNo.91, Sundar Nagar 4th Avenue, Nandambakkam,\nChennai – 600032, Tamil Nadu, India.',
-      senderName: data.senderName || 'Admin',
-      senderPhone: data.senderPhone || '',
-      toAddress: data.toAddress || '',
-      receiverName: data.receiverName || '',
-      receiverPhone: data.receiverPhone || '',
-      totalAmount,
-      dimensions: data.boxes ? JSON.stringify(data.boxes) : (data.dimensions || ''),
-      weight: data.weight || '',
-      ...(ccEmails !== undefined ? { ccEmails } : {}),
-      updatedAt: new Date().toISOString(),
-      items: {
-        create: itemsData
-      }
-    },
-    include: { items: true }
+  const updated = await prisma.$transaction(async (tx) => {
+    await tx.courierMergeRequest.deleteMany({ where: { targetDispatchId: id } });
+    await tx.courierDispatchItem.deleteMany({ where: { dispatchId: id } });
+    return tx.courierDispatch.update({
+      where: { id },
+      data: {
+        remarksType: data.remarksType || 'Service',
+        remarksOther: data.remarksOther || '',
+        transporterName: data.transporterName || '',
+        transporterAmount: Number.isFinite(parsedTransporterAmt) ? parsedTransporterAmt : null,
+        docketNo: data.docketNo || '',
+        noOfBoxes: parseInt(data.noOfBoxes, 10) || 1,
+        courierBilling: data.courierBilling || 'Avana Medical Devices Pvt Ltd',
+        signatoryCompany: data.signatoryCompany || 'Avana Medical Devices Pvt. Ltd.',
+        fromAddressText: data.fromAddressText || 'Avana Medical Devices Pvt Ltd.,\nNo.91, Sundar Nagar 4th Avenue, Nandambakkam,\nChennai – 600032, Tamil Nadu, India.',
+        senderName: data.senderName || 'Admin',
+        senderPhone: data.senderPhone || '',
+        toAddress: data.toAddress || '',
+        receiverName: data.receiverName || '',
+        receiverPhone: data.receiverPhone || '',
+        totalAmount,
+        dimensions: data.boxes ? JSON.stringify(data.boxes) : (data.dimensions || ''),
+        weight: data.weight || '',
+        ...(ccEmails !== undefined ? { ccEmails } : {}),
+        updatedAt: new Date().toISOString(),
+        items: {
+          create: itemsData
+        }
+      },
+      include: { items: true }
+    });
   });
 
   updated.declaration = data.declaration || false;
@@ -690,7 +691,7 @@ exports.createMergeRequest = async (data) => {
       requesterEmail,
       requesterName,
       itemsJson: JSON.stringify(items),
-      approvalToken: Date.now().toString(36) + Math.random().toString(36).substring(2, 7),
+      approvalToken: require('crypto').randomBytes(32).toString('hex'),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -698,8 +699,8 @@ exports.createMergeRequest = async (data) => {
 
   // Send email to target.requesterEmail
   const { sendEmail } = require('../utils/notifications');
-  const acceptLink = `${host}/api/courier-dispatch/merge/accept?id=${mr.id}`;
-  const rejectLink = `${host}/api/courier-dispatch/merge/reject-page?id=${mr.id}`;
+  const acceptLink = `${host}/api/courier-dispatch/merge/accept?id=${mr.id}&token=${mr.approvalToken}`;
+  const rejectLink = `${host}/api/courier-dispatch/merge/reject-page?id=${mr.id}&token=${mr.approvalToken}`;
 
   const itemsHtml = items.map(it => `<li>${it.qty}x ${it.description} (Value: ₹${it.value})</li>`).join('');
 
@@ -724,52 +725,64 @@ exports.createMergeRequest = async (data) => {
 };
 
 exports.acceptMergeRequest = async (id) => {
-  const mr = await prisma.courierMergeRequest.findUnique({ where: { id }, include: { targetDispatch: true } });
-  if (!mr || mr.status !== 'pending') return { success: false, error: 'Merge request is invalid or has already been processed.' };
-
-  const items = JSON.parse(mr.itemsJson);
-  const target = mr.targetDispatch;
-
-  let addedVal = 0;
-  for (const it of items) {
-    const qty = parseInt(it.qty, 10) || 1;
-    const rate = parseFloat(it.rate) || 0;
-    const val = parseFloat(it.value) || (qty * rate);
-    addedVal += val;
-    await prisma.courierDispatchItem.create({
-      data: {
-        dispatchId: target.id,
-        itemCode: it.itemCode || 'MERGED',
-        description: it.description || 'Item',
-        serialNo: it.serialNo || '',
-        qty,
-        rate,
-        value: val
-      }
+  const txResult = await prisma.$transaction(async (tx) => {
+    const now = new Date().toISOString();
+    // Atomically claim the pending merge request so concurrent clicks cannot double-merge
+    const claimed = await tx.courierMergeRequest.updateMany({
+      where: { id, status: 'pending' },
+      data: { status: 'approved', updatedAt: now }
     });
-  }
+    if (claimed.count === 0) {
+      return { success: false, error: 'Merge request is invalid or has already been processed.' };
+    }
 
-  // Update target dispatch
-  const currentMerged = target.mergedRequesters ? target.mergedRequesters.split(',') : [];
-  if (!currentMerged.includes(mr.requesterEmail)) {
-    currentMerged.push(mr.requesterEmail);
-  }
+    const mr = await tx.courierMergeRequest.findUnique({ where: { id }, include: { targetDispatch: true } });
+    if (!mr || !mr.targetDispatch) {
+      throw new Error('Target dispatch not found.');
+    }
 
-  const updatedTarget = await prisma.courierDispatch.update({
-    where: { id: target.id },
-    data: {
-      totalAmount: target.totalAmount + addedVal,
-      mergedRequesters: currentMerged.join(','),
-      updatedAt: new Date().toISOString()
-    },
-    include: { items: true }
+    const items = JSON.parse(mr.itemsJson);
+    const target = mr.targetDispatch;
+
+    let addedVal = 0;
+    for (const it of items) {
+      const qty = parseInt(it.qty, 10) || 1;
+      const rate = parseFloat(it.rate) || 0;
+      const val = parseFloat(it.value) || (qty * rate);
+      addedVal += val;
+      await tx.courierDispatchItem.create({
+        data: {
+          dispatchId: target.id,
+          itemCode: it.itemCode || 'MERGED',
+          description: it.description || 'Item',
+          serialNo: it.serialNo || '',
+          qty,
+          rate,
+          value: val
+        }
+      });
+    }
+
+    const currentMerged = target.mergedRequesters ? target.mergedRequesters.split(',').filter(Boolean) : [];
+    if (!currentMerged.includes(mr.requesterEmail)) {
+      currentMerged.push(mr.requesterEmail);
+    }
+
+    const updatedTarget = await tx.courierDispatch.update({
+      where: { id: target.id },
+      data: {
+        totalAmount: target.totalAmount + addedVal,
+        mergedRequesters: currentMerged.join(','),
+        updatedAt: now
+      },
+      include: { items: true }
+    });
+
+    return { success: true, mr, target, updatedTarget };
   });
 
-  // Mark MR as approved
-  await prisma.courierMergeRequest.update({
-    where: { id },
-    data: { status: 'approved', updatedAt: new Date().toISOString() }
-  });
+  if (!txResult.success) return txResult;
+  const { mr, target, updatedTarget } = txResult;
 
   // Send emails with updated PDF
   const { generateDCCopyPDF } = require('../utils/courier_pdf_generator');

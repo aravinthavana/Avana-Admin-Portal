@@ -82,6 +82,16 @@ export function Alert({ type = 'info', children, onClose }) {
  * Modal wrapper
  */
 export function Modal({ isOpen, onClose, title, children, footer, size = '' }) {
+  const titleId = React.useId();
+
+  // Close on Escape
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   // Close on overlay click
@@ -89,24 +99,17 @@ export function Modal({ isOpen, onClose, title, children, footer, size = '' }) {
     if (e.target === e.currentTarget) onClose();
   };
 
-  // Close on Escape
-  React.useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [onClose]);
-
   return (
     <div
       className="modal-overlay"
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="modal-title"
+      aria-labelledby={titleId}
     >
       <div className={`modal ${size ? `modal--${size}` : ''}`}>
         <div className="modal__header">
-          <h3 id="modal-title" style={{ margin: 0 }}>{title}</h3>
+          <h3 id={titleId} style={{ margin: 0 }}>{title}</h3>
           <button
             type="button"
             className="modal__close"

@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const inventoryController = require('../controllers/inventory.controller');
 
-// GET /api/employee/stationery-items
-router.get('/employee/stationery-items', inventoryController.getStationeryCatalog);
+// Note: /employee/stationery-items is served with requireEmployee in employee-auth.routes.js
 
 module.exports = router;

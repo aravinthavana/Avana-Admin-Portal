@@ -1295,7 +1295,8 @@ const templates = {
   },
 
   // 32. Purchase Approval Action Email (Direct 1-click Approve / Reject / Discuss)
-  purchaseApprovalActionEmail: ({ request, reqUrl, itemsHtml }) => {
+  purchaseApprovalActionEmail: ({ request, reqUrl, itemsHtml, actionToken = '' }) => {
+    const tokenParam = actionToken ? `&token=${encodeURIComponent(actionToken)}` : '';
     return buildEmail({
       title: `Purchase Approval Required — ${request.requestId}`,
       subtitle: 'Purchase Management Action Required',
@@ -1338,9 +1339,9 @@ const templates = {
           Please select your approval decision below:
         </p>
         <div class="mobile-btn-stack" style="text-align: center; margin: 24px 0;">
-          <a href="${reqUrl}?action=Approve" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 22px; background-color: #16a34a; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; margin-right: 8px;">Approve</a>
-          <a href="${reqUrl}?action=Reject" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 22px; background-color: #dc2626; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; margin-right: 8px;">Reject</a>
-          <a href="${reqUrl}?action=Discuss" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 22px; background-color: #b27f0d; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px;">Need to Discuss</a>
+          <a href="${reqUrl}?action=Approve${tokenParam}" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 22px; background-color: #16a34a; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; margin-right: 8px;">Approve</a>
+          <a href="${reqUrl}?action=Reject${tokenParam}" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 22px; background-color: #dc2626; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; margin-right: 8px;">Reject</a>
+          <a href="${reqUrl}?action=Discuss${tokenParam}" target="_blank" class="mobile-btn" style="display: inline-block; padding: 11px 22px; background-color: #b27f0d; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px;">Need to Discuss</a>
         </div>
       `,
     });

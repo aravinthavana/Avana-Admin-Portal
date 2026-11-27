@@ -1532,9 +1532,9 @@ export function TravelExpensePage() {
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        <StatCard title="Total Trips Logged" value={`${filtered.length} Trips`} icon={<LuNavigation size={22} style={{ color: 'var(--brand-amber)' }} />} />
-        <StatCard title="Total Distance Travelled" value={`${totalKmSum.toLocaleString()} KM`} icon={<LuMilestone size={22} style={{ color: '#2563eb' }} />} />
-        <StatCard title="Total Travel Expense" value={`₹${totalCostSum.toLocaleString()}`} icon={<LuWallet size={22} style={{ color: '#16a34a' }} />} />
+        <StatCard label="Total Trips Logged" value={`${filtered.length} Trips`} icon={<LuNavigation size={22} style={{ color: 'var(--brand-amber)' }} />} />
+        <StatCard label="Total Distance Travelled" value={`${totalKmSum.toLocaleString()} KM`} icon={<LuMilestone size={22} style={{ color: '#2563eb' }} />} />
+        <StatCard label="Total Travel Expense" value={`₹${totalCostSum.toLocaleString()}`} icon={<LuWallet size={22} style={{ color: '#16a34a' }} />} />
       </div>
 
       {/* Action Bar */}
@@ -1773,15 +1773,18 @@ export function PurchaseApprovalPage() {
       ];
     });
 
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + headers.join(',') + "\n"
-      + rows.map(e => e.join(',')).join("\n");
-      
-    const encodedUri = encodeURI(csvContent);
+    const escapeCsv = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(escapeCsv).join(','))
+      .join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = encodedUri;
+    a.href = url;
     a.download = `Monthly_Purchase_Report_${y}_${m}.csv`;
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (

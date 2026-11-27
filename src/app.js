@@ -13,7 +13,22 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Standard middlewares
-app.use(cors());
+const env = require('./config/env');
+const allowedOrigins = [
+  env.APP_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://172.30.10.21:8085',
+  'http://172.30.10.21:8086'
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: '2mb' })); // Body parser with 2MB limit (like legacy getRequestBody)
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -74,6 +89,7 @@ app.post('/api/assets/acknowledgement/:id', assetTrackerController.submitAck);
 const courierController = require('./controllers/courier-dispatch.controller');
 app.get('/api/courier-dispatches/dc-print/:id', courierController.printDeliveryChallan);
 app.get('/api/courier-dispatch/merge/accept', courierController.acceptMergeRequest);
+app.post('/api/courier-dispatch/merge/accept', courierController.acceptMergeRequest);
 app.get('/api/courier-dispatch/merge/reject-page', courierController.serveRejectPage);
 app.post('/api/courier-dispatch/merge/reject', courierController.rejectMergeRequest);
 
@@ -89,8 +105,13 @@ app.use('/api', inventoryRoutes);
 app.use('/api/purchase', purchaseRoutes);
 
 
-// Serve static frontend files (React SPA)
-app.use('/uploads', express.static(path.join(__dirname, '../data/uploads')));
+// Serve uploaded files safely (prevent inline HTML/SVG execution) and static frontend SPA
+app.use('/uploads', express.static(path.join(__dirname, '../data/uploads'), {
+  setHeaders: (res) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Disposition', 'attachment');
+  }
+}));
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // 404 Handler
@@ -112,7 +133,8 @@ app.use(prismaErrorHandler);
 app.use((err, req, res, next) => {
   console.error('[Express Error]', err);
   const status = err.status || 500;
-  const message = err.message || 'Internal Server Error';
+  const isProd = process.env.NODE_ENV === 'production';
+  const message = (status >= 500 && isProd) ? 'Internal Server Error' : (err.message || 'Internal Server Error');
   res.status(status).json({ error: message });
 });
 

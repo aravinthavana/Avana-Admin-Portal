@@ -221,13 +221,19 @@ const updateStatus = async (id, data) => {
 };
 
 const markPurchased = async (id, data) => {
+    const existing = await prisma.purchaseRequest.findUnique({ where: { id } });
+    if (!existing) throw new Error('Purchase request not found');
+    if (existing.status !== 'Approved') {
+        throw new Error(`Cannot mark purchase as Purchased from status '${existing.status}'`);
+    }
+    const parsedExact = parseFloat(data.exactPurchaseAmount);
     const updated = await prisma.purchaseRequest.update({
         where: { id },
         data: {
             status: 'Purchased',
             orderId: data.orderId,
             deliveryDate: data.deliveryDate,
-            exactPurchaseAmount: parseFloat(data.exactPurchaseAmount),
+            exactPurchaseAmount: Number.isFinite(parsedExact) ? parsedExact : null,
             purchaseDate: data.purchaseDate || new Date().toISOString(),
             invoiceFile: data.invoiceFile,
             purchaseRemarks: data.purchaseRemarks,
@@ -360,7 +366,7 @@ const generatePdfReport = async (id) => {
         currentY -= 20;
         drawText(`Order ID: ${p.orderId}`, 50, currentY);
         currentY -= 20;
-        drawText(`Actual Amount: Rs ${p.actualAmount}`, 50, currentY);
+        drawText(`Actual Amount: Rs ${p.exactPurchaseAmount ?? p.finalAmount ?? 'N/A'}`, 50, currentY);
         currentY -= 20;
         drawText(`Delivery Date: ${p.deliveryDate}`, 50, currentY);
     }
@@ -371,8 +377,10 @@ const generatePdfReport = async (id) => {
 
 
 const sendApprovalEmail = async (request) => {
-    const baseUrl = process.env.BASE_URL || 'http://172.30.10.21:8086';
+    const { signActionToken } = require('../utils/tokens');
+    const baseUrl = process.env.BASE_URL || env.APP_URL || 'http://172.30.10.21:8086';
     const reqUrl = `${baseUrl}/api/purchase/${request.id}/action`;
+    const actionToken = signActionToken('purchase', request.id, request.createdAt || '');
     
     let itemsHtml = '';
     
@@ -432,7 +440,7 @@ const sendApprovalEmail = async (request) => {
         }
     }
 
-    const html = templates.purchaseApprovalActionEmail({ request, reqUrl, itemsHtml });
+    const html = templates.purchaseApprovalActionEmail({ request, reqUrl, itemsHtml, actionToken });
     await sendMail({
         to: request.approvalPersonEmail,
         subject: `Request for Purchase Approval - ${request.requestId}`,

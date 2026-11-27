@@ -45,39 +45,25 @@ const handleUpdateStock = async (type, req, res, next) => {
       return res.status(400).json({ error: 'Missing item or quantity.' });
     }
 
-    const stock = await inventoryService.getStock(type);
-    const previousStock = stock[item] || 0;
-    
     // Check if adding new item type (setup) vs transaction
     if (!transactionType) {
-      stock[item] = quantity;
-      await inventoryService.saveStock(type, stock);
-      return res.status(200).json({ message: 'Item initialized.', stock: stock[item] });
+      await inventoryService.saveStock(type, { [item]: quantity });
+      return res.status(200).json({ message: 'Item initialized.', stock: quantity });
     }
 
-    const qty = parseInt(quantity);
-    let newStock = previousStock;
-    if (transactionType === 'purchase') {
-      newStock += qty;
-    } else if (transactionType === 'use') {
-      newStock -= qty;
-      if (newStock < 0) newStock = 0;
+    const qty = parseInt(quantity, 10);
+    if (isNaN(qty) || qty <= 0) {
+      return res.status(400).json({ error: 'Quantity must be a positive integer.' });
     }
-
-    stock[item] = newStock;
-    await inventoryService.saveStock(type, stock);
-
-    // Save transaction
-    const logs = await inventoryService.getTransactions(type);
-    logs.push({
+    const delta = transactionType === 'purchase' ? qty : -qty;
+    const { previousStock, newStock } = await inventoryService.adjustStock(
+      type,
       item,
-      type: transactionType,
-      quantity: qty,
-      previousStock,
-      newStock,
-      timestamp: date || new Date().toISOString()
-    });
-    await inventoryService.saveTransactions(type, logs);
+      delta,
+      transactionType,
+      '',
+      date || new Date().toISOString()
+    );
 
     if (newStock < previousStock) {
       inventoryService.checkLowStockAlert(item, newStock, type).catch(console.error);

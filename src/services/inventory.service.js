@@ -38,26 +38,63 @@ exports.getTransactions = async (type) => {
   }));
 };
 
-exports.saveTransactions = async (type, dataList) => {
-  // dataList is the full list of transactions.
-  // To avoid duplicates when appending in the controller, we should ideally change the controller,
-  // but for legacy compatibility we'll just handle the LAST transaction added.
-  const lastTx = dataList[dataList.length - 1];
-  if (!lastTx) return;
-  const item = await prisma.inventoryItem.findFirst({ where: { name: lastTx.item, category: type } });
-  if (item) {
-    await prisma.inventoryTransaction.create({
+exports.appendTransaction = async (category, txData) => {
+  const item = await prisma.inventoryItem.findFirst({ where: { name: txData.item, category } });
+  if (!item) return null;
+  return prisma.inventoryTransaction.create({
+    data: {
+      itemId: item.id,
+      type: txData.type,
+      quantity: txData.quantity,
+      previousStock: txData.previousStock,
+      newStock: txData.newStock,
+      timestamp: txData.timestamp || new Date().toISOString(),
+      remarks: txData.remarks || ''
+    }
+  });
+};
+
+/**
+ * Atomically adjusts stock for an inventory item and logs the transaction inside one DB transaction.
+ */
+exports.adjustStock = async (category, itemName, delta, txType, remarks = '', timestamp = null) => {
+  return prisma.$transaction(async (tx) => {
+    const now = timestamp || new Date().toISOString();
+    let item = await tx.inventoryItem.findFirst({ where: { name: itemName, category } });
+    const previousStock = item ? item.currentStock : 0;
+    const newStock = Math.max(0, previousStock + delta);
+
+    if (item) {
+      item = await tx.inventoryItem.update({
+        where: { id: item.id },
+        data: { currentStock: newStock, updatedAt: now }
+      });
+    } else {
+      item = await tx.inventoryItem.create({
+        data: { name: itemName, category, currentStock: newStock, updatedAt: now }
+      });
+    }
+
+    await tx.inventoryTransaction.create({
       data: {
         itemId: item.id,
-        type: lastTx.type,
-        quantity: lastTx.quantity,
-        previousStock: lastTx.previousStock,
-        newStock: lastTx.newStock,
-        timestamp: lastTx.timestamp,
-        remarks: lastTx.remarks || ''
+        type: txType,
+        quantity: Math.abs(delta),
+        previousStock,
+        newStock,
+        timestamp: now,
+        remarks: remarks || ''
       }
     });
-  }
+
+    return { previousStock, newStock, item };
+  });
+};
+
+exports.saveTransactions = async (type, dataList) => {
+  const lastTx = dataList[dataList.length - 1];
+  if (!lastTx) return;
+  return exports.appendTransaction(type, lastTx);
 };
 
 exports.getAuditOverrides = async (type) => {

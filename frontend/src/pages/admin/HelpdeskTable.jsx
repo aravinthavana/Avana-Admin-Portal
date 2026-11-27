@@ -344,9 +344,13 @@ export function HelpdeskTable({ categoryFilter }) {
     return { all, pending, approved, completed, rejected };
   }, [requests, categoryFilter]);
 
+  /* Reset page when filters change */
+  useEffect(() => {
+    setPage(1);
+  }, [categoryFilter, catFilter, conferenceTab, statusTab, fromDate, toDate, nameFilter]);
+
   /* Filter */
   const filtered = useMemo(() => {
-    setPage(1); // reset page on filter change
     return requests
       .filter(r => {
         // Category filter from route
@@ -418,7 +422,7 @@ export function HelpdeskTable({ categoryFilter }) {
         }
         return 0;
       });
-  }, [requests, categoryFilter, catFilter, conferenceTab, isConferenceCompleted, fromDate, toDate, nameFilter]);
+  }, [requests, categoryFilter, catFilter, conferenceTab, statusTab, isConferenceCompleted, fromDate, toDate, nameFilter]);
 
   async function handleStatus(id, status, category, rejectionReason, approvalRemarks) {
     try {

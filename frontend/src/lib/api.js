@@ -11,20 +11,36 @@ function getToken(role = 'employee') {
   return localStorage.getItem('avana_employee_token');
 }
 
+function handleUnauthorized(role) {
+  if (role === 'admin') {
+    localStorage.removeItem('avana_admin_token');
+    if (window.location.pathname.startsWith('/helpdesk-admin') || window.location.pathname.startsWith('/admin')) {
+      window.location.href = '/admin-login';
+    }
+  } else {
+    localStorage.removeItem('avana_employee_token');
+    localStorage.removeItem('avana_employee_email');
+  }
+}
+
 async function request(path, options = {}, role = 'employee') {
   const token = getToken(role);
   const headers = {
-    'Content-Type': 'application/json',
+    ...(options.isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
 
+  const { isFormData, ...fetchOptions } = options;
   const response = await fetch(`${BASE}${path}`, {
-    ...options,
+    ...fetchOptions,
     headers,
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      handleUnauthorized(role);
+    }
     let errBody;
     try { errBody = await response.json(); } catch { errBody = {}; }
     const msg = errBody.error || errBody.message || `HTTP ${response.status}`;
@@ -70,6 +86,7 @@ async function openBlobFromApi(path, role = 'employee') {
   const blob = await response.blob();
   const blobUrl = window.URL.createObjectURL(blob);
   window.open(blobUrl, '_blank');
+  setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
 }
 
 // ─── Employee Auth ───────────────────────────────────────────
@@ -83,12 +100,12 @@ export const employeeApi = {
   loginPassword: (email, password) =>
     request('/employee/login-password', { method: 'POST', body: JSON.stringify({ email, password }) }),
 
-  setPassword: (newPassword, token) =>
+  setPassword: (newPassword, token, otp) =>
     request('/employee/set-password', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ newPassword }),
-    }),
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      body: JSON.stringify({ newPassword, ...(otp ? { otp } : {}) }),
+    }, 'employee'),
 
   getRequests: () =>
     request('/employee/requests', {}, 'employee'),
@@ -358,11 +375,11 @@ export const assetTrackerApi = {
   delete: (id) =>
     request(`/admin/assets/${id}`, { method: 'DELETE' }, 'admin'),
 
-  getAckDetails: (id) =>
-    request(`/assets/acknowledgement/${id}`, {}),
+  getAckDetails: (id, token) =>
+    request(`/assets/acknowledgement/${id}${token ? `?token=${encodeURIComponent(token)}` : ''}`, {}),
 
-  submitAck: (id, signature, remarks) =>
-    request(`/assets/acknowledgement/${id}`, { method: 'POST', body: JSON.stringify({ signature, remarks }) }),
+  submitAck: (id, signature, remarks, token) =>
+    request(`/assets/acknowledgement/${id}`, { method: 'POST', body: JSON.stringify({ signature, remarks, token }) }),
 };
 
 // ─── Courier Dispatches & Delivery Challans ─────────────────
@@ -538,28 +555,4 @@ export const userManagementApi = {
 
 
 
-export const apiFetch = async (path, options = {}, role = 'admin') => {
-  const token = getToken(role);
-  const headers = {
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    ...(options.headers || {}),
-  };
-
-  if (!options.isFormData) {
-    headers['Content-Type'] = 'application/json';
-  }
-
-  const response = await fetch(`${BASE}${path}`, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    let errBody;
-    try { errBody = await response.json(); } catch { errBody = {}; }
-    const msg = errBody.error || errBody.message || `HTTP ${response.status}`;
-    throw new Error(msg);
-  }
-
-  return response.json();
-};
+export const apiFetch = (path, options = {}, role = 'admin') => request(path, options, role);

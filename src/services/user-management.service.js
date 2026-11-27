@@ -159,6 +159,19 @@ exports.createUser = async (data) => {
       passwordHash,
       createdAt: now,
       updatedAt: now
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      department: true,
+      role: true,
+      location: true,
+      status: true,
+      lastLoginAt: true,
+      createdAt: true,
+      updatedAt: true
     }
   });
 
@@ -181,7 +194,20 @@ exports.updateUser = async (id, data) => {
 
   return await prisma.portalUser.update({
     where: { id },
-    data: updatePayload
+    data: updatePayload,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      department: true,
+      role: true,
+      location: true,
+      status: true,
+      lastLoginAt: true,
+      createdAt: true,
+      updatedAt: true
+    }
   });
 };
 

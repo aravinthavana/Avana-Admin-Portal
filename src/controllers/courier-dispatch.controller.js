@@ -104,7 +104,15 @@ exports.deleteDispatch = async (req, res, next) => {
 exports.updateDispatchEmployee = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const requesterEmail = req.user.email;
+    const requesterEmail = req.user?.email;
+    if (!requesterEmail) return res.status(401).json({ error: 'Authentication required.' });
+
+    const existing = await courierService.getDispatchById(id);
+    if (!existing) return res.status(404).json({ error: 'Delivery Challan not found.' });
+    if ((existing.requesterEmail || '').trim().toLowerCase() !== requesterEmail.trim().toLowerCase()) {
+      return res.status(403).json({ error: 'You are not authorized to modify this Delivery Challan.' });
+    }
+
     const host = req.protocol + '://' + req.get('host');
     const updated = await courierService.updateDispatch(id, req.body, requesterEmail, host);
     if (!updated) return res.status(404).json({ error: 'Delivery Challan not found.' });
@@ -118,6 +126,15 @@ exports.updateDispatchEmployee = async (req, res, next) => {
 exports.deleteDispatchEmployee = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const requesterEmail = req.user?.email;
+    if (!requesterEmail) return res.status(401).json({ error: 'Authentication required.' });
+
+    const existing = await courierService.getDispatchById(id);
+    if (!existing) return res.status(404).json({ error: 'Delivery Challan not found.' });
+    if ((existing.requesterEmail || '').trim().toLowerCase() !== requesterEmail.trim().toLowerCase()) {
+      return res.status(403).json({ error: 'You are not authorized to delete this Delivery Challan.' });
+    }
+
     const success = await courierService.deleteDispatch(id);
     if (!success) return res.status(404).json({ error: 'Record not found or failed to delete.' });
 
@@ -234,18 +251,46 @@ exports.createMergeRequest = async (req, res, next) => {
 
 exports.acceptMergeRequest = async (req, res, next) => {
   try {
-    const { id } = req.query; // approvalToken/id
-    if (!id) return res.status(400).send('Merge request ID is missing.');
-    
+    const { timingSafeEqualStr, escapeHtml } = require('../utils/tokens');
+    const id = req.method === 'POST' ? req.body?.id : req.query?.id;
+    const token = req.method === 'POST' ? req.body?.token : req.query?.token;
+    if (!id || !token) return res.status(400).send('Merge request ID or token is missing.');
+
+    const mr = await courierService.getMergeRequestById(id);
+    if (!mr || !mr.approvalToken || !timingSafeEqualStr(String(token), mr.approvalToken)) {
+      return res.status(403).send('<h2 style="color:#ef4444;">Invalid or expired merge approval token.</h2>');
+    }
+    if (mr.status !== 'pending') {
+      return res.status(400).send('<h2 style="color:#ef4444;">Merge request is invalid or has already been processed.</h2>');
+    }
+
+    if (req.method === 'GET') {
+      return res.status(200).send(`
+        <!DOCTYPE html>
+        <html>
+        <head><title>Confirm Parcel Merge</title></head>
+        <body style="font-family: Arial, sans-serif; max-width: 520px; margin: 40px auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+          <h2 style="color:#16a34a; margin-top:0;">Confirm Parcel Merge</h2>
+          <p>Approve merging parcel items from <strong>${escapeHtml(mr.requesterEmail)}</strong> into <strong>DC #${escapeHtml(mr.targetDispatch?.dcNo || '')}</strong>?</p>
+          <form action="/api/courier-dispatch/merge/accept" method="POST">
+            <input type="hidden" name="id" value="${escapeHtml(mr.id)}">
+            <input type="hidden" name="token" value="${escapeHtml(token)}">
+            <button type="submit" style="background:#16a34a;color:#fff;border:none;padding:12px 24px;border-radius:6px;font-weight:bold;cursor:pointer;">Confirm Accept Merge</button>
+          </form>
+        </body>
+        </html>
+      `);
+    }
+
     const result = await courierService.acceptMergeRequest(id);
     if (!result.success) {
-      return res.status(400).send(`<h2 style="color:#ef4444;">${result.error}</h2>`);
+      return res.status(400).send(`<h2 style="color:#ef4444;">${escapeHtml(result.error)}</h2>`);
     }
 
     res.status(200).send(`
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
         <h2 style="color:#16a34a; margin-top:0;">Merge Request Accepted</h2>
-        <p>The parcel items have been merged into Delivery Challan <strong>DC #${result.parentDcNo}</strong> successfully.</p>
+        <p>The parcel items have been merged into Delivery Challan <strong>DC #${escapeHtml(result.parentDcNo)}</strong> successfully.</p>
         <p>A confirmation email has been sent to the merge requester.</p>
       </div>
     `);
@@ -256,11 +301,15 @@ exports.acceptMergeRequest = async (req, res, next) => {
 
 exports.serveRejectPage = async (req, res, next) => {
   try {
-    const { id } = req.query;
-    if (!id) return res.status(400).send('Merge request ID is missing.');
+    const { timingSafeEqualStr, escapeHtml } = require('../utils/tokens');
+    const { id, token } = req.query;
+    if (!id || !token) return res.status(400).send('Merge request ID or token is missing.');
 
     const mr = await courierService.getMergeRequestById(id);
-    if (!mr || mr.status !== 'pending') {
+    if (!mr || !mr.approvalToken || !timingSafeEqualStr(String(token), mr.approvalToken)) {
+      return res.status(403).send('<h2 style="color:#ef4444;">Invalid or expired merge approval token.</h2>');
+    }
+    if (mr.status !== 'pending') {
       return res.status(400).send(`<h2 style="color:#ef4444;">Merge request is invalid or has already been processed.</h2>`);
     }
 
@@ -277,9 +326,10 @@ exports.serveRejectPage = async (req, res, next) => {
       </head>
       <body>
         <h3 style="margin-top:0; color:#ef4444;">Reject Merge Request</h3>
-        <p>Please enter the reason for rejecting the parcel merge request from <strong>${mr.requesterEmail}</strong>:</p>
+        <p>Please enter the reason for rejecting the parcel merge request from <strong>${escapeHtml(mr.requesterEmail)}</strong>:</p>
         <form action="/api/courier-dispatch/merge/reject" method="POST">
-          <input type="hidden" name="id" value="${mr.id}">
+          <input type="hidden" name="id" value="${escapeHtml(mr.id)}">
+          <input type="hidden" name="token" value="${escapeHtml(token)}">
           <textarea name="reason" rows="4" required placeholder="Type reason here..."></textarea><br>
           <button type="submit">Submit Rejection</button>
         </form>
@@ -294,12 +344,18 @@ exports.serveRejectPage = async (req, res, next) => {
 
 exports.rejectMergeRequest = async (req, res, next) => {
   try {
-    const { id, reason } = req.body;
-    if (!id || !reason) return res.status(400).send('Missing ID or reason.');
+    const { timingSafeEqualStr, escapeHtml } = require('../utils/tokens');
+    const { id, token, reason } = req.body;
+    if (!id || !token || !reason) return res.status(400).send('Missing ID, token, or reason.');
+
+    const mr = await courierService.getMergeRequestById(id);
+    if (!mr || !mr.approvalToken || !timingSafeEqualStr(String(token), mr.approvalToken)) {
+      return res.status(403).send('<h3>Invalid or expired merge approval token.</h3>');
+    }
 
     const result = await courierService.rejectMergeRequest(id, reason);
     if (!result.success) {
-      return res.status(400).send(`<h3>${result.error}</h3>`);
+      return res.status(400).send(`<h3>${escapeHtml(result.error)}</h3>`);
     }
 
     res.send(`

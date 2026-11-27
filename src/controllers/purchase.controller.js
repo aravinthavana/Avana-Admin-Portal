@@ -129,14 +129,20 @@ const exportPdf = async (req, res) => {
 
 const handleEmailAction = async (req, res) => {
     try {
+        const { verifyActionToken, escapeHtml } = require('../utils/tokens');
         const { id } = req.params;
         const { action } = req.query;
+        const token = req.query?.token || req.body?.token;
         if (!['Approve', 'Reject', 'Discuss'].includes(action)) {
             return res.status(400).send('Invalid action.');
         }
         
         const purchase = await purchaseService.getPurchaseById(id);
         if (!purchase) return res.status(404).send('Not found.');
+
+        if (!verifyActionToken('purchase', purchase.id, token, purchase.createdAt || '')) {
+            return res.status(403).send('Invalid or expired approval token.');
+        }
 
         if (req.method === 'GET' && (action === 'Approve' || action === 'Reject' || action === 'Discuss')) {
             return res.send(`
@@ -145,7 +151,8 @@ const handleEmailAction = async (req, res) => {
                     <div style="background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-width: 500px; width: 100%;">
                         <h2 style="margin-top: 0; color: #0f172a;">Provide Reason for ${action === 'Reject' ? 'Rejection' : action === 'Approve' ? 'Approval' : 'Discussion'}</h2>
                         <p style="color: #475569; margin-bottom: 20px;">Please provide the reason below. This will be sent back to the admin and logged in the portal.</p>
-                        <form method="POST" action="/api/purchase/${id}/action?action=${action}">
+                        <form method="POST" action="/api/purchase/${escapeHtml(id)}/action?action=${escapeHtml(action)}&token=${encodeURIComponent(token)}">
+                            <input type="hidden" name="token" value="${escapeHtml(token)}" />
                             <textarea name="comments" rows="5" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; margin-bottom: 20px; font-family: sans-serif;" required placeholder="Please enter your reason here..."></textarea>
                             <br/>
                             <button type="submit" style="padding: 12px 24px; background: #0f172a; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; width: 100%;">Submit & Notify Admin</button>
@@ -173,7 +180,7 @@ const handleEmailAction = async (req, res) => {
         res.send(`
             <html><body style="font-family:sans-serif;text-align:center;padding:50px;background:#f8fafc;">
                 <div style="background:white;padding:40px;border-radius:8px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);max-width:500px;margin:0 auto;">
-                    <h2 style="color: #16a34a; margin-top: 0;">Action Completed: ${status}</h2>
+                    <h2 style="color: #16a34a; margin-top: 0;">Action Completed: ${escapeHtml(status)}</h2>
                     <p style="color: #475569;">The purchase request has been updated successfully and the admin has been notified.</p>
                     <p style="color: #94a3b8; font-size: 0.9em; margin-bottom: 0;">You can safely close this window.</p>
                 </div>

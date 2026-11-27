@@ -6,53 +6,42 @@ const prisma = require('../config/db');
 
 // Prisma: read bookings
 const getBookings = async () => {
-  try {
-    const rows = await prisma.booking.findMany({
-      orderBy: { createdAt: 'desc' }
-    });
-    return rows;
-  } catch (err) {
-    console.error('Error reading bookings:', err);
-    return [];
-  }
+  return prisma.booking.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
+};
+
+const getBookingById = async (id) => {
+  return prisma.booking.findUnique({ where: { id } });
 };
 
 // Prisma: Insert or update a booking
 const saveBooking = async (b) => {
-  try {
-    await prisma.booking.upsert({
-      where: { id: b.id },
-      update: {
-        name: b.name, email: b.email, phone: b.phone, date: b.date,
-        startDate: b.startDate, endDate: b.endDate, bookingType: b.bookingType,
-        startTime: b.startTime, endTime: b.endTime, reason: b.reason,
-        attendees: b.attendees, remarks: b.remarks, food: b.food,
-        foodSpecify: b.foodSpecify, foodCount: b.foodCount,
-        createdAt: b.createdAt, status: b.status
-      },
-      create: {
-        id: b.id, name: b.name, email: b.email, phone: b.phone, date: b.date,
-        startDate: b.startDate, endDate: b.endDate, bookingType: b.bookingType,
-        startTime: b.startTime, endTime: b.endTime, reason: b.reason,
-        attendees: b.attendees, remarks: b.remarks, food: b.food,
-        foodSpecify: b.foodSpecify, foodCount: b.foodCount,
-        createdAt: b.createdAt, status: b.status
-      }
-    });
-    return true;
-  } catch (err) {
-    console.error('Error writing booking:', err);
-    return false;
-  }
+  await prisma.booking.upsert({
+    where: { id: b.id },
+    update: {
+      name: b.name, email: b.email, phone: b.phone, date: b.date,
+      startDate: b.startDate, endDate: b.endDate, bookingType: b.bookingType,
+      startTime: b.startTime, endTime: b.endTime, reason: b.reason,
+      attendees: b.attendees, remarks: b.remarks, food: b.food,
+      foodSpecify: b.foodSpecify, foodCount: b.foodCount,
+      createdAt: b.createdAt, status: b.status
+    },
+    create: {
+      id: b.id, name: b.name, email: b.email, phone: b.phone, date: b.date,
+      startDate: b.startDate, endDate: b.endDate, bookingType: b.bookingType,
+      startTime: b.startTime, endTime: b.endTime, reason: b.reason,
+      attendees: b.attendees, remarks: b.remarks, food: b.food,
+      foodSpecify: b.foodSpecify, foodCount: b.foodCount,
+      createdAt: b.createdAt, status: b.status
+    }
+  });
+  return true;
 };
 
 const deleteBooking = async (id) => {
-  try {
-    await prisma.booking.delete({ where: { id } });
-    return true;
-  } catch (err) {
-    return false;
-  }
+  await prisma.booking.delete({ where: { id } });
+  return true;
 };
 
 // Convert "HH:MM" to minutes from midnight
@@ -130,9 +119,44 @@ exports.checkConflict = (newBooking, existingBookings) => {
   return null;
 };
 
+const createBookingAtomic = async (newBooking) => {
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.booking.findMany();
+    const conflictError = exports.checkConflict(newBooking, existing);
+    if (conflictError) {
+      return { conflictError };
+    }
+    const created = await tx.booking.create({
+      data: {
+        id: newBooking.id,
+        name: newBooking.name,
+        email: newBooking.email,
+        phone: newBooking.phone,
+        date: newBooking.date,
+        startDate: newBooking.startDate,
+        endDate: newBooking.endDate,
+        bookingType: newBooking.bookingType,
+        startTime: newBooking.startTime,
+        endTime: newBooking.endTime,
+        reason: newBooking.reason,
+        attendees: newBooking.attendees,
+        remarks: newBooking.remarks,
+        food: newBooking.food,
+        foodSpecify: newBooking.foodSpecify,
+        foodCount: newBooking.foodCount,
+        createdAt: newBooking.createdAt,
+        status: newBooking.status
+      }
+    });
+    return { booking: created };
+  });
+};
+
 exports.getAllBookings = getBookings;
+exports.getBookingById = getBookingById;
 exports.saveBooking = saveBooking;
 exports.deleteBooking = deleteBooking;
+exports.createBookingAtomic = createBookingAtomic;
 
 const NOTIFICATION_CC = env.NOTIFICATION_CC;
 

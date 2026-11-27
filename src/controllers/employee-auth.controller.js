@@ -246,7 +246,6 @@ exports.setPassword = async (req, res, next) => {
     const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
     const newStored = `${salt}:${hash}`;
 
-    const emailLower = email.toLowerCase();
     await prisma.employeeCredential.upsert({
       where: { email: emailLower },
       update: { passwordHash: newStored },

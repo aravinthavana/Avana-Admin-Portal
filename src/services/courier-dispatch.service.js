@@ -419,7 +419,9 @@ exports.updateDispatch = async (id, data, requesterEmail, host) => {
         })
       });
     }
-    let totalAmount = 0;
+  }
+
+  let totalAmount = 0;
   const itemsData = (data.items || []).map(it => {
     const qty = parseInt(it.qty, 10) || 1;
     const rate = parseFloat(it.rate) || 0;

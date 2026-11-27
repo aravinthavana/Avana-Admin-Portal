@@ -591,7 +591,7 @@ export default function UserManagementPage() {
           title="Register New Employee"
         >
           <form onSubmit={handleCreateUser}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="responsive-grid-2">
               <FormField label="Full Name *" required>
                 <input
                   type="text"
@@ -615,7 +615,7 @@ export default function UserManagementPage() {
               </FormField>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+            <div className="responsive-grid-2" style={{ marginTop: '0.5rem' }}>
               <FormField label="Phone Number">
                 <input
                   type="tel"
@@ -641,7 +641,7 @@ export default function UserManagementPage() {
               </FormField>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+            <div className="responsive-grid-2" style={{ marginTop: '0.5rem' }}>
               <FormField label="Role">
                 <select
                   className="form-input"
@@ -669,7 +669,7 @@ export default function UserManagementPage() {
               </FormField>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+            <div className="responsive-grid-2" style={{ marginTop: '0.5rem' }}>
               <FormField label="Initial Password (Optional)" hint="Leave blank if employee logs in via Email OTP">
                 <input
                   type="password"
@@ -721,7 +721,7 @@ export default function UserManagementPage() {
           title={`<LuPencil size={13} style={{ marginRight: "0.25rem" }} /> Edit User: ${editingUser.name}`}
         >
           <form onSubmit={handleUpdateUser}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="responsive-grid-2">
               <FormField label="Full Name *" required>
                 <input
                   type="text"
@@ -743,7 +743,7 @@ export default function UserManagementPage() {
               </FormField>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+            <div className="responsive-grid-2" style={{ marginTop: '0.5rem' }}>
               <FormField label="Phone Number">
                 <input
                   type="tel"
@@ -769,7 +769,7 @@ export default function UserManagementPage() {
               </FormField>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+            <div className="responsive-grid-2" style={{ marginTop: '0.5rem' }}>
               <FormField label="Role">
                 <select
                   className="form-input"

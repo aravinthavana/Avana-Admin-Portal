@@ -441,7 +441,7 @@ export default function BookingPage() {
             }}>
               {calendarDays.map((cell, idx) => {
                 if (!cell.dateStr) {
-                  return <div key={`empty-${idx}`} style={{ aspectRatio: '1', minHeight: 52 }} />;
+                  return <div key={`empty-${idx}`} className="responsive-calendar-cell" />;
                 }
                 const booked = getBookedMinutes(bookings, cell.dateStr);
                 const colorKey = getDayColor(cell.dateStr, booked, today);
@@ -458,9 +458,8 @@ export default function BookingPage() {
                     disabled={isPast}
                     aria-label={`${formatDateDisplay(cell.dateStr)}${colorKey === 'full' ? ' – Fully booked' : colorKey === 'partial' ? ' – Partially booked' : colorKey === 'available' ? ' – Available' : ' – Past date'}`}
                     aria-pressed={isSelected}
+                    className="responsive-calendar-cell"
                     style={{
-                      aspectRatio: '1',
-                      minHeight: 52,
                       border: isSelected
                         ? '2px solid var(--brand-amber)'
                         : isToday

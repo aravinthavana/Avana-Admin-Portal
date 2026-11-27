@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { employeeApi, helpdeskApi, courierApi, locationsApi } from '../lib/api';
+import WaveBackground from '../components/WaveBackground';
 import {
   LuCalendar, LuPenTool, LuSparkles, LuBriefcase, LuWrench,
   LuSprayCan, LuMonitor, LuPrinter, LuTruck, LuMessageSquare,
@@ -1879,8 +1880,8 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
       {activeTab === 'all-dcs' && <AllDispatchesHistory onRefill={handleRecallAndRefill} />}
 
       {activeTab === 'challan' && (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-6)', alignItems: 'flex-start' }}>
-        <div style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      <div className="responsive-courier-layout">
+        <div className="responsive-courier-main">
 
         {/* Recall Edit Banner */}
         {form._recalledDcId && (
@@ -1917,7 +1918,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
             </button>
           </div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+        <div className="responsive-grid-2">
           <FormField label="Delivery Challan No *" required htmlFor="cd-dc-no" error={errors?.dcNo}>
             <input 
               id="cd-dc-no" 
@@ -1937,7 +1938,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
           </FormField>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+        <div className="responsive-grid-2">
           <FormField label="Shipment Category / Remarks" required htmlFor="cd-remarks">
             <select id="cd-remarks" className="form-select" value={form.remarksType || 'Service'}
               onChange={e => setForm(f => ({ ...f, remarksType: e.target.value }))}>
@@ -1984,7 +1985,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
           </FormField>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+        <div className="responsive-grid-2">
           <FormField label="Courier Billing" required htmlFor="cd-billing">
             <select id="cd-billing" className="form-select" value={form.courierBilling || ''}
               onChange={e => setForm(f => ({ ...f, courierBilling: e.target.value }))}>
@@ -2069,7 +2070,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
           <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 'var(--space-3)' }}>Box Details (Dimensions & Weight)</h4>
           <div style={{ display: 'grid', gap: 'var(--space-2)' }}>
             {boxes.map((bx, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+              <div key={idx} className="responsive-box-row">
                 <span style={{ fontSize: '0.85rem', fontWeight: 600, width: 45 }}>Box {idx + 1}</span>
                 <input type="text" className="form-input" placeholder="Dimensions (optional)" value={bx.dim || ''}
                   onChange={e => { const arr = [...boxes]; arr[idx].dim = e.target.value; updateBoxes(arr); }} style={{ flex: 1 }} />
@@ -2098,7 +2099,7 @@ function CourierDispatchForm({ form, setForm, errors, onTabChange }) {
         </div>
 
         {/* Merge Request Sidebar */}
-        <div style={{ flex: '0 0 320px', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-4)', position: 'sticky', top: '20px' }}>
+        <div className="responsive-courier-aside">
           <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 'var(--space-2)', color: 'var(--brand-amber)' }}>Merge Parcel</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>Combine your dispatch with an existing one to save shipping costs.</p>
           <CourierMergeForm userEmail={employeeEmail} />
@@ -2129,7 +2130,7 @@ function HelpdeskDashboard() {
   }
 
   return (
-    <div style={{ padding: 'var(--space-6)', maxWidth: 1140, margin: '0 auto' }}>
+    <div className="page-container" style={{ padding: 'var(--space-6)', maxWidth: 1140, margin: '0 auto' }}>
       {/* ── Standout Hero Banner ── */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -2146,16 +2147,8 @@ function HelpdeskDashboard() {
           overflow: 'hidden'
         }}
       >
-        {/* Subtle decorative amber glow */}
-        <motion.div
-          animate={{ opacity: [0.65, 1, 0.65], scale: [1, 1.06, 1] }}
-          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-          style={{
-            position: 'absolute', top: '-40px', right: '-40px', width: '220px', height: '220px',
-            background: 'radial-gradient(circle, rgba(178, 127, 13, 0.24) 0%, rgba(178, 127, 13, 0) 70%)',
-            borderRadius: '50%', pointerEvents: 'none'
-          }}
-        />
+        {/* Interactive warm-amber wave backdrop */}
+        <WaveBackground variant="hero" />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{

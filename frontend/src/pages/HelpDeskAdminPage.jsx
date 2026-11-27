@@ -407,7 +407,7 @@ function MainDashboardView() {
       {/* ── Operational Zones Navigation Grid ── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 270px), 1fr))',
         gap: '1.5rem',
         maxWidth: 1200,
         margin: '0 auto'
@@ -529,7 +529,7 @@ function SecuritySubView() {
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 270px), 1fr))',
         gap: '1.25rem',
         maxWidth: 800
       }}>

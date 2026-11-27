@@ -734,7 +734,7 @@ export default function AdminDashPage() {
           const hasFood = b.food && b.food !== 'none';
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+              <div className="responsive-grid-2" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
                 <div>
                   <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Booking ID</strong>
                   <span style={{ fontWeight: 600, color: 'var(--color-info)' }}>#{String(b.id).slice(0, 8).toUpperCase()}</span>
@@ -748,7 +748,7 @@ export default function AdminDashPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
+              <div className="responsive-grid-2" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-3)' }}>
                 <div>
                   <strong style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: 2 }}>Meeting Date(s)</strong>
                   <span style={{ fontWeight: 600, color: '#172025' }}>

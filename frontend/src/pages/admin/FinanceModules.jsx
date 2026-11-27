@@ -652,7 +652,7 @@ export function UtilityPaymentsPage({ api }) {
 
       <Modal isOpen={showAddForm} onClose={() => setShowAddForm(false)} title="Add New Utility Connection">
         <form onSubmit={handleAddNew}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+          <div className="responsive-grid-2" style={{ marginBottom: 'var(--space-4)' }}>
             <FormField label="Utility Type" required>
               <select className="form-input" value={addForm.utility_type} onChange={e=>setAddForm(f=>({...f, utility_type: e.target.value}))} required>
                 <option value="electricity">Electricity</option><option value="broadband">Broadband</option><option value="mobile">Mobile Bill</option><option value="landline">Landline</option><option value="water">Water Tax</option><option value="other">Other</option>
@@ -1451,7 +1451,7 @@ export function TravelExpensePage() {
               </FormField>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+            <div className="responsive-grid-2" style={{ marginBottom: 'var(--space-4)' }}>
               <FormField label="Mode of Travel *" required>
                 <select className="form-select" value={addForm.mode} onChange={e => setAddForm(f => ({ ...f, mode: e.target.value }))}>
                   <option value="Bike">Bike (₹5 / KM)</option>
@@ -1907,7 +1907,7 @@ export function PurchaseApprovalPage() {
             <input type="text" className="form-input" value={addForm.itemName} onChange={e => setAddForm(f => ({ ...f, itemName: e.target.value }))} required />
           </FormField>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="responsive-grid-2">
             <FormField label="Quantity" required>
               <input type="number" min="1" className="form-input" value={addForm.quantity} onChange={e => setAddForm(f => ({ ...f, quantity: parseInt(e.target.value) || 1 }))} required />
             </FormField>
@@ -1920,7 +1920,7 @@ export function PurchaseApprovalPage() {
             <input type="text" className="form-input" value={(addForm.quantity * (parseFloat(addForm.amount) || 0)).toFixed(2)} disabled style={{ background: '#f9f9fb' }} />
           </FormField>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="responsive-grid-2">
             <FormField label="Mode of Purchase" required>
               <select className="form-select" value={addForm.modeOfPurchase} onChange={e => setAddForm(f => ({ ...f, modeOfPurchase: e.target.value }))} required>
                 <option>Amazon</option>

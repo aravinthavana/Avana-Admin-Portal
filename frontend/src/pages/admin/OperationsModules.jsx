@@ -736,7 +736,7 @@ function GlobalAddressSettings() {
         Addresses added here will be available to all employees in the Courier Dispatch form under "Company Addresses".
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: 'var(--space-6)', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 290px), 1fr))', gap: 'var(--space-6)', alignItems: 'start' }}>
         {/* Add/Edit Form */}
         <div style={{ padding: 'var(--space-4)', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', position: 'sticky', top: 'var(--space-4)' }}>
           <h4 style={{ fontSize: '0.9rem', marginBottom: 'var(--space-4)' }}>{editingId ? 'Edit Address' : 'Add New Address'}</h4>
@@ -1829,7 +1829,7 @@ export function BillWarrantyPage() {
             </div>
 
             {/* Attachments (Optional) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+            <div className="responsive-grid-2" style={{ marginBottom: 'var(--space-4)' }}>
               <FormField label="Attach Purchase Bill (PDF or Image)" hint="Optional attachment">
                 <input type="file" accept="image/*,.pdf" className="form-input" onChange={e => handleFileUpload(e, 'billFileUrl', 'billFileName')} />
                 {addForm.billFileName && <div style={{ fontSize: '0.8rem', color: 'var(--color-primary)', marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><LuFileText size={13} /> Attached: {addForm.billFileName}</div>}

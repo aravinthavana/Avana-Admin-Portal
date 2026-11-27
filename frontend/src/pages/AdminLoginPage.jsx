@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { adminApi } from '../lib/api';
 import { AvanaLogo } from '../components/ui';
+import WaveBackground from '../components/WaveBackground';
 import {
   LuShield,
   LuLock,
@@ -43,8 +44,8 @@ export default function AdminLoginPage() {
 
   return (
     <div className="login-page">
-      {/* Background decorative elements */}
-      <div className="login-page__bg" aria-hidden="true" />
+      {/* Interactive warm-amber wave backdrop */}
+      <WaveBackground variant="login" />
 
       {/* Top navigation back to Employee Portal */}
       <Link

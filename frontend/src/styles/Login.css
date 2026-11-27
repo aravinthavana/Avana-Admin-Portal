@@ -25,11 +25,21 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(23, 32, 37, 0.06) 1px, transparent 1px);
-  background-size: 24px 24px;
-  mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, black 25%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, black 25%, transparent 75%);
-  animation: loginBgPulse 8s ease-in-out infinite;
+  z-index: 0;
+}
+
+/* Layer interactive card and top-right toggle cleanly above WaveBackground */
+.login-page__card {
+  position: relative;
+  z-index: 2;
+}
+
+.login-page__admin-btn {
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #172025 !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
 }
 
 @media (prefers-reduced-motion: reduce) {
